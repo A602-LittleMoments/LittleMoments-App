@@ -44,7 +44,7 @@ ktlint = "12.1.0"
 # kotlin 관련
 kotlinxCoroutines = "1.10.1"
 kotlinxDatetime = "0.6.1"
-kotlinxSerializationJson = "1.8.0"
+kotlinxSerializationJson = "1.9.0"
 appcompat = "1.7.1"
 material = "1.10.0"
 # retrofit

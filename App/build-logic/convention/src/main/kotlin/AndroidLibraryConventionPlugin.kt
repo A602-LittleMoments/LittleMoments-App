@@ -62,6 +62,17 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
 //                configurePrintApksTask(this)
                 disableUnnecessaryAndroidTests(target)
             }
+            /* Serialize 오류를 해결하기 위해서 사용
+            tasks.withType<KotlinCompile>().configureEach {
+                compilerOptions {
+                    freeCompilerArgs.addAll(
+                        "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
+                        "-opt-in=kotlinx.serialization.InternalSerializationApi"
+                    )
+                }
+            }
+            */
+
             dependencies {
                 "androidTestImplementation"(libs.findLibrary("kotlin.test").get())
                 "testImplementation"(libs.findLibrary("kotlin.test").get())

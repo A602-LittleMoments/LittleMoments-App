@@ -1,11 +1,12 @@
 import com.android.build.api.variant.BuildConfigField
 import java.io.StringReader
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     alias(libs.plugins.commonproject.android.library)
     alias(libs.plugins.commonproject.hilt)
-    id("kotlinx-serialization")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -45,5 +46,14 @@ androidComponents {
         it.buildConfigFields!!.put("BACKEND_URL", backendUrl.map { value ->
             BuildConfigField(type = "String", value = """"$value"""", comment = null)
         })
+    }
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
+            "-opt-in=kotlinx.serialization.InternalSerializationApi"
+        )
     }
 }
