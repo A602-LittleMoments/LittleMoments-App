@@ -1,11 +1,11 @@
 plugins {
-    alias(libs.plugins.baseandroid.android.library)
-    alias(libs.plugins.baseandroid.android.room)
-    alias(libs.plugins.baseandroid.hilt)
+    alias(libs.plugins.commonproject.android.library)
+    alias(libs.plugins.commonproject.android.room)
+    alias(libs.plugins.commonproject.hilt)
 }
 
 android {
-    namespace = "com.kguard.baseandroid.database"
+    namespace = "com.a602.commonproject.database"
 }
 
 dependencies {

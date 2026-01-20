@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.baseandroid.jvm.library)
-    alias(libs.plugins.baseandroid.hilt)
+    alias(libs.plugins.commonproject.jvm.library)
+    alias(libs.plugins.commonproject.hilt)
 }
 dependencies {
     implementation(libs.kotlinx.coroutines.core)

@@ -1,3 +1,3 @@
 plugins {
-   alias(libs.plugins.baseandroid.jvm.library)
+   alias(libs.plugins.commonproject.jvm.library)
 }

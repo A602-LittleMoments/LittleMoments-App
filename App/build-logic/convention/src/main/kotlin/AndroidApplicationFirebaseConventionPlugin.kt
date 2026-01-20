@@ -14,9 +14,9 @@
  *   limitations under the License.
  */
 
+import com.a602.commonproject.libs
 import com.android.build.api.dsl.ApplicationExtension
 import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
-import com.kguard.baseandroid.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply

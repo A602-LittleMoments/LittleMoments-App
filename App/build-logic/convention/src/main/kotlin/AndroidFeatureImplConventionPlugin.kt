@@ -15,8 +15,8 @@
  */
 
 import com.android.build.api.dsl.LibraryExtension
-import com.kguard.baseandroid.configureGradleManagedDevices
-import com.kguard.baseandroid.libs
+import com.a602.commonproject.configureGradleManagedDevices
+import com.a602.commonproject.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
@@ -26,8 +26,8 @@ import org.gradle.kotlin.dsl.dependencies
 class AndroidFeatureImplConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            apply(plugin = "baseandroid.android.library")
-            apply(plugin = "baseandroid.hilt")
+            apply(plugin = "commonproject.android.library")
+            apply(plugin = "commonproject.hilt")
 
             extensions.configure<LibraryExtension> {
                 testOptions.animationsDisabled = true

@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.android.lint)
 }
 
-group = "com.kguard.baseandroid.buildlogic"
+group = "com.a602.commonproject.buildlogic"
 
 // 빌드 로직 플러그인을 JDK 17을 대상으로 구성합니다.
 // 이는 프로젝트 빌드에 사용된 JDK와 일치하며, 기기에서 실행 중인 JDK와는 관련이 없습니다.
@@ -42,47 +42,47 @@ tasks {
 gradlePlugin {
     plugins {
         register("androidApplication"){
-            id = libs.plugins.baseandroid.android.application.asProvider().get().pluginId
+            id = libs.plugins.commonproject.android.application.asProvider().get().pluginId
             implementationClass = "AndroidApplicationConventionPlugin"
         }
         register("androidApplicationCompose") {
-            id = libs.plugins.baseandroid.android.application.compose.get().pluginId
+            id = libs.plugins.commonproject.android.application.compose.get().pluginId
             implementationClass = "AndroidApplicationComposeConventionPlugin"
         }
         register("androidLibrary") {
-            id = libs.plugins.baseandroid.android.library.asProvider().get().pluginId
+            id = libs.plugins.commonproject.android.library.asProvider().get().pluginId
             implementationClass = "AndroidLibraryConventionPlugin"
         }
         register("androidLibraryCompose") {
-            id = libs.plugins.baseandroid.android.library.compose.get().pluginId
+            id = libs.plugins.commonproject.android.library.compose.get().pluginId
             implementationClass = "AndroidLibraryComposeConventionPlugin"
         }
         register("jvmLibrary") {
-            id = libs.plugins.baseandroid.jvm.library.get().pluginId
+            id = libs.plugins.commonproject.jvm.library.get().pluginId
             implementationClass = "JvmLibraryConventionPlugin"
         }
         register("hilt"){
-            id = libs.plugins.baseandroid.hilt.get().pluginId
+            id = libs.plugins.commonproject.hilt.get().pluginId
             implementationClass = "HiltConventionPlugin"
         }
         register("androidRoom") {
-            id = libs.plugins.baseandroid.android.room.get().pluginId
+            id = libs.plugins.commonproject.android.room.get().pluginId
             implementationClass = "AndroidRoomConventionPlugin"
         }
         register("root") {
-            id = libs.plugins.baseandroid.root.get().pluginId
+            id = libs.plugins.commonproject.root.get().pluginId
             implementationClass = "RootPlugin"
         }
         register("androidLint") {
-            id = libs.plugins.baseandroid.android.lint.get().pluginId
+            id = libs.plugins.commonproject.android.lint.get().pluginId
             implementationClass = "AndroidLintConventionPlugin"
         }
         register("ktlint"){
-            id = libs.plugins.baseandroid.ktlint.get().pluginId
+            id = libs.plugins.commonproject.ktlint.get().pluginId
             implementationClass = "KtlintConventionPlugin"
         }
         register("androidFirebase") {
-            id = libs.plugins.baseandroid.android.application.firebase.get().pluginId
+            id = libs.plugins.commonproject.android.application.firebase.get().pluginId
             implementationClass = "AndroidApplicationFirebaseConventionPlugin"
         }
     }

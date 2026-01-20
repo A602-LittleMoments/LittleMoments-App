@@ -1,10 +1,10 @@
 plugins {
-    alias(libs.plugins.baseandroid.android.library)
-    alias(libs.plugins.baseandroid.android.library.compose)
+    alias(libs.plugins.commonproject.android.library)
+    alias(libs.plugins.commonproject.android.library.compose)
 }
 
 android {
-    namespace = "com.kguard.baseandroid.designsystem"
+    namespace = "com.a602.commonproject.designsystem"
     testOptions.unitTests.isIncludeAndroidResources = true
 }
 

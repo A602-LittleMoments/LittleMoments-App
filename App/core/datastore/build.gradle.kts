@@ -1,11 +1,11 @@
 plugins {
-    alias(libs.plugins.baseandroid.android.library)
-    alias(libs.plugins.baseandroid.hilt)
+    alias(libs.plugins.commonproject.android.library)
+    alias(libs.plugins.commonproject.hilt)
     alias(libs.plugins.protobuf)
 }
 
 android {
-    namespace = "com.kguard.baseandroid.datastore"
+    namespace = "com.a602.commonproject.datastore"
     defaultConfig {
         consumerProguardFiles("consumer-proguard-rules.pro")
     }

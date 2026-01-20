@@ -1,10 +1,10 @@
 plugins {
-    alias(libs.plugins.baseandroid.android.library)
-    alias(libs.plugins.baseandroid.hilt)
+    alias(libs.plugins.commonproject.android.library)
+    alias(libs.plugins.commonproject.hilt)
 }
 
 android {
-    namespace = "com.kguard.baseandroid.notifications"
+    namespace = "com.a602.commonproject.notifications"
 
 }
 

@@ -1,13 +1,13 @@
 plugins {
-    alias(libs.plugins.baseandroid.android.library)
-    alias(libs.plugins.baseandroid.hilt)
+    alias(libs.plugins.commonproject.android.library)
+    alias(libs.plugins.commonproject.hilt)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace = "com.kguard.baseandroid.navigation"
+    namespace = "com.a602.commonproject.navigation"
 }
 
 dependencies {

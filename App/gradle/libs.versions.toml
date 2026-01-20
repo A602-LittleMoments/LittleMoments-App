@@ -218,14 +218,14 @@ firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "
 firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "firebasePerfPlugin" }
 
 # 이 프로젝트에서 정의한 플러그인들
-baseandroid-android-application = { id = "baseandroid.android.application" }
-baseandroid-android-application-compose = { id = "baseandroid.android.application.compose" }
-baseandroid-android-library = { id = "baseandroid.android.library" }
-baseandroid-android-library-compose = { id = "baseandroid.android.library.compose" }
-baseandroid-jvm-library = { id = "baseandroid.jvm.library" }
-baseandroid-hilt = { id = "baseandroid.hilt" }
-baseandroid-android-room = { id = "baseandroid.android.room" }
-baseandroid-root = { id = "baseandroid.root" }
-baseandroid-android-lint = { id = "baseandroid.android.lint" }
-baseandroid-ktlint = { id = "baseandroid.ktlint" }
-baseandroid-android-application-firebase = { id = "baseandroid.android.application.firebase" }
+commonproject-android-application = { id = "commonproject.android.application" }
+commonproject-android-application-compose = { id = "commonproject.android.application.compose" }
+commonproject-android-library = { id = "commonproject.android.library" }
+commonproject-android-library-compose = { id = "commonproject.android.library.compose" }
+commonproject-jvm-library = { id = "commonproject.jvm.library" }
+commonproject-hilt = { id = "commonproject.hilt" }
+commonproject-android-room = { id = "commonproject.android.room" }
+commonproject-root = { id = "commonproject.root" }
+commonproject-android-lint = { id = "commonproject.android.lint" }
+commonproject-ktlint = { id = "commonproject.ktlint" }
+commonproject-android-application-firebase = { id = "commonproject.android.application.firebase" }

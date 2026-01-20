@@ -15,7 +15,7 @@
  */
 
 import com.android.build.gradle.api.AndroidBasePlugin
-import com.kguard.baseandroid.libs
+import com.a602.commonproject.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply

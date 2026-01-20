@@ -22,7 +22,7 @@ import org.gradle.kotlin.dsl.dependencies
 class AndroidFeatureApiConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            apply(plugin = "baseandroid.android.library")
+            apply(plugin = "commonproject.android.library")
             apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
 
             dependencies {

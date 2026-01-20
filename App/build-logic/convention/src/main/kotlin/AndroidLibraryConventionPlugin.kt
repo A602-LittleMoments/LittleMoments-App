@@ -16,10 +16,10 @@
 
 import com.android.build.api.dsl.LibraryExtension
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
-import com.kguard.baseandroid.configureGradleManagedDevices
-import com.kguard.baseandroid.configureKotlinAndroid
-import com.kguard.baseandroid.disableUnnecessaryAndroidTests
-import com.kguard.baseandroid.libs
+import com.a602.commonproject.configureGradleManagedDevices
+import com.a602.commonproject.configureKotlinAndroid
+import com.a602.commonproject.disableUnnecessaryAndroidTests
+import com.a602.commonproject.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
@@ -40,8 +40,8 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
         with(target) {
             apply(plugin = "com.android.library")
             apply(plugin = "org.jetbrains.kotlin.android")
-            apply(plugin = "baseandroid.android.lint")
-            apply(plugin = "baseandroid.ktlint")
+            apply(plugin = "commonproject.android.lint")
+            apply(plugin = "commonproject.ktlint")
 
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)

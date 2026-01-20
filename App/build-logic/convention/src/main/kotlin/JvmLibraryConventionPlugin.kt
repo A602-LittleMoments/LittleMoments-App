@@ -15,8 +15,8 @@
  */
 
 
-import com.kguard.baseandroid.configureKotlinJvm
-import com.kguard.baseandroid.libs
+import com.a602.commonproject.configureKotlinJvm
+import com.a602.commonproject.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
@@ -30,8 +30,8 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             apply(plugin = "org.jetbrains.kotlin.jvm")
-            apply(plugin = "baseandroid.android.lint")
-            apply(plugin = "baseandroid.ktlint")
+            apply(plugin = "commonproject.android.lint")
+            apply(plugin = "commonproject.ktlint")
 
             configureKotlinJvm()
             dependencies {

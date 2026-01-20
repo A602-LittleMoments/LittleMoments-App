@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import com.kguard.baseandroid.configureGraphTasks
+import com.a602.commonproject.configureGraphTasks
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 

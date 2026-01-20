@@ -3,13 +3,13 @@ import java.io.StringReader
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.baseandroid.android.library)
-    alias(libs.plugins.baseandroid.hilt)
+    alias(libs.plugins.commonproject.android.library)
+    alias(libs.plugins.commonproject.hilt)
     id("kotlinx-serialization")
 }
 
 android {
-    namespace = "com.kguard.baseandroid.network"
+    namespace = "com.a602.commonproject.network"
     testOptions.unitTests.isIncludeAndroidResources = true
     buildFeatures { // BuildConfig라는 특별한 Java/Kotlin 클래스를 자동으로 생성하도록 설정하는 옵션
         buildConfig = true

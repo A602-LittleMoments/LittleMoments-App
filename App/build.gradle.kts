@@ -13,5 +13,5 @@ plugins {
     alias(libs.plugins.firebase.perf) apply false
     alias(libs.plugins.gms) apply false
     alias(libs.plugins.google.osslicenses) apply false
-    alias(libs.plugins.baseandroid.root)
+    alias(libs.plugins.commonproject.root)
 }

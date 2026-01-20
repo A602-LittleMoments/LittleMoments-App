@@ -14,10 +14,11 @@
  *   limitations under the License.
  */
 
+import com.a602.commonproject.configureGradleManagedDevices
+import com.a602.commonproject.configureKotlinAndroid
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
-import com.kguard.baseandroid.configureGradleManagedDevices
-import com.kguard.baseandroid.configureKotlinAndroid
+
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -32,8 +33,8 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         with(target) {
             apply(plugin = "com.android.application")
             apply(plugin = "org.jetbrains.kotlin.android")
-            apply(plugin = "baseandroid.android.lint")
-            apply(plugin = "baseandroid.ktlint")
+            apply(plugin = "commonproject.android.lint")
+            apply(plugin = "commonproject.ktlint")
 //            apply(plugin = "com.dropbox.dependency-guard")
 
             extensions.configure<ApplicationExtension> {

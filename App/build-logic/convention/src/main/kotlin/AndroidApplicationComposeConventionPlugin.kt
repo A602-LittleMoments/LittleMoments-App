@@ -14,8 +14,8 @@
  *   limitations under the License.
  */
 
+import com.a602.commonproject.configureAndroidCompose
 import com.android.build.api.dsl.ApplicationExtension
-import com.kguard.baseandroid.configureAndroidCompose
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
