@@ -33,6 +33,7 @@ androidxLifecycleViewModelNavigation3 = "2.10.0"
 # hilt
 hilt = "2.57.2"
 hiltExt = "1.2.0"
+androidxHiltLifecycleViewModelCompose = "1.3.0-alpha02"
 # room
 room = "2.8.3"
 # tracing
@@ -136,7 +137,7 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.r
 hilt-core = { group = "com.google.dagger", name = "hilt-core", version.ref = "hilt" }
 hilt-ext-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }
 hilt-ext-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
-
+androidx-hilt-lifecycle-viewModelCompose = { group = "androidx.hilt", name = "hilt-lifecycle-viewmodel-compose", version.ref = "androidxHiltLifecycleViewModelCompose" }
 # workmanager
 androidx-work-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "androidxWork" }
 androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "androidxWork" }
@@ -222,6 +223,8 @@ commonproject-android-application = { id = "commonproject.android.application" }
 commonproject-android-application-compose = { id = "commonproject.android.application.compose" }
 commonproject-android-library = { id = "commonproject.android.library" }
 commonproject-android-library-compose = { id = "commonproject.android.library.compose" }
+commonproject-android-feature-impl = { id = "commonproject.android.feature.impl" }
+commonproject-android-feature-api = { id = "commonproject.android.feature.api" }
 commonproject-jvm-library = { id = "commonproject.jvm.library" }
 commonproject-hilt = { id = "commonproject.hilt" }
 commonproject-android-room = { id = "commonproject.android.room" }

@@ -85,5 +85,14 @@ gradlePlugin {
             id = libs.plugins.commonproject.android.application.firebase.get().pluginId
             implementationClass = "AndroidApplicationFirebaseConventionPlugin"
         }
+
+        register("androidFeatureImpl") {
+            id = libs.plugins.commonproject.android.feature.impl.get().pluginId
+            implementationClass = "AndroidFeatureImplConventionPlugin"
+        }
+        register("androidFeatureApi") {
+            id = libs.plugins.commonproject.android.feature.api.get().pluginId
+            implementationClass = "AndroidFeatureApiConventionPlugin"
+        }
     }
 }
