@@ -1,14 +1,11 @@
 plugins {
     alias(libs.plugins.commonproject.android.application)
     alias(libs.plugins.commonproject.android.application.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
     namespace = "com.a602.commonproject"
-    compileSdk {
-        version = release(36)
-    }
-
     defaultConfig {
         applicationId = "com.a602.commonproject"
         versionCode = 1

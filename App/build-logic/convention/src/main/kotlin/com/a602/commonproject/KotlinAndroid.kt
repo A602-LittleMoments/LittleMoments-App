@@ -19,32 +19,33 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
  * Android 환경에 특화된 Kotlin 설정을 수행
  */
 internal fun Project.configureKotlinAndroid(
-    commonExtension: CommonExtension<*, *, *, *, *, *>
+    commonExtension: CommonExtension,
 ) {
     commonExtension.apply {
         // 버전 설정
         compileSdk = 36
 
-        defaultConfig{
+        defaultConfig.apply {
             minSdk = 31
         }
 
         // 호환성 설정, 이전 기기에서도 사용 가능
-        compileOptions {
+        compileOptions.apply {
             // Java 11 이상의 API들 사용가능 -> desugaring을 사용하기 위해서
             // https://developer.android.com/studio/write/java11-minimal-support-table
             sourceCompatibility = JavaVersion.VERSION_11
             targetCompatibility = JavaVersion.VERSION_11
             isCoreLibraryDesugaringEnabled = true
         }
-
-        // 공통 kotlin 옵션 적용
-        configureKotlin<KotlinAndroidProjectExtension>()
-
-        dependencies {
-            "coreLibraryDesugaring"(libs.findLibrary("android.desugarJdkLibs").get())
-        }
     }
+
+    // 공통 kotlin 옵션 적용
+    configureKotlin<KotlinAndroidProjectExtension>()
+
+    dependencies {
+        "coreLibraryDesugaring"(libs.findLibrary("android.desugarJdkLibs").get())
+    }
+
 }
 
 /**
@@ -78,9 +79,6 @@ private inline fun <reified  T : KotlinBaseExtension> Project.configureKotlin() 
         is KotlinJvmProjectExtension -> compilerOptions
         else -> TODO("Unsupported project extension $this ${T::class}")
     }.apply {
-        // TODO: AGP 9.0으로 업그레이드 후 languageVersion 및 coreLibrariesVersion을 제거해야 합니다.
-        languageVersion.set(KotlinVersion.KOTLIN_2_2)
-        coreLibrariesVersion = "2.2.21"
         jvmTarget = JvmTarget.JVM_11
         allWarningsAsErrors = warningsAsErrors
         freeCompilerArgs.add(

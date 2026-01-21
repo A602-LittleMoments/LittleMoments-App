@@ -32,7 +32,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             apply(plugin = "com.android.application")
-            apply(plugin = "org.jetbrains.kotlin.android")
+//            apply(plugin = "org.jetbrains.kotlin.android")
             apply(plugin = "commonproject.android.lint")
             apply(plugin = "commonproject.ktlint")
 //            apply(plugin = "com.dropbox.dependency-guard")
@@ -40,7 +40,6 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             extensions.configure<ApplicationExtension> {
                 configureKotlinAndroid(this)
                 defaultConfig.targetSdk = 36
-                @Suppress("UnstableApiUsage")
                 testOptions.animationsDisabled = true
                 configureGradleManagedDevices(this)
             }

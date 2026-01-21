@@ -1,0 +1,27 @@
+package com.a602.commonproject.database
+
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import com.a602.commonproject.database.dao.BabyDao
+import com.a602.commonproject.database.dao.MediaDao
+import com.a602.commonproject.database.dao.SlideshowDao
+import com.a602.commonproject.database.model.BabyEntity
+import com.a602.commonproject.database.model.ShareMediaEntity
+import com.a602.commonproject.database.model.SlideshowEntity
+import com.a602.commonproject.database.model.TempMediaEntity
+
+@Database(
+    entities = [
+        TempMediaEntity::class,
+        ShareMediaEntity::class,
+        SlideshowEntity::class,
+        BabyEntity::class
+    ],
+    version = 1,
+    exportSchema = true
+)
+internal abstract class LMDatabase : RoomDatabase(){
+    abstract fun mediaDao() : MediaDao
+    abstract fun babyDao() : BabyDao
+    abstract fun slideshowDao() : SlideshowDao
+}
