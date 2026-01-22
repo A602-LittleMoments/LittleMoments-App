@@ -17,6 +17,7 @@ androidxBrowser = "1.8.0"
 gmsPlugin = "4.4.4"
 googleOss = "17.1.0"
 googleOssPlugin = "0.10.9"
+androidxStartup = "1.2.0"
 
 # 추가 Compose
 androidxComposeFoundation = "1.10.1"
@@ -90,6 +91,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
 google-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "googleOss" }
+androidx-startup = { group = "androidx.startup", name = "startup-runtime", version.ref = "androidxStartup" }
 
 #kotlin 관련
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
