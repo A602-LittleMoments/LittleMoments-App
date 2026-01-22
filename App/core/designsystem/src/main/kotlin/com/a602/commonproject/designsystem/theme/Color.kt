@@ -4,13 +4,13 @@ import androidx.compose.ui.graphics.Color
 
 // 앱에서 전반적으로 사용할 colors 모음 -> 피그마 명칭 기준
 
-val main = Color(0xFFFFFAEB)    // 메인 색상
+val main = Color(0xFF6ca0ff)   // 메인 색상
 
-val main2 = Color(0xFFFFFEFB)   // 밝은 메인 색상
+val background = Color(0xFFFFFAEB)    // 배경 색상
 
-val blue1 = Color(0xFF6ca0ff)   // 파랑1 : 주로 버튼 색상
+val lightbackground = Color(0xFFFFFEFB)   // 밝은 배경 색상
 
-val blue2 = Color(0xFFEBF0FF)   // 밝은 파랑 색상
+val lightblue = Color(0xFFEBF0FF)   // 밝은 파랑 색상
 
 val color1 = Color(0xFFFFC800)  // 노랑1
 
