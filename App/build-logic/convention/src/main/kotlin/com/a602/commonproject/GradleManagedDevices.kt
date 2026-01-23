@@ -32,7 +32,7 @@ import kotlin.text.replace
  * Gradle로 관리되는 장치에 맞게 프로젝트를 구성합니다.
  */
 internal fun configureGradleManagedDevices(
-    commonExtension: CommonExtension<*, *, *, *, *, *>,
+    commonExtension: CommonExtension,
 ) {
     val pixel4 = DeviceConfig("Pixel 4", 30, "aosp-atd")
     val pixel6 = DeviceConfig("Pixel 6", 31, "aosp")
@@ -41,14 +41,11 @@ internal fun configureGradleManagedDevices(
     val deviceConfigs = listOf(pixel4, pixel6, pixelC)
     val ciDevices = listOf(pixel4, pixelC)
 
-    commonExtension.testOptions {
+    commonExtension.testOptions.apply {
         managedDevices {
             allDevices {
                 deviceConfigs.forEach { deviceConfig ->
-                    maybeCreate(
-                        deviceConfig.taskName,
-                        ManagedVirtualDevice::class.java
-                    ).apply {
+                    maybeCreate(deviceConfig.taskName, ManagedVirtualDevice::class.java).apply {
                         device = deviceConfig.device
                         apiLevel = deviceConfig.apiLevel
                         systemImageSource = deviceConfig.systemImageSource
@@ -58,7 +55,7 @@ internal fun configureGradleManagedDevices(
             groups {
                 maybeCreate("ci").apply {
                     ciDevices.forEach { deviceConfig ->
-                        targetDevices.add(allDevices[deviceConfig.taskName])
+                        targetDevices.add(localDevices[deviceConfig.taskName])
                     }
                 }
             }

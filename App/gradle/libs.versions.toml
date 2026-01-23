@@ -1,8 +1,8 @@
 [versions]
 androidDesugarJdkLibs = "2.1.4"
 # AGP와 도구들은 같이 업그래이드 되어야 함
-androidGradlePlugin = "8.13.2"
-androidTools = "31.13.1"
+androidGradlePlugin = "9.0.0"
+androidTools = "32.0.0"
 kotlin = "2.3.0"
 ksp = "2.3.4"
 coreKtx = "1.17.0"
@@ -17,6 +17,7 @@ androidxBrowser = "1.8.0"
 gmsPlugin = "4.4.4"
 googleOss = "17.1.0"
 googleOssPlugin = "0.10.9"
+androidxStartup = "1.2.0"
 
 # 추가 Compose
 androidxComposeFoundation = "1.10.1"
@@ -90,6 +91,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
 google-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "googleOss" }
+androidx-startup = { group = "androidx.startup", name = "startup-runtime", version.ref = "androidxStartup" }
 
 #kotlin 관련
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
@@ -180,7 +182,7 @@ firebase-performance = { group = "com.google.firebase", name = "firebase-perf" }
 
 # build-logic에 포함된 의존성들
 android-tools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
-android-gradleApiPlugin = { group = "com.android.tools.build", name = "gradle-api", version.ref = "androidGradlePlugin" }
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle-api", version.ref = "androidGradlePlugin" }
 compose-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }

@@ -11,10 +11,10 @@ import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginE
 * Compose 관련 옵션을 구성합니다.
 */
 internal fun Project.configureAndroidCompose(
-    commonExtension: CommonExtension<*, *, *, *, *, *>,
+    commonExtension: CommonExtension,
 ){
     commonExtension.apply {
-        buildFeatures {
+        buildFeatures.apply {
             compose = true // 프로젝트에서 Compose 기능을 활성화합니다.
         }
 

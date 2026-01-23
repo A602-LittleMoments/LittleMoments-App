@@ -20,7 +20,7 @@ kotlin {
 }
 
 dependencies{
-    compileOnly(libs.android.gradleApiPlugin)
+    compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.compose.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
