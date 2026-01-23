@@ -28,6 +28,9 @@ val gray1 = Color(0xFFd1d1d0)   // 회색1
 
 val gray2 = Color(0xFF616160)   // 회색2
 
+// 아이디/비밀번호 변경 시 나오는 빨간색 글씨
+val errorRed = Color(0xFFE53935) // 빨간색상
+
 // ai 하이라이트 생성 로딩 화면에 들어가는 colors
 
 val purple1 = Color(0xFFFFC4E1)
