@@ -17,54 +17,79 @@ val SuiteFontFamily = FontFamily(
 )
 
 
-// 1. 첫 로딩 페이지
-val LoadingTextStyle = TextStyle(
-    fontSize = 20.sp,
-    lineHeight = 35.sp,
-    fontFamily = SuiteFontFamily,
-    fontWeight = FontWeight.Bold,
-    color = color3,
-    textAlign = TextAlign.Center,
-    letterSpacing = 2.sp
-)
-
-// 2. 통합 타이포그래피 세트
+// 통합 타이포그래피 세트
 val AppTypography = Typography(
-    // 가장 크고 굵은 스타일 (로딩/강조)
-    displayMedium = LoadingTextStyle,
-
-    // [입력창 제목] "이메일", "현재 비밀번호 *"
-    titleSmall = TextStyle(
+    // 헤드라인 글씨(최상단 글씨) -> 해당 페이지 위치
+    headlineLarge = TextStyle(
+        fontSize = 20.sp,
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 14.sp,
-        color = color3  // 짙은 갈색
+        textAlign = TextAlign.Center,
+        color = color3,
     ),
 
-    // [버튼용] "로그인", "변경하기"
-    labelLarge = TextStyle(
+    // 조그마한 헤드라인 글씨
+    headlineMedium = TextStyle(
+        fontSize = 15.sp,
         fontFamily = SuiteFontFamily,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.Normal,
+        textAlign = TextAlign.Center,
+    ),
+
+    headlineSmall = TextStyle(
         fontSize = 16.sp,
-        textAlign = TextAlign.Center
+        lineHeight = 24.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Bold,
     ),
 
-    // [에러 문구] "비밀번호가 일치하지 않습니다."
+    // 첫 로딩 페이지 글씨, ai 하이라이트 생성 로딩 화면
+    bodyLarge = TextStyle(
+        fontSize = 24.sp,
+        lineHeight = 35.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center,
+        letterSpacing = 2.sp,
+        color = color3,
+    ),
+
+    // 가장 많이 쓰는 텍스트 스타일(크기만 다르게 적용하면 됨)
+    bodyMedium = TextStyle(
+        fontSize = 18.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center,
+        color = color3,
+    ),
+
+    // [메인 버튼용] "로그인", "변경하기", "구글로 로그인", "카카오톡으로 로그인" 등
+    labelLarge = TextStyle(
+        fontSize = 16.sp,
+        lineHeight = 20.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center,
+        color = main,
+        letterSpacing = 2.4.sp,
+    ),
+
+    // [입력창 글씨] "이름", "이메일", "현재 비밀번호"
+    // "아직 아이랑 나랑 회원이 아니신가요? 회원가입"
+    labelMedium = TextStyle(
+        fontSize = 14.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Medium,
+        color = color3,
+    ),
+
+    // 자동 로그인, 비밀번호 찾기 문구(색깔만 바꾸면 됨)
+    // [에러 문구] "비밀번호가 일치하지 않습니다.", "영문/숫자 조합..." (빨간색 + lineHeight = 17.06.sp 지우기)
     labelSmall = TextStyle(
+        fontSize = 12.sp,
+        lineHeight = 17.06.sp,
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        color = errorRed // 에러 빨간색
-    ),
-
-    // [안내 문구] "영문/숫자 조합..." (조금 더 연한 색)
-    bodySmall = TextStyle(
-        fontFamily = SuiteFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        color = color4 // 연한 갈색
-    ),
-
-    //
+    )
 
 )
