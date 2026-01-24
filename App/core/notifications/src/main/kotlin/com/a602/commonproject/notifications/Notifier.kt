@@ -8,7 +8,8 @@ interface Notifier {
     fun postNotification(
         id : Int,
         title: String,
-        content : String
+        content : String,
+        deepLinkUri : String? = null
         // 필요하면 딥 링크나 아이콘 등을 인자로 추가가능
     )
 }
