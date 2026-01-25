@@ -40,7 +40,7 @@ fun RowScope.LMNavigationBarItem(
     NavigationBarItem(
         selected = selected,
         onClick = onClick,
-        icon = if (selected) selectedIcon else icon,
+        icon = icon,
         modifier = modifier,
         enabled = enabled,
         label = label,
@@ -63,7 +63,7 @@ fun LMNavigationBar(
 ) {
     NavigationBar(
         modifier = modifier,
-        containerColor = background, // 배경색 적용
+        containerColor = background,
         contentColor = LMNavigationDefaults.navigationContentColor(),
         tonalElevation = 0.dp,
         content = content,
