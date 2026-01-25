@@ -36,9 +36,9 @@ fun rememberNavigationState(
 
 /**
  * "내비게이션 상태를 보유하는 클래스(State holder)입니다."
- * • startKey: 시작 내비게이션 키입니다. 사용자는 이 키(화면)를 통해 앱을 종료하게 됩니다.
- * • topLevelStack: 최상위 백스택입니다. 최상위 키들만 보유합니다.
- * • subStacks: 각 최상위 키(탭)에 대한 개별 백스택들입니다.
+ * • [startKey]: 앱 실행 시 표시되는 최초의 화면이자, 뒤로가기 탐색을 통해 앱을 종료하기 전 마지막으로 도달하게 되는 기준점입니다.
+ * • [topLevelStack]: 최상위 목적지(하단 탭 등) 간의 이동 이력을 관리하여, 서로 다른 탭 사이에서 발생하는 뒤로가기 탐색을 지원하는 백스택입니다.
+ * • [subStacks]:  각 최상위 목적지별로 독립적인 화면 적재 기록을 맵(Map) 형태로 유지하여, 탭 전환 시에도 각 탭 내부의 탐색 상태를 보존하는 데이터 구조입니다.
  *  현재 앱이 어디에 있는지, 각 탭의 뒤로가기 기록은 어떠한지를 저장하는 데이터 바구니입니다.
  */
 class NavigationState(
@@ -47,8 +47,12 @@ class NavigationState(
     val subStacks: Map<NavKey, NavBackStack<NavKey>>,
 ) {
     // 현재 선택 된 탭 (예 : 홈탭, 설정 탭)
+    // topLevelStack에서 가장 최근에 추가된(마지막) 요소를 반환합니다.
+    // 사용자가 현재 활성화하여 보고 있는 최상위 카테고리(탭)가 무엇인지 나타내며, derivedStateOf를 통해 스택이 변경될 때마다 상태를 동적으로 갱신합니다.
     val currentTopLevelKey: NavKey by derivedStateOf { topLevelStack.last() }
 
+    //  subStacks 맵의 모든 키를 반환합니다.
+    //  앱에 정의된 모든 최상위 목적지들의 전체 집합을 의미하며, 주로 내비게이션 UI(하단 바 등)를 구성하는 기준 데이터로 사용됩니다.
     val topLevelKeys get() = subStacks.keys
 
     // 현재 탭 안에서의 화면 스택 (예시 : 홈 탭 안에서의 상세화면)
