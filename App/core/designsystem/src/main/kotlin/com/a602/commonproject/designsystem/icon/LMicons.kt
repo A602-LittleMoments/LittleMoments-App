@@ -22,11 +22,16 @@ import androidx.compose.material.icons.outlined.Photo
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
+import com.a602.commonproject.designsystem.R
 
 object LMicons {
     val Close = Icons.Default.Close //닫기
@@ -51,7 +56,7 @@ object LMicons {
 
     val Notifications = Icons.Outlined.Notifications
 
-    val Star = Icons.Outlined.StarOutline
+    val Star = Icons.Outlined.Star
 
     val Mypage = Icons.Outlined.AccountCircle
 
@@ -74,5 +79,28 @@ object LMicons {
     val Add = Icons.Outlined.Add // +
 
     val Heart = Icons.Rounded.Favorite
+
+    // 알림 타입 정하고 사용
+//    fun notification(type: LMNotificationType): ImageVector {
+//        return when (type) {
+//            LMNotificationType.FAMILY -> Notifications
+//            LMNotificationType.LOVE -> Heart
+//            LMNotificationType.HIGHLIGHT -> Star
+//            LMNotificationType.MEMORY -> Calendar
+//        }
+//    }
+
+    // 임시용 알림창 아이콘
+    @Composable
+    fun notification(type: String): ImageVector {
+        return when (type) {
+            "FAMILY" -> Notifications
+            "LOVE" -> Heart
+            "HIGHLIGHT" -> Star
+            "Date" -> ImageVector.vectorResource(id = R.drawable.plant)
+            else -> Star
+        }
+    }
+
 
 }

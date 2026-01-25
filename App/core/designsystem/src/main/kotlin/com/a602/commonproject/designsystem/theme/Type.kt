@@ -70,7 +70,7 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center,
-        color = main,
+        color = lightbackground,
         letterSpacing = 2.4.sp,
     ),
 
