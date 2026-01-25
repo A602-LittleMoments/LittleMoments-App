@@ -63,7 +63,7 @@ fun LMNavigationBar(
 ) {
     NavigationBar(
         modifier = modifier,
-        containerColor = background,
+        containerColor = background, // 배경색 적용
         contentColor = LMNavigationDefaults.navigationContentColor(),
         tonalElevation = 0.dp,
         content = content,
