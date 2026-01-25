@@ -20,7 +20,7 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FormatAlignLeft
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -83,7 +83,7 @@ fun FabMenuExample() {
             contentColor = lightbackground
         ) {
             Icon(
-                imageVector = if (expanded) Icons.Default.Close else Icons.Default.FormatAlignLeft,
+                imageVector = if (expanded) Icons.Default.Close else Icons.Default.Menu,
                 contentDescription = null
             )
         }

@@ -32,9 +32,7 @@ import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.color4
 
-/**
- * 프로젝트 공통 카드 컴포넌트
- */
+
 @Composable
 fun LMCard(
     title: String,
@@ -65,7 +63,7 @@ fun LMCard(
             Box(
                 modifier = Modifier
                     .size(56.dp)
-                    .shadow(6.dp, CircleShape)   // 1️⃣ 먼저 그림자
+                    .shadow(6.dp, CircleShape)
                     .clip(CircleShape)
                     .background(LMCardDefaults.iconBackgroundColor()),
                 contentAlignment = Alignment.Center
@@ -134,18 +132,12 @@ object LMCardDefaults {
     fun iconBackgroundColor(): Color = background
 
     @Composable
-    fun iconTintColor(): Color = MaterialTheme.colorScheme.primary
-
-    @Composable
     fun titleColor(): Color = color3
 
     @Composable
     fun descriptionColor(): Color = color3
     @Composable
     fun timeColor(): Color = color4
-
-    @Composable
-    fun thumbnailBackgroundColor(): Color = MaterialTheme.colorScheme.surfaceVariant
 
     @Composable
     fun elevation() = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
@@ -195,7 +187,8 @@ fun LMCardPreview() {
                 description = "1년 전 오늘을 기억하시나요?",
                 time = "1시간 전",
                 type = "HIGHLIGHT",
-                imageUrl = "https://via.placeholder.com/150"
+                imageUrl = "https://via.placeholder.com/150/E0E0E0/777777"
+
 
             )
             LMCard(

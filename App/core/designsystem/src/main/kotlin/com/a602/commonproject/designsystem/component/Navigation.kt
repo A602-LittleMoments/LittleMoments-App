@@ -34,7 +34,6 @@ fun RowScope.LMNavigationBarItem(
     enabled: Boolean = true,
     alwaysShowLabel: Boolean = true,
     icon: @Composable () -> Unit,
-    selectedIcon: @Composable () -> Unit = icon,
     label: @Composable (() -> Unit)? = null,
 ) {
     NavigationBarItem(
