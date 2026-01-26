@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -22,8 +20,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.color5
 import com.a602.commonproject.designsystem.theme.gray2
+import com.a602.commonproject.designsystem.R
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.offset
+
+//Preview용
+import androidx.compose.material3.Surface
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import com.a602.commonproject.designsystem.theme.lightbackground
+
 
 @Composable
 fun CircularPhotoPicker(
@@ -59,18 +70,96 @@ fun CircularPhotoPicker(
             )
         } else {
             Icon(
-                imageVector = Icons.Outlined.AddAPhoto,
+                imageVector = LMicons.Camera,
                 contentDescription = "add photo",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = lightbackground,
                 modifier = Modifier.size(40.dp)
             )
         }
     }
 }
 
+@Composable
+fun AstronautPhotoPicker(
+    imageUri: Uri?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+
+    // 얼굴 설정
+    headSize: Dp = 180.dp,
+
+    // 우주복 설정 (네가 조절할 핵심 포인트)
+    bodyResId: Int = R.drawable.astronaut_body,
+    bodyWidth: Dp = 240.dp,
+    bodyOffsetY: Dp = 130.dp
+) {
+    val extraBottom =
+        if (bodyOffsetY + bodyWidth > headSize) {
+            bodyOffsetY + bodyWidth - headSize
+        } else {
+            0.dp
+        }
+    Box(
+        modifier = modifier.padding(bottom = extraBottom),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        // 1️⃣ 얼굴 (기존 컴포넌트 그대로 사용)
+        CircularPhotoPicker(
+            imageUri = imageUri,
+            onClick = onClick,
+            size = headSize
+        )
+
+        // 2️⃣ 우주복 (항상 얼굴 아래)
+        Image(
+            painter = painterResource(bodyResId),
+            contentDescription = null,
+            modifier = Modifier
+                .offset(y = bodyOffsetY)
+                .size(bodyWidth),
+            contentScale = ContentScale.Fit
+        )
+    }
+}
+
 // 사용 예시
 // Photo Picker 사용해서 갤러리에서 사진 고르기
-// 우주복은 실제 사용할 때 밑에 넣어야 함
+
+@Preview(showBackground = true, backgroundColor = 0xFFF6F1E8)
+@Composable
+private fun Preview_CircularPhotoPicker_Empty() {
+    MaterialTheme {
+        Surface {
+            CircularPhotoPicker(
+                imageUri = null,
+                onClick = {},
+                modifier = Modifier.padding(24.dp)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF6F1E8)
+@Composable
+private fun Preview_AstronautPhotoPicker_Empty() {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.wrapContentSize()
+        ) {
+            AstronautPhotoPicker(
+                imageUri = null,
+                onClick = {},
+                modifier = Modifier.padding(24.dp),
+
+                // 필요하면 여기서 값 조절하면서 위치 맞추기
+                headSize = 180.dp,
+                bodyWidth = 240.dp,
+                bodyOffsetY = 130.dp
+            )
+        }
+    }
+}
+
 
 //import android.net.Uri
 //import androidx.activity.compose.rememberLauncherForActivityResult
