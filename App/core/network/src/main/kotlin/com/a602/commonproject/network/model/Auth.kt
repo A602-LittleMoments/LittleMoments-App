@@ -14,7 +14,7 @@ data class User(
     val profileImageUrl: String? = null
 )
 
-// 1.1 회원가입 (Multipart 내의 'data' 파트에 들어갈 JSON)
+// 1.1 회원가입 (Multipart 내의 'data' 파트에 들어갈 JSON) 요청
 @InternalSerializationApi
 @Serializable
 data class SignupRequest(
