@@ -1,7 +1,11 @@
 package com.a602.commonproject.network.di
 
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
 import javax.inject.Inject
 import kotlin.jvm.Throws
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.fold
+import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 import okio.IOException
@@ -9,6 +13,7 @@ import okio.IOException
 class AuthInterceptor @Inject constructor(
     // ⚠️ TODO: 나중에 :core:datastore 모듈 만들면 TokenManager 주입 받아야 함
     // private val tokenManager: TokenManager
+    private val userPreferences: UserPreferencesDataSource
 ) : Interceptor{
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -26,9 +31,18 @@ class AuthInterceptor @Inject constructor(
         }
         else {
             // [CASE 2] 토큰 필요함 (일반적인 경우)
-            // TODO: 실제로는 DataStore에서 저장된 토큰을 꺼내와야 함
-            val accessToken = "TEMP_ACCESS_TOKEN"
-            requestBuilder.header("Authorization","Bearer $accessToken")
+            // ⚠️ 중요: Interceptor는 동기(Synchronous) 방식인데, DataStore는 비동기(Flow)입니다.
+            // 그래서 'runBlocking'을 사용해 데이터를 꺼낼 때까지 잠시 기다리게 합니다.
+            // (네트워크 요청은 이미 백그라운드 스레드에서 돌고 있어서 안전합니다.)
+            val accessToken = runBlocking {
+                userPreferences.accessToken.first()
+            }
+
+            // 토큰이 있으면 넣고, 없으면 빈 문자열(또는 처리 안 함)
+            // (토큰 없이 보내면 서버가 401 에러를 줄 테니 자연스럽게 처리됨)
+            if (!accessToken.isNullOrEmpty()) {
+                requestBuilder.header("Authorization", "Bearer $accessToken")
+            }
         }
         return chain.proceed(requestBuilder.build())
     }
