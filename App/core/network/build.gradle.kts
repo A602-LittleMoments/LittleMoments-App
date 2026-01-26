@@ -1,11 +1,12 @@
 import com.android.build.api.variant.BuildConfigField
 import java.io.StringReader
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     alias(libs.plugins.commonproject.android.library)
     alias(libs.plugins.commonproject.hilt)
-    id("kotlinx-serialization")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -32,18 +33,27 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
 }
 
-val backendUrl = providers.fileContents(
-    isolated.rootProject.projectDirectory.file("local.properties")
+val baseUrl = providers.fileContents(
+    rootProject.layout.projectDirectory.file("local.properties")
 ).asText.map { text ->
     val properties = Properties()
     properties.load(StringReader(text))
-    properties["BACKEND_URL"]
+    properties["BASE_URL"]
 }.orElse("http://example.com")
 
 androidComponents {
     onVariants {
-        it.buildConfigFields!!.put("BACKEND_URL", backendUrl.map { value ->
-            BuildConfigField(type = "String", value = """"$value"""", comment = null)
+        it.buildConfigFields!!.put("BASE_URL", baseUrl.map { value ->
+            BuildConfigField(type = "String", value = "\"$value\"", comment = null)
         })
+    }
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
+            "-opt-in=kotlinx.serialization.InternalSerializationApi"
+        )
     }
 }

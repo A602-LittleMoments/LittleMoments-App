@@ -74,7 +74,26 @@ private inline fun <reified  T : KotlinBaseExtension> Project.configureKotlin() 
         it.toBoolean()
     }.orElse(false)
 
-    when (this) {
+
+    val options = when (val extension = this) {
+        is KotlinAndroidProjectExtension -> extension.compilerOptions
+        is KotlinJvmProjectExtension -> extension.compilerOptions
+        else -> TODO("Unsupported project extension $this ${T::class}")
+    }
+
+    options.apply {
+        jvmTarget.set(JvmTarget.JVM_11) // .set() 사용 권장
+        allWarningsAsErrors.set(warningsAsErrors)
+
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlinx.serialization.InternalSerializationApi",
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            // Kotlin 2.3.0 근처라면 이 플래그가 곧 제거될 예정이니 주석의 예고대로 잘 관리하고 계시네요!
+            "-Xconsistent-data-class-copy-visibility"
+        )
+    }
+
+    /*when (this) {
         is KotlinAndroidProjectExtension -> compilerOptions
         is KotlinJvmProjectExtension -> compilerOptions
         else -> TODO("Unsupported project extension $this ${T::class}")
@@ -82,11 +101,14 @@ private inline fun <reified  T : KotlinBaseExtension> Project.configureKotlin() 
         jvmTarget = JvmTarget.JVM_11
         allWarningsAsErrors = warningsAsErrors
         freeCompilerArgs.add(
+            "-opt-in=kotlinx.serialization.InternalSerializationApi",
+        )
+        freeCompilerArgs.add(
             // Enable experimental coroutines APIs, including Flow
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
         )
         freeCompilerArgs.add(
-            /**
+            *//**
              *  3단계 이후에는 이 인수를 제거합니다.
              *  https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-consistent-copy-visibility/#deprecation-timeline
              *  사용 중단 일정
@@ -95,8 +117,8 @@ private inline fun <reified  T : KotlinBaseExtension> Project.configureKotlin() 
              *  ExposedCopyVisibility를 사용하지 않는 경우, 생성된 'copy' 메서드는 기본 생성자와 동일한 가시성을 갖습니다.
              *  바이너리 시그니처가 변경됩니다. 선언 시 오류가 더 이상 보고되지 않습니다.
              *  '-Xconsistent-data-class-copy-visibility' 컴파일러 플래그와 ConsistentCopyVisibility 어노테이션은 이제 더 이상 필요하지 않습니다.
-             */
+             *//*
             "-Xconsistent-data-class-copy-visibility"
         )
-    }
+    }*/
 }
