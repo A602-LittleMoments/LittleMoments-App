@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "babies")
 data class BabyEntity(
     @PrimaryKey val babyId : String,
-    val name : String,
+    val babyName : String,
     val birthDate : Long,
     val profileUrl: String,           // 서버 URL (없으면 기본 아이콘 표시)
 
