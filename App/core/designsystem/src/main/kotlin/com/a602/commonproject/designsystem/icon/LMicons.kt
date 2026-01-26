@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.ChildCare
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Notifications
@@ -40,7 +41,7 @@ object LMicons {
 
     val Back = Icons.Outlined.ArrowBackIosNew //뒤로가기
 
-    val Download = Icons.Outlined.Download
+    val Download = Icons.Outlined.FileDownload
 
     val Delete = Icons.Outlined.Delete
 

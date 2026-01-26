@@ -1,9 +1,11 @@
 package com.a602.commonproject.designsystem.component
 
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,12 +20,14 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -199,8 +203,10 @@ fun RoleItem(
 
 @Composable
 fun GroupRoleSelectDialog(
+    closeIcon: ImageVector= Icons.Default.Close,
     onDismiss: () -> Unit,
-    onConfirm: (Boolean) -> Unit
+    onConfirm: (Boolean) -> Unit,
+    onCloseClick: () -> Unit
 ) {
     var isMemberSelected by remember { mutableStateOf(true) }
 
@@ -247,16 +253,32 @@ fun GroupRoleSelectDialog(
                         RoundedCornerShape(28.dp)
                     )
                     .padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "그룹원 추가 코드",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = LMGroupDialogDefaults.titleColor()
-                )
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text(
+                        text = "그룹원 추가 코드",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = LMGroupDialogDefaults.titleColor(),
+                        textAlign = TextAlign.Center
+                    )
+
+                    IconButton(onClick = onCloseClick,
+//                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Icon(
+                            imageVector = closeIcon,
+                            contentDescription = "닫기"
+                        )
+                    }
+                }
                 Spacer(Modifier.height(20.dp))
+
                 RoleItem(
                     icon = Icons.Outlined.Lock,
                     title = "멤버",
@@ -339,7 +361,8 @@ fun GroupRoleSelectDialogPreview() {
     MaterialTheme {
         GroupRoleSelectDialog(
             onDismiss = {},
-            onConfirm = {}
+            onConfirm = {},
+            onCloseClick={}
         )
     }
 }

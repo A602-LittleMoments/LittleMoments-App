@@ -1,6 +1,5 @@
 package com.a602.commonproject.designsystem.component
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -14,6 +13,8 @@ import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.designsystem.theme.lightbackground
 import androidx.compose.ui.tooling.preview.Preview
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.designsystem.theme.background
+import com.a602.commonproject.designsystem.theme.color3
 
 
 /**
@@ -201,65 +202,67 @@ fun CameraButton(
     }
 }
 
-@Preview(
-    name = "Common Buttons",
-    showBackground = true,
-    backgroundColor = 0xFFF5F5F5,
-    widthDp = 360,
-    heightDp = 640
-)
+// 사진 저장 버튼
 @Composable
-fun CommonButtonPreview() {
-    MaterialTheme {   // ⚠️ 실제로는 AppTheme 쓰는 게 베스트
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = lightbackground
+fun SaveButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    saveIcon: ImageVector? = null,
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.height(50.dp).fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        contentPadding = PaddingValues(horizontal = 40.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = background,
+            contentColor = color3,
+            disabledContainerColor = main.copy(alpha = 0.35f),
+            disabledContentColor = lightbackground.copy(alpha = 0.7f),
+        )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-
-                // Full - 로그인
-                FilledButton(
-                    text = "로그인",
-                    onClick = {},
-                    size = ButtonSize.Full,
-                    modifier = Modifier.fillMaxWidth()
+                Icon(
+                    imageVector = LMicons.Download,
+                    contentDescription = null,
+                    tint = color3,
+                    modifier = Modifier.size(18.dp)
                 )
+                Spacer(modifier = Modifier.width(8.dp))
 
-                // Medium - 그룹 참여
-                FilledButton(
-                    text = "그룹 참여",
-                    onClick = {},
-                    size = ButtonSize.Medium
-                )
-
-                // Small - 캘린더 보기
-                FillWrapButton(
-                    text = "캘린더 보기",
-                    onClick = {},
-                )
-
-                // Round - 선택
-                ElevatedRoundButton(
-                    text = "선택",
-                    onClick = {}
-                )
-
-                // Counter
-                FillWrapButton(
-                    text = "저장 (3)",
-                    onClick = {}
-                )
-
-                // Icon Button
-                CameraButton(
-                    onClick = {}
+                Text(
+                    text = "저장하기",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = color3
                 )
             }
         }
+    }
+}
+
+
+
+@Preview(showBackground = true)
+@Composable
+fun SaveButtonPreview() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // 기본 버튼
+        SaveButton(
+            onClick = {}
+        )
+
     }
 }
