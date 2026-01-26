@@ -39,7 +39,8 @@ fun Polaroid(
     rearImage: ImageBitmap,     // 후면 큰 사진
     frontImage: ImageBitmap,    // 전면 작은 사진
     meta: PolaroidMeta,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    photoOverlay: (@Composable BoxScope.() -> Unit)? = null,
 ) {
     // 폴라로이드 느낌: 흰 종이 + 살짝 둥근 모서리
     val paperShape = RoundedCornerShape(18.dp)
@@ -53,7 +54,7 @@ fun Polaroid(
     ) {
         Column(
             modifier = Modifier
-                .padding(14.dp) // 종이 테두리 두께 느낌
+                .padding(20.dp) // 종이 테두리 두께 느낌
                 .fillMaxWidth()
         ) {
             // 1) 사진 영역 (후면 + 전면 PIP)
@@ -84,6 +85,8 @@ fun Polaroid(
                         .border(1.dp, lightbackground, RoundedCornerShape(12.dp)), // 종이 프레임처럼
                     contentScale = ContentScale.Crop
                 )
+
+                photoOverlay?.invoke(this)
             }
 
             Spacer(Modifier.height(12.dp))
@@ -157,3 +160,36 @@ fun PolaroidPreview_WithComment() {
         )
     }
 }
+
+// Uri → ImageBitmap 변환 코드
+//fun imageBitmapFromUri(
+//    context: Context,
+//    uri: Uri
+//): ImageBitmap {
+//    val source = ImageDecoder.createSource(context.contentResolver, uri)
+//    val bitmap = ImageDecoder.decodeBitmap(source)
+//    return bitmap.asImageBitmap()
+//}
+
+// 화면에서 Polaroid 호출 예시
+//@Composable
+//fun PolaroidItem(
+//    rearUri: Uri,
+//    frontUri: Uri,
+//    meta: PolaroidMeta
+//) {
+//    val context = LocalContext.current
+//
+//    val rearBitmap = remember(rearUri) {
+//        imageBitmapFromUri(context, rearUri)
+//    }
+//    val frontBitmap = remember(frontUri) {
+//        imageBitmapFromUri(context, frontUri)
+//    }
+//
+//    Polaroid(
+//        rearImage = rearBitmap,
+//        frontImage = frontBitmap,
+//        meta = meta
+//    )
+//}
