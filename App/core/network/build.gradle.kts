@@ -21,6 +21,7 @@ dependencies {
     api(libs.kotlinx.datetime)
     api(projects.core.common)
     api(projects.core.model)
+    api(projects.core.datastore)
 
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.svg)

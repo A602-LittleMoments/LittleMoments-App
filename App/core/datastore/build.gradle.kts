@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.commonproject.android.library)
     alias(libs.plugins.commonproject.hilt)
-    alias(libs.plugins.protobuf)
 }
 
 android {
@@ -12,7 +11,7 @@ android {
 }
 
 // Setup protobuf configuration, generating lite Java and Kotlin classes
-protobuf {
+/*protobuf {
     protoc {
         artifact = libs.protobuf.protoc.get().toString()
     }
@@ -29,12 +28,11 @@ protobuf {
             }
         }
     }
-}
+}*/
 
 dependencies {
-    api(libs.androidx.dataStore)
+    api(libs.androidx.dataStore.preferences)
     api(projects.core.model)
-    api(libs.protobuf.kotlin.lite)
 
     implementation(projects.core.common)
 
