@@ -1,5 +1,6 @@
 package com.a602.commonproject.designsystem.component
 
+import android.icu.text.CaseMap
 import androidx.annotation.StringRes
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,7 +23,7 @@ import com.a602.commonproject.designsystem.theme.color3
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LMTopAppBar(
-    @StringRes titleRes: Int,
+    title: String,
     modifier: Modifier = Modifier,
     navigationIcon: ImageVector = LMicons.Back,
     navigationIconContentDescription: String? = null,
@@ -33,9 +34,9 @@ fun LMTopAppBar(
     onActionClick: () -> Unit = {},
 ) {
     CenterAlignedTopAppBar(
-        title = {
-            Text(
-                text = stringResource(id = titleRes),
+                    title = {
+                        Text(
+                            text = title,
                 style = MaterialTheme.typography.titleMedium
             )
         },
@@ -82,7 +83,7 @@ object LMTopAppBarDefaults {
 @Composable
 private fun LMTopAppBarPreview() {
     LMTopAppBar(
-        titleRes = android.R.string.untitled,
+        title = "프리뷰",
         actionIcon = LMicons.Mypage,
     )
 }
