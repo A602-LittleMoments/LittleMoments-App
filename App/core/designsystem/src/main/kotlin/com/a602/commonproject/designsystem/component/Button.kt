@@ -12,6 +12,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.designsystem.theme.lightbackground
+import androidx.compose.ui.tooling.preview.Preview
+import com.a602.commonproject.designsystem.icon.LMicons
+
 
 /**
  * - 기본: 파란 배경 + 흰 글씨 + pill
@@ -77,6 +80,50 @@ fun FilledButton(
     }
 }
 
+// 글자 수 맞춰서 버튼 크기 조정
+@Composable
+fun FillWrapButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    leadingIcon: ImageVector? = null,
+    trailingIcon: ImageVector? = null,
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.height(36.dp), // 캡쳐 기준 small 느낌 (원하면 32.dp로 더 줄이기)
+        shape = RoundedCornerShape(18.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = main,
+            contentColor = lightbackground,
+            disabledContainerColor = main.copy(alpha = 0.35f),
+            disabledContentColor = lightbackground.copy(alpha = 0.7f),
+        ),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (leadingIcon != null) {
+                Icon(leadingIcon, contentDescription = null, tint = lightbackground)
+                Spacer(Modifier.width(6.dp))
+            }
+
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                color = lightbackground
+            )
+
+            if (trailingIcon != null) {
+                Spacer(Modifier.width(6.dp))
+                Icon(trailingIcon, contentDescription = null, tint = lightbackground)
+            }
+        }
+    }
+}
+
+
 /** "선택" 처럼 살짝 떠 있는 느낌이 있는 버튼 */
 @Composable
 fun ElevatedRoundButton(
@@ -107,48 +154,112 @@ fun ElevatedRoundButton(
     }
 }
 
-/** 남/여 같은 "화이트 + 테두리" 버튼 */
+/** "오늘의 추억 남기기 + 카메라 아이콘" */
 @Composable
-fun OutlineButton(
-    text: String,
+fun CameraButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    size: ButtonSize = ButtonSize.Full,
     enabled: Boolean = true,
+    text: String = "오늘의 추억 남기기",
 ) {
-    OutlinedButton(
+    Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(size.height),
-        shape = size.shape,
-        border = BorderStroke(1.dp, main),
-        contentPadding = PaddingValues(horizontal = size.horizontalPadding),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = lightbackground,
-            contentColor = main,
-            disabledContainerColor = lightbackground.copy(alpha = 0.7f),
-            disabledContentColor = main.copy(alpha = 0.4f)
+        modifier = modifier.height(44.dp).wrapContentWidth(),
+        shape = RoundedCornerShape(22.dp),
+        contentPadding = PaddingValues(horizontal = 40.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = main,
+            contentColor = lightbackground,
+            disabledContainerColor = main.copy(alpha = 0.35f),
+            disabledContentColor = lightbackground.copy(alpha = 0.7f),
         )
     ) {
-        Text(text, style = MaterialTheme.typography.labelLarge, color = main)
+        // 🔑 핵심: Box로 중앙 정렬을 강제
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = LMicons.Camera,
+                    contentDescription = null,
+                    tint = lightbackground,
+                    modifier = Modifier.size(18.dp)
+                )
+
+                Spacer(Modifier.width(8.dp))
+
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = lightbackground
+                )
+            }
+        }
     }
 }
 
-/** "오늘의 추억 남기기 + 카메라 아이콘" */
+@Preview(
+    name = "Common Buttons",
+    showBackground = true,
+    backgroundColor = 0xFFF5F5F5,
+    widthDp = 360,
+    heightDp = 640
+)
 @Composable
-fun PillIconButton(
-    text: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    FilledButton(
-        text = text,
-        onClick = onClick,
-        modifier = modifier,
-        size = ButtonSize.Medium,
-        enabled = enabled,
-        trailingIcon = icon
-    )
+fun CommonButtonPreview() {
+    MaterialTheme {   // ⚠️ 실제로는 AppTheme 쓰는 게 베스트
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = lightbackground
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+
+                // Full - 로그인
+                FilledButton(
+                    text = "로그인",
+                    onClick = {},
+                    size = ButtonSize.Full,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Medium - 그룹 참여
+                FilledButton(
+                    text = "그룹 참여",
+                    onClick = {},
+                    size = ButtonSize.Medium
+                )
+
+                // Small - 캘린더 보기
+                FillWrapButton(
+                    text = "캘린더 보기",
+                    onClick = {},
+                )
+
+                // Round - 선택
+                ElevatedRoundButton(
+                    text = "선택",
+                    onClick = {}
+                )
+
+                // Counter
+                FillWrapButton(
+                    text = "저장 (3)",
+                    onClick = {}
+                )
+
+                // Icon Button
+                CameraButton(
+                    onClick = {}
+                )
+            }
+        }
+    }
 }
