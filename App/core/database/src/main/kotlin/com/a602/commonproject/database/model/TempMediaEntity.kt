@@ -6,7 +6,12 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "temp_media")
 data class TempMediaEntity(
     @PrimaryKey val tempId: String, // UUID
-    val localUri : String,          // 내 폰에 원본 파일이 있음
+    val localUri : String? = null,          // 내 폰에 원본 파일이 있음
+    val subLocalUri: String? = null,
     val takenAt: Long,              // 촬영 시간
+
+    val cameraFacing: String = "DUAL",
+    val orientation : Int,
+
     val expirationDate: Long,       // 삭제 예정일 (D-Day)
     )

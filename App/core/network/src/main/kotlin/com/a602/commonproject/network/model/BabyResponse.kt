@@ -19,12 +19,12 @@ data class BabyRequest(
 @InternalSerializationApi
 @Serializable
 data class BabyListResponse(
-    val babies: List<Baby>
+    val babies: List<BabyResponse>
 )
 
 @InternalSerializationApi
 @Serializable
-data class Baby(
+data class BabyResponse(
     val babyId: String,
     val babyName: String,
     val birthDate: String,

@@ -5,7 +5,7 @@ import com.a602.commonproject.network.model.ChangePasswordRequest
 import com.a602.commonproject.network.model.LoginRequest
 import com.a602.commonproject.network.model.TokenResponse
 import com.a602.commonproject.network.model.UpdateProfileRequest
-import com.a602.commonproject.network.model.User
+import com.a602.commonproject.network.model.UserResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
@@ -44,13 +44,13 @@ internal interface RetrofitAuthApi {
 
     // 1.3 내 정보 조회
     @GET("users/me")
-    suspend fun getMyProfile(): User
+    suspend fun getMyProfile(): UserResponse
 
     // 1.3 내 정보 수정
     @PUT("users/me")
     suspend fun updateMyProfile(
         @Body request: UpdateProfileRequest
-    ): User
+    ): UserResponse
 
     // 1.4 회원 탈퇴
     @DELETE("users/me")

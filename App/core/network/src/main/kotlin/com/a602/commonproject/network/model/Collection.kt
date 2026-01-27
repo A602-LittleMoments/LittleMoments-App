@@ -7,12 +7,15 @@ import kotlinx.serialization.Serializable
 @InternalSerializationApi
 @Serializable
 data class CollectionListResponse(
-    val keywords: List<CollectionKeyword>
+    val keywords: List<CollectionKeyword>,
 )
 
 @InternalSerializationApi
 @Serializable
 data class CollectionKeyword(
+    val categoryId: String,
+    val categoryValue: String,
     val keywordId: String,
-    val value: String
+    val keywordValue: String,
+    val collectionSize : Int
 )
