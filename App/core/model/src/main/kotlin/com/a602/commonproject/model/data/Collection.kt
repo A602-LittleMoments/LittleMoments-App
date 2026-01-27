@@ -6,6 +6,9 @@ package com.a602.commonproject.model.data
  * (예: "웃는 모습", "해변", "반려동물")
  */
 data class Collection(
-    val id: String,      // Network: keywordId
-    val name: String     // Network: value (키워드 이름)
+    val categoryId: String,
+    val categoryValue: String,
+    val keywordId: String,
+    val keywordValue: String,
+    val collectionSize : Int
 )

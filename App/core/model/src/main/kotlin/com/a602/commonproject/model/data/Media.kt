@@ -8,22 +8,26 @@ data class Media(
     val id: String,            // DB: mediaId, Net: mediaId
     val type: MediaType,       // DB: "PHOTO"/"VIDEO" -> Enum 변환
 
-    // 1. 경로 정보 (화면 표시용)
+    // 1. 경로 정보 (뒷 사진)
     val localUri: String?,     // 업로드 전 원본 경로
     val remoteUrl: String?,    // 서버 저장 경로 (storageUrl)
     val thumbnailUrl: String?, // 리스트용 썸네일 (thumbUrl)
 
+    // 2. ✨ 서브 경로 (앞 사진)
+    // Map 대신 이렇게 변수를 직접 만들면 Converter가 필요 없습니다!
+    val subLocalUri: String? = null,
+    val subRemoteUrl: String? = null,
+    val subThumbnailUrl: String? = null,
+
+    // 3. ✨ 카메라 방향 정보 ("REAR", "FRONT", "DUAL")
+    val cameraFacing: String = "REAR",
+
     // 2. 메타 데이터
     val caption: String?,      // 사진 설명
     val dateTaken: Long,       // ⚠️ DB(Long) 기준 통일. (Net의 String은 변환해서 넣음)
-    val durationMs: Long?,     // 영상 길이 (DB엔 없지만 Net엔 있음 -> 리스트에서 null 가능성 있음)
     val orientation: Int,      // 회전 정보 (0, 90...)
 
-    // 3. 소속 및 작성자
-    val groupId: String?,      // 어느 그룹의 사진인지 (Net에만 있음)
-    val uploaderId: String?,   // 업로더 ID (Net: User 객체에서 추출)
     val uploaderName: String?, // 업로더 닉네임 (DB: uploaderName)
-    val uploaderProfileUrl: String?, // 업로더 프로필 (Net: User 객체에서 추출)
 
     // 4. 상태 관리
     val syncStatus: SyncStatus // 동기화 상태 (구름 아이콘)
@@ -57,15 +61,4 @@ data class Media(
     val displayUrl: String?
         get() = localUri ?: remoteUrl ?: thumbnailUrl
 
-    /**
-     * 🎥 영상 길이 포맷팅 (예: "03:15")
-     */
-    val formattedDuration: String?
-        get() {
-            if (durationMs == null || durationMs <= 0) return null
-            val totalSeconds = durationMs / 1000
-            val minutes = totalSeconds / 60
-            val seconds = totalSeconds % 60
-            return "%02d:%02d".format(minutes, seconds)
-        }
 }

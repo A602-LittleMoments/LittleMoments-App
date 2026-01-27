@@ -1,7 +1,7 @@
 package com.a602.commonproject.network.datasource
 
 import com.a602.commonproject.network.api.RetrofitBabyApi
-import com.a602.commonproject.network.model.Baby
+import com.a602.commonproject.network.model.BabyResponse
 import com.a602.commonproject.network.model.BabyListResponse
 import com.a602.commonproject.network.model.BabyRequest
 import java.io.File
@@ -23,7 +23,7 @@ interface BabyNetworkDataSource {
     // - babyRequest: 이름, 생년월일 등의 텍스트 정보
     // - imageFile: 아기 프로필 사진 파일 (nullable)
     // - 반환값: 등록된 아기 정보 (NetworkBaby) -> 화면 갱신용
-    suspend fun addBaby(groupId: String, babyRequest: BabyRequest, imageFile: File?): Baby
+    suspend fun addBaby(groupId: String, babyRequest: BabyRequest, imageFile: File?): BabyResponse
 
     // 3.2 아기 목록 조회: 그룹에 등록된 모든 아기를 가져옵니다.
     suspend fun getBabies(groupId: String): BabyListResponse
@@ -51,7 +51,7 @@ internal class RetrofitBabyNetwork @Inject constructor(
         groupId: String,
         babyRequest: BabyRequest,
         imageFile: File?,
-    ): Baby {
+    ): BabyResponse {
 
         // [Step 1] 아기 정보(DTO)를 JSON 문자열로 변환합니다.
         // 예: BabyRequest(name="하린") -> '{"name":"하린", ...}'

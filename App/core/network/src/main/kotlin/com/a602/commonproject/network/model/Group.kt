@@ -9,7 +9,6 @@ data class GroupResponse(
     val groupId: String,
     val groupName: String,
     val role: String? = null,      // 조회 시 사용 (OWNER, MEMBER, VIEWER)
-    val myRole: String? = null,    // 생성 응답시 사용
     val relation: String? = null,   // Mother, Father 등
 )
 
@@ -33,12 +32,12 @@ data class UpdateGroupRequest(
 @InternalSerializationApi
 @Serializable
 data class GroupMembersResponse(
-    val groupMembers: List<GroupMember>
+    val groupMembers: List<GroupMemberResponse>
 )
 
 @InternalSerializationApi
 @Serializable
-data class GroupMember(
+data class GroupMemberResponse(
     val userId: String,
     val nickname: String,
     val relation: String,

@@ -26,7 +26,6 @@ internal interface RetrofitMediaApi {
         @Part("items") items: RequestBody
     ): BatchUploadResponse
 
-    // TODO: 애기를 좀 해야 함 -> 날짜별 조회가 없음
     // 4.3 미디어 리스트 조회
     // ✨ 변경: day 제거 -> startDate, endDate 추가
     // cursor: "20260126131824_media123" 형식의 문자열 (없으면 첫 페이지)

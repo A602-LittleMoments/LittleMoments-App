@@ -1,6 +1,6 @@
 package com.a602.commonproject.network.api
 
-import com.a602.commonproject.network.model.Baby
+import com.a602.commonproject.network.model.BabyResponse
 import com.a602.commonproject.network.model.BabyListResponse
 import com.a602.commonproject.network.model.BabyRequest
 import okhttp3.MultipartBody
@@ -22,7 +22,7 @@ internal interface RetrofitBabyApi {
         @Path("groupId") groupId: String,
         @Part("data") data: RequestBody,
         @Part babyPicture: MultipartBody.Part?
-    ): Baby // 👈 ✨ 반환 타입을 NetworkBaby로 변경!
+    ): BabyResponse // 👈 ✨ 반환 타입을 NetworkBaby로 변경!
 
     // 3.2 아기 목록 조회
     @GET("groups/{groupId}/babies")

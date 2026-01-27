@@ -3,7 +3,7 @@ package com.a602.commonproject.model.data
 /**
  * 로그인한 사용자의 정보
  */
-// 순수 유저 데이터 (이제 Nullable이 필요 없음!)
+// 순수 유저 데이터
 data class User(
     val id: String,
     val email: String,

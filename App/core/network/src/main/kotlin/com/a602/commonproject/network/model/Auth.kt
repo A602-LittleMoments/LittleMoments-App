@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 // 공통 User 객체 (로그인, 회원가입, 내 정보 조회 등에서 재사용)
 @InternalSerializationApi
 @Serializable
-data class User(
+data class UserResponse(
     val email: String,
     val nickname: String,
     val profileImageUrl: String? = null
@@ -39,7 +39,7 @@ data class LoginRequest(
 data class AuthResponse(
     val accessToken: String,
     val refreshToken: String,
-    val user: User
+    val user: UserResponse
 )
 
 // 토큰 갱신 응답

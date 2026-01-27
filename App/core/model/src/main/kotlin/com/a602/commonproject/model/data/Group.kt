@@ -4,11 +4,7 @@ package com.a602.commonproject.model.data
 data class Group(
     val id: String,          // groupId
     val name: String,        // groupName
-
-    // ✨ 핵심: 서버에서 'role'로 오든 'myRole'로 오든
-    // Repository가 여기에 예쁘게 담아줄 겁니다.
-    val myRole: GroupRole,
-
+    val role : GroupRole,
     val relation: String?,   // 내 호칭 (Mother, Father...)
     val members: List<GroupMember> = emptyList()
 )

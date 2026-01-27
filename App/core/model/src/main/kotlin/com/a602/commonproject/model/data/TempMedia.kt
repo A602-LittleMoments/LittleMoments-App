@@ -3,7 +3,7 @@ package com.a602.commonproject.model.data
 import java.util.concurrent.TimeUnit
 
 /**
- * 🗑️ 휴지통(임시 보관)에 있는 미디어
+ * 🗑️ 앱 DB에 있는 미디어
  */
 data class TempMedia(
     val id: String,           // tempId

@@ -7,7 +7,7 @@ import com.a602.commonproject.network.model.LoginRequest
 import com.a602.commonproject.network.model.SignupRequest
 import com.a602.commonproject.network.model.TokenResponse
 import com.a602.commonproject.network.model.UpdateProfileRequest
-import com.a602.commonproject.network.model.User
+import com.a602.commonproject.network.model.UserResponse
 import java.io.File
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
@@ -28,8 +28,8 @@ interface AuthNetworkDataSource {
     suspend fun signUp(signupRequest: SignupRequest, imageFile: File?): AuthResponse
     suspend fun login(loginRequest: LoginRequest): AuthResponse
     suspend fun logout()
-    suspend fun getMyProfile(): User
-    suspend fun updateMyProfile(request: UpdateProfileRequest): User
+    suspend fun getMyProfile(): UserResponse
+    suspend fun updateMyProfile(request: UpdateProfileRequest): UserResponse
     suspend fun withdraw()
     suspend fun changePassword(request: ChangePasswordRequest)
     suspend fun refreshToken(refreshToken: String): TokenResponse

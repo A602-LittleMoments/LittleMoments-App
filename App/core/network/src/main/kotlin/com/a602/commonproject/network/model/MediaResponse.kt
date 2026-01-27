@@ -16,8 +16,7 @@ data class MediaUploadMetadata(
     val clientMediaKey: String, // 로컬 DB 매칭용 키
     val mediaType: String,      // "PHOTO", "VIDEO"
     val takenAt: String,        // 시점 날짜
-    val cameraFacing: String?,  // "FRONT", "REAR", "DUAL"
-    val durationMs: Long? = null,
+    val cameraFacing: String? = "DUAL",  // "FRONT", "REAR", "DUAL"
     val orientation: Int,       // 0이면 가로, 1이면 세로
     val caption: String? = null,
     val files: Map<String, MediaFileKey> // ex: "front" -> { "clientFileKey": "..." }
@@ -62,28 +61,47 @@ data class UploadFileResult(
 @InternalSerializationApi
 @Serializable
 data class MediaListResponse(
-    val medias: List<Media>,
+    val medias: List<MediaResponse>,
     val nextCursor: String? = null
 )
 
 @InternalSerializationApi
 @Serializable
-data class Media(
+data class MediaResponse(
     val mediaId: String,
+    val groupId: String,
+    val uploadedBy: MediaUserResponse, // 아래 JSON 맞춤형 클래스 사용
     val mediaType: String,
+    val storageUrl: String,
     val thumbUrl: String,
-    val storageUrl: String?,
+    val subThumbUrl: String,
+    val subStorageUrl: String,
     val takenAt: String,
-    val orientation: Int? = null
+    val cameraFacing: String,
+    val orientation: Int,
+    val caption: String?,
+    val createdAt: String,
+    val updatedAt: String
 )
 
+/**
+ * JSON의 uploadedBy 구조에 맞춘 전용 객체
+ * (기존 UserResponse와 형태가 다르므로 새로 정의하거나 수정해서 사용)
+ */
+@InternalSerializationApi
+@Serializable
+data class MediaUserResponse(
+    val userId: String,
+    val nickname: String,
+    val profileImageUrl: String?
+)
 // 4.4 미디어 상세 응답
 @InternalSerializationApi
 @Serializable
 data class MediaDetailResponse(
     val mediaId: String,
     val groupId: String,
-    val uploadedBy: User, // auth 패키지의 User 재사용
+    val uploadedBy: UserResponse, // auth 패키지의 User 재사용
     val mediaType: String,
     val storageUrl: String,
     val thumbUrl: String,
