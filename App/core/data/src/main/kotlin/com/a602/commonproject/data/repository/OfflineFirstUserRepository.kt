@@ -299,4 +299,8 @@ class OfflineFirstUserRepository @Inject constructor(
         }
     }
 
+    override suspend fun getCurrentGroupId(): String? {
+        // userGroupId Flow의 가장 최신 값 하나만 가져옴 (동기적)
+        return userPreferences.userGroupId.first()
+    }
 }

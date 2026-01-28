@@ -48,23 +48,12 @@ class SyncInitializer : Initializer<Unit> {
         // Hilt로부터 SyncManager(데이터 동기화 관리자)와 SyncSubscriber(FCM 구독자)를 가져옵니다.
         val syncManager = entryPoint.syncManager()
         val syncSubscriber = entryPoint.syncSubscriber()
-        // ✨ DataStore에서 groupId를 꺼내기 위해 추가
-        val userPreferences = entryPoint.userPreferences()
+
+        syncManager.requestSync()
 
         // 2. 비동기 작업 실행 (DataStore 읽기 + 동기화 예약 + FCM 구독)
         // Main Thread를 차단하지 않기 위해 IO Dispatcher 사용
         CoroutineScope(Dispatchers.IO).launch {
-
-            // [STEP A] 저장된 Group ID 가져오기
-            // first(): 현재 저장된 값 하나만 딱 가져오고 끝냄 (Flow 구독 아님)
-            val groupId = userPreferences.userGroupId.first()
-
-            // [STEP B] 로그인이 되어 있어서 Group ID가 있다면 -> 동기화 시작
-            if (!groupId.isNullOrBlank()) {
-                syncManager.requestSync(groupId)
-            }
-
-            // [STEP C] FCM 구독 시작
             syncSubscriber.subscribe()
         }
     }
@@ -86,6 +75,5 @@ class SyncInitializer : Initializer<Unit> {
     interface SyncEntryPoint {
         fun syncManager(): SyncManager
         fun syncSubscriber(): SyncSubscriber
-        fun userPreferences(): UserPreferencesDataSource // ✨ 추가됨
     }
 }

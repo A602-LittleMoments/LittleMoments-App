@@ -22,9 +22,10 @@ private const val SYNC_TOPIC_SENDER = "/topics/sync"
 class SyncNotificationService : FirebaseMessagingService() {
 
     @Inject
-    lateinit var syncManager :  SyncManager
+    lateinit var syncManager: SyncManager
+
     @Inject
-    lateinit var notifier : Notifier
+    lateinit var notifier: Notifier
 
     @Inject
     lateinit var userRepository: UserRepository // 토큰 갱신용 (아래 onNewToken 설명 참고)
@@ -40,55 +41,43 @@ class SyncNotificationService : FirebaseMessagingService() {
     // 또는 data payload 특정 키가 있는지 확인해도 됩니다.
     override fun onMessageReceived(message: RemoteMessage) {
 
-        // DataStore 조회는 비동기(suspend)이므로 코루틴 실행
-        serviceScope.launch{
-            // 1. ✨ [핵심] 메시지 내용은 볼 필요 없이, 그냥 내 로컬 ID를 바로 가져옵니다.
-            val groupId = userPreferences.userGroupId.first()
-
-            // 2. 로그인 안 된 상태면(ID 없으면) 아무것도 못 하므로 중단
-            if (groupId.isNullOrBlank()) {
-                Log.w("FCM", "동기화 실패: 기기에 저장된 그룹 ID가 없습니다.")
-                return@launch
-            }
-
-            // ==========================================
-            // CASE A: 데이터 동기화 요청 (isSync)
-            // ==========================================
-            if (SYNC_TOPIC_SENDER == message.from || message.data["type"] == "isSync") {
-                Log.d("FCM", "동기화 수행 (내 그룹: $groupId)")
-                syncManager.requestSync(groupId)
-            }
-
-            // ==========================================
-            // CASE B: 새 앨범 알림 (NEW_ALBUM)
-            // ==========================================
-            else if (message.data["type"] == "NEW_ALBUM") {
-                val albumTitle = message.data["title"] ?: "새 앨범"
-                val msgBody = message.data["message"] ?: "새로운 앨범이 도착했습니다."
-                val albumId = message.data["albumId"]
-                val deepLink = if (albumId != null) "myapp://album/$albumId" else null
-
-                // 1. 알림 띄우기
-                notifier.postNotification(
-                    id = albumId?.hashCode() ?: System.currentTimeMillis().toInt(),
-                    title = albumTitle,
-                    content = msgBody,
-                    deepLinkUri = deepLink,
-                )
-
-                // 2. ✨ 내 그룹 데이터 갱신 (이미 groupId를 알고 있으므로 바로 요청)
-                syncManager.requestSync(groupId)
-            }
+        // ==========================================
+        // CASE A: 데이터 동기화 요청 (isSync)
+        // ==========================================
+        if (SYNC_TOPIC_SENDER == message.from || message.data["type"] == "isSync") {
+            Log.d("FCM", "동기화 요청 수신 -> 작업 예약")
+            syncManager.requestSync()
         }
+
+        // ==========================================
+        // CASE B: 새 앨범 알림 (NEW_ALBUM)
+        // ==========================================
+        else if (message.data["type"] == "NEW_ALBUM") {
+            val albumTitle = message.data["title"] ?: "새 앨범"
+            val msgBody = message.data["message"] ?: "새로운 앨범이 도착했습니다."
+            val albumId = message.data["albumId"]
+            val deepLink = if (albumId != null) "myapp://album/$albumId" else null
+
+            // 1. 알림 띄우기
+            notifier.postNotification(
+                id = albumId?.hashCode() ?: System.currentTimeMillis().toInt(),
+                title = albumTitle,
+                content = msgBody,
+                deepLinkUri = deepLink,
+            )
+            // 2. ✨ 내 그룹 데이터 갱신
+            syncManager.requestSync()
+        }
+
 
         // ==========================================
         // CASE C: 일반 알림
         // ==========================================
-        message.notification?.let{
+        message.notification?.let {
             notifier.postNotification(
                 id = message.messageId?.hashCode() ?: System.currentTimeMillis().toInt(),
                 title = it.title ?: "새 알림",
-                content = it.body ?: "새로운 사진이 공유되었습니다."
+                content = it.body ?: "새로운 사진이 공유되었습니다.",
             )
         }
     }

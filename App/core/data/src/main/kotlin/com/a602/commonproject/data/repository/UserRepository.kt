@@ -66,5 +66,6 @@ interface UserRepository {
     // ✨ [추가] 회원 탈퇴 (이것도 있으면 좋습니다)
     suspend fun deleteAccount(): Result<Unit>
 
+    suspend fun getCurrentGroupId(): String?
 }
 
