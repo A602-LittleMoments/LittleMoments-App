@@ -5,6 +5,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.a602.commonproject.sync.initializers.SyncConstraints
 import com.a602.commonproject.sync.workers.FetchWorker
 import com.a602.commonproject.sync.workers.UploadWorker
@@ -31,14 +32,20 @@ internal class WorkManagerSyncManager @Inject constructor(
             .conflate() // 상태가 너무 빨리 변함녀 중간 거 건너뛰고 최신만 받기
 
 
-    override fun requestSync() {
+    override fun requestSync(groupId : String) {
+
+        // ✨ 1. Worker에게 보낼 데이터 포장
+        // (FetchWorker와 UploadWorker 안에 KEY_GROUP_ID 상수가 있다고 가정)
+        val inputData = workDataOf("key_group_id" to groupId)
 
         val uploadWorkRequest = OneTimeWorkRequestBuilder<UploadWorker>()
             .setConstraints(SyncConstraints)
+            .setInputData(inputData)
             .build()
 
         val fetchWorkRequest = OneTimeWorkRequestBuilder<FetchWorker>()
             .setConstraints(SyncConstraints)
+            .setInputData(inputData)v
             .build()
 
         workManager

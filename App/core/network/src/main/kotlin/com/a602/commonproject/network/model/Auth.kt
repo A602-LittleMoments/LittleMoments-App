@@ -53,7 +53,6 @@ data class TokenResponse(
 @InternalSerializationApi
 @Serializable
 data class UpdateProfileRequest(
-    val email: String,
     val nickname: String,
     val profileImageUrl: String?
 )
