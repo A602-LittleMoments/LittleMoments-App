@@ -10,6 +10,12 @@ android {
 
 dependencies {
     implementation(projects.core.data)
-    implementation("io.coil-kt:coil-compose:2.5.0")
-    androidTestImplementation(libs.bundles.androidx.compose.ui.test)
+    implementation(projects.core.ui)
+    implementation(projects.core.designsystem)
+
+    implementation(libs.coil.kt)
+    implementation(libs.coil.kt.compose)
+    implementation(libs.coil.kt.svg)
+
+
 }
