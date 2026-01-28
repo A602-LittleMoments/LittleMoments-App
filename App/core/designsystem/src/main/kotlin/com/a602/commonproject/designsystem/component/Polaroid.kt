@@ -80,7 +80,8 @@ fun Polaroid(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(10.dp)
-                        .size(94.dp)
+                        .fillMaxWidth(0.40f)
+                        .aspectRatio(3f / 4f)
                         .clip(RoundedCornerShape(12.dp))
                         .border(1.dp, lightbackground, RoundedCornerShape(12.dp)), // 종이 프레임처럼
                     contentScale = ContentScale.Crop
