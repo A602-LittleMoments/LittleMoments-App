@@ -53,7 +53,6 @@ data class TokenResponse(
 @InternalSerializationApi
 @Serializable
 data class UpdateProfileRequest(
-    val email: String,
     val nickname: String,
     val profileImageUrl: String?
 )
@@ -65,4 +64,10 @@ data class ChangePasswordRequest(
     val currentPassword: String,
     val newPassword: String,
     val newPasswordConfirm: String
+)
+
+@InternalSerializationApi
+@Serializable
+data class FcmTokenRequest(
+    val fcmToken: String
 )

@@ -60,8 +60,8 @@ interface MediaDao {
     suspend fun getDirtyMediaIds(targetIds: List<String>): List<String>
 
     // 업로드 성공 처리 (로컬 경로는 삭제)
-    @Query("UPDATE shared_media SET syncStatus = 'SYNCED', remoteUrl = :remoteUrl, localUri = NULL WHERE mediaId = :mediaId")
-    suspend fun markAsSync(mediaId: String, remoteUrl : String)
+    @Query("UPDATE shared_media SET syncStatus = 'SYNCED', remoteUrl = :remoteUrl, localUri = NULL, subRemoteUrl = :subRemoteUrl, subLocalUri = NULL WHERE mediaId = :mediaId")
+    suspend fun markAsSync(mediaId: String, remoteUrl : String, subRemoteUrl: String)
 
 
     // --- 서버와 동기화 될 부분에서의 삭제 로직 ---

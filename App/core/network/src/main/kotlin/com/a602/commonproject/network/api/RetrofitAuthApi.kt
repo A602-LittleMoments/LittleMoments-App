@@ -2,6 +2,7 @@ package com.a602.commonproject.network.api
 
 import com.a602.commonproject.network.model.AuthResponse
 import com.a602.commonproject.network.model.ChangePasswordRequest
+import com.a602.commonproject.network.model.FcmTokenRequest
 import com.a602.commonproject.network.model.LoginRequest
 import com.a602.commonproject.network.model.TokenResponse
 import com.a602.commonproject.network.model.UpdateProfileRequest
@@ -47,9 +48,12 @@ internal interface RetrofitAuthApi {
     suspend fun getMyProfile(): UserResponse
 
     // 1.3 내 정보 수정
+    @Multipart
     @PUT("users/me")
     suspend fun updateMyProfile(
-        @Body request: UpdateProfileRequest
+        @Part request: RequestBody,
+        // 'profile_image': 이미지 파일 (선택 사항일 수 있으니 Nullable)
+        @Part profileImage: MultipartBody.Part?,
     ): UserResponse
 
     // 1.4 회원 탈퇴
@@ -68,4 +72,11 @@ internal interface RetrofitAuthApi {
     suspend fun refreshToken(
         @Header("Authorization") refreshToken: String
     ): TokenResponse
+
+    // *** 서버에서 추가 필요
+    @PUT("users/fcm-token")
+    suspend fun updateFcmToken(
+        @Body request: FcmTokenRequest
+    )
+
 }

@@ -4,7 +4,7 @@ package com.a602.commonproject.model.data
  * 🖼️ 사진/동영상 UI 데이터 모델
  * (DB의 효율성과 Network의 풍부한 정보를 모두 담음)
  */
-data class Media(
+data class SharedMedia(
     val id: String,            // DB: mediaId, Net: mediaId
     val type: MediaType,       // DB: "PHOTO"/"VIDEO" -> Enum 변환
 

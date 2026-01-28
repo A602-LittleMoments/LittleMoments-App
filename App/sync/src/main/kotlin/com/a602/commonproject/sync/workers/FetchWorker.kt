@@ -7,7 +7,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.a602.commonproject.common.network.Dispatcher
 import com.a602.commonproject.common.network.LMDispatchers
-import com.a602.commonproject.data.reposotory.MediaRepository
+import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.sync.initializers.syncForegroundInfo
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -21,11 +21,20 @@ import kotlinx.coroutines.withContext
 class FetchWorker @AssistedInject constructor(
     @Assisted private val appContext : Context,
     @Assisted workerParams : WorkerParameters,
-    private val mediaRepository: MediaRepository,
+    private val mediaRepository: SharedMediaRepository,
     @Dispatcher(LMDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
 ) : CoroutineWorker(appContext, workerParams) {
 
     // 시스템입장에서 포그라운드에서 도는 것 (화면 기준으로는 백그라우느드 작업)
+
+    companion object {
+        // Key 상수 정의
+        const val KEY_GROUP_ID = "key_group_id"
+
+        // Notification ID 등...
+    }
+
+
     override suspend fun getForegroundInfo(): ForegroundInfo =
         appContext.syncForegroundInfo()
 
@@ -33,8 +42,18 @@ class FetchWorker @AssistedInject constructor(
         try {
             // 시스템입장에서 포그라운드에서 도는 것 (화면 기준으로는 백그라우느드 작업)
             setForeground(getForegroundInfo())
+
+            // 1. 전달받은 groupId 꺼내기
+            val groupId = inputData.getString(KEY_GROUP_ID)
+
+            // 2. 유효성 검사 (ID가 없으면 실패 처리)
+            if (groupId.isNullOrBlank()) {
+                return@withContext Result.failure()
+            }
+
+
             // p
-            val isSuccess = mediaRepository.syncWithServer()
+            val isSuccess = mediaRepository.syncWithServer(groupId)
 
             if(isSuccess) Result.success() else Result.retry()
         }
