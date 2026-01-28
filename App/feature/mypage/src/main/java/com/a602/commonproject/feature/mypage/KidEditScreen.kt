@@ -157,9 +157,14 @@ fun KidInfoTextField(label: String, value: String, icon: androidx.compose.ui.gra
 @Composable
 fun KidEditScreenPreview() {
     NiaTheme {
-        // 💡 실제 데이터 대신 'SampleData.baby'를 넣어주면 됩니다!
         KidEditScreen(
-            baby = SampleData.baby,
+            baby = Baby(
+                babyId = "sampleId",
+                babyName = "김이든",
+                birthDate = "2023-08-25",
+                gender = Baby.Gender.MALE,
+                imageUrl = null
+            ),
             onBackClick = {},
             onSaveClick = {}
         )
