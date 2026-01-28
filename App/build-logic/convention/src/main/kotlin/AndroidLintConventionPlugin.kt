@@ -45,6 +45,11 @@ class AndroidLintConventionPlugin : Plugin<Project> {
 private fun Lint.configure() {
     xmlReport = true
     sarifReport = true
-    checkDependencies = true
-    disable += "GradleDependency"
+
+    // 이 부분을 false로 바꾸거나 제거하세요.
+    // 에디터 실시간 분석에서 모든 의존성을 뒤지는 것은 너무 무겁습니다.
+    checkDependencies = false
+
+    // 버전 업데이트 제안을 보고 싶다면 이 라인을 지우세요.
+    // disable += "GradleDependency"
 }

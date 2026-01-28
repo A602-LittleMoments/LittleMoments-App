@@ -41,8 +41,8 @@ class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
                     datastore-proto는 protobuf 종속성을 포함하고 있기 때문입니다. 현재 Android에서는 protobuf가 데이터의 핵심 소스입니다.
                     따라서 아래 종속성에서 중복되는 클래스는 제외됩니다.
                     */
-                    exclude(group = "com.google.protobuf", module = "protobuf-javalite")
-                    exclude(group = "com.google.firebase", module = "protolite-well-known-types")
+                /*    exclude(group = "com.google.protobuf", module = "protobuf-javalite")
+                    exclude(group = "com.google.firebase", module = "protolite-well-known-types")*/
                 }
                 "implementation"(libs.findLibrary("firebase.crashlytics").get())
             }

@@ -1,6 +1,7 @@
 package com.a602.commonproject.data.model
 
 import com.a602.commonproject.model.data.Group
+import com.a602.commonproject.model.data.GroupMember
 import com.a602.commonproject.model.data.GroupRole
 import com.a602.commonproject.network.model.GroupMemberResponse
 import com.a602.commonproject.network.model.GroupMembersResponse
@@ -30,15 +31,15 @@ fun GroupResponse.asExternalModel(): Group {
 // =================================================================
 // 2. [Network -> UI] 멤버 리스트 응답 전체를 UI 리스트로 변환
 // =================================================================
-fun GroupMembersResponse.asExternalModel(): List<GroupMemberResponse> {
+fun GroupMembersResponse.asExternalModel(): List<GroupMember> {
     return groupMembers.map { it.asExternalModel() }
 }
 
 // =================================================================
 // 3. [Network Member -> UI Member] 개별 멤버 변환
 // =================================================================
-fun NetworkGroupMember.asExternalModel(): GroupMemberResponse {
-    return GroupMemberResponse(
+fun GroupMemberResponse.asExternalModel(): GroupMember {
+    return GroupMember(
         userId = userId,    //
         nickname = nickname,//
         relation = relation,//

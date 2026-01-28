@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.commonproject.android.application)
     alias(libs.plugins.commonproject.android.application.compose)
+    alias(libs.plugins.commonproject.android.application.firebase)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.commonproject.hilt)
 }
@@ -28,6 +29,22 @@ android {
 
 dependencies {
     implementation(projects.sync)
+    implementation(projects.core.common)
+    implementation(projects.core.ui)
+    implementation(projects.core.designsystem)
+    implementation(projects.core.data)
+    implementation(projects.core.model)
+    implementation(projects.core.navigation)
+
+    ksp(libs.hilt.compiler)
+
+
+//    implementation(projects.feature.mypage)
+//    implementation(projects.feature.gallery)
+
+
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.hilt.ext.work)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

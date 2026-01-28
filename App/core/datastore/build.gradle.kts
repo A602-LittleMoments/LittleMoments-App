@@ -31,7 +31,7 @@ android {
 }*/
 
 dependencies {
-    api(libs.androidx.dataStore.preferences)
+    api(libs.androidx.dataStore)
     api(projects.core.model)
 
     implementation(projects.core.common)
