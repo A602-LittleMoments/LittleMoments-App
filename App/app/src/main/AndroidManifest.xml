@@ -35,7 +35,8 @@
             tools:node="merge">
             <meta-data
                 android:name="com.a602.commonproject.sync.initializers.SyncInitializer"
-                android:value="androidx.startup" />
+                android:value="androidx.startup"
+                tools:node="remove"/>
         </provider>
 
         <!-- FCM 관련 설정 -->

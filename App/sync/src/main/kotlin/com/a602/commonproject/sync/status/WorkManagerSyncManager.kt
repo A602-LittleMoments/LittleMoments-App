@@ -21,7 +21,7 @@ internal class WorkManagerSyncManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : SyncManager {
 
-    private val workManager = WorkManager.getInstance(context)
+    private val workManager get() = WorkManager.getInstance(context)
 
     // 실제로 동작하고 있는지를 확인
     // "SYNC_WORK_NAME" 이라는 이름표 달린 작업들의 상태를 계속 달라고 함
