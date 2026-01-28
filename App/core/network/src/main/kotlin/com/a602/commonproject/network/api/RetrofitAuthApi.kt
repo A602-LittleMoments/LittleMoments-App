@@ -2,6 +2,7 @@ package com.a602.commonproject.network.api
 
 import com.a602.commonproject.network.model.AuthResponse
 import com.a602.commonproject.network.model.ChangePasswordRequest
+import com.a602.commonproject.network.model.FcmTokenRequest
 import com.a602.commonproject.network.model.LoginRequest
 import com.a602.commonproject.network.model.TokenResponse
 import com.a602.commonproject.network.model.UpdateProfileRequest
@@ -71,4 +72,11 @@ internal interface RetrofitAuthApi {
     suspend fun refreshToken(
         @Header("Authorization") refreshToken: String
     ): TokenResponse
+
+    // *** 서버에서 추가 필요
+    @PUT("users/fcm-token")
+    suspend fun updateFcmToken(
+        @Body request: FcmTokenRequest
+    )
+
 }

@@ -36,7 +36,7 @@ internal class WorkManagerSyncManager @Inject constructor(
 
         // ✨ 1. Worker에게 보낼 데이터 포장
         // (FetchWorker와 UploadWorker 안에 KEY_GROUP_ID 상수가 있다고 가정)
-        val inputData = workDataOf("key_group_id" to groupId)
+        val inputData = workDataOf(UploadWorker.KEY_GROUP_ID to groupId)
 
         val uploadWorkRequest = OneTimeWorkRequestBuilder<UploadWorker>()
             .setConstraints(SyncConstraints)
@@ -45,7 +45,7 @@ internal class WorkManagerSyncManager @Inject constructor(
 
         val fetchWorkRequest = OneTimeWorkRequestBuilder<FetchWorker>()
             .setConstraints(SyncConstraints)
-            .setInputData(inputData)v
+            .setInputData(inputData)
             .build()
 
         workManager

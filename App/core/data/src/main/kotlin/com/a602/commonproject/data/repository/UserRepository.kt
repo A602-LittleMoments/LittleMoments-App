@@ -56,5 +56,15 @@ interface UserRepository {
      */
     suspend fun renewSession(): Result<Unit>
 
+    /**
+     * ✨ [추가] FCM 기기 토큰 갱신
+     * - FirebaseService의 onNewToken()에서 호출됩니다.
+     * - 앱 삭제 후 재설치하거나, 토큰이 만료되었을 때 서버에 새 주소를 알려줍니다.
+     */
+    suspend fun updateFcmToken(token: String): Result<Unit>
+
+    // ✨ [추가] 회원 탈퇴 (이것도 있으면 좋습니다)
+    suspend fun deleteAccount(): Result<Unit>
+
 }
 

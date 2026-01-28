@@ -6,6 +6,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.a602.commonproject.common.network.Dispatcher
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
 import com.a602.commonproject.sync.status.SyncManager
 import com.a602.commonproject.sync.status.SyncSubscriber
 import com.a602.commonproject.sync.status.WorkManagerSyncManager.Companion.SYNC_WORK_NAME
@@ -17,6 +18,7 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 
@@ -33,6 +35,7 @@ class SyncInitializer : Initializer<Unit> {
      */
     override fun create(context: Context) {
 
+
         // 1. Hilt 의존성 주입 (EntryPoint 패턴 사용)
         // App Startup의 Initializer는 안드로이드 시스템이 생성하므로,
         // @Inject 어노테이션을 직접 사용할 수 없습니다.
@@ -45,17 +48,23 @@ class SyncInitializer : Initializer<Unit> {
         // Hilt로부터 SyncManager(데이터 동기화 관리자)와 SyncSubscriber(FCM 구독자)를 가져옵니다.
         val syncManager = entryPoint.syncManager()
         val syncSubscriber = entryPoint.syncSubscriber()
+        // ✨ DataStore에서 groupId를 꺼내기 위해 추가
+        val userPreferences = entryPoint.userPreferences()
 
-        // 2. 데이터 동기화 작업 예약 (WorkManager)
-        // "서버랑 데이터를 맞춰줘"라고 요청합니다.
-        // 내부적으로 [UploadWorker -> FetchWorker] 순서로 작업이 예약되며,
-        // 앱이 종료되어도 백그라운드에서 WorkManager가 보장합니다.
-        syncManager.requestSync()
-
-        // 3. FCM 알림 주제(Topic) 구독 시작
-        // subscribe() 함수는 네트워크 통신을 하는 suspend 함수이므로,
-        // 메인 스레드(UI)를 멈추지 않기 위해 별도의 코루틴(IO 스레드)에서 실행합니다.
+        // 2. 비동기 작업 실행 (DataStore 읽기 + 동기화 예약 + FCM 구독)
+        // Main Thread를 차단하지 않기 위해 IO Dispatcher 사용
         CoroutineScope(Dispatchers.IO).launch {
+
+            // [STEP A] 저장된 Group ID 가져오기
+            // first(): 현재 저장된 값 하나만 딱 가져오고 끝냄 (Flow 구독 아님)
+            val groupId = userPreferences.userGroupId.first()
+
+            // [STEP B] 로그인이 되어 있어서 Group ID가 있다면 -> 동기화 시작
+            if (!groupId.isNullOrBlank()) {
+                syncManager.requestSync(groupId)
+            }
+
+            // [STEP C] FCM 구독 시작
             syncSubscriber.subscribe()
         }
     }
@@ -77,5 +86,6 @@ class SyncInitializer : Initializer<Unit> {
     interface SyncEntryPoint {
         fun syncManager(): SyncManager
         fun syncSubscriber(): SyncSubscriber
+        fun userPreferences(): UserPreferencesDataSource // ✨ 추가됨
     }
 }

@@ -65,3 +65,9 @@ data class ChangePasswordRequest(
     val newPassword: String,
     val newPasswordConfirm: String
 )
+
+@InternalSerializationApi
+@Serializable
+data class FcmTokenRequest(
+    val fcmToken: String
+)

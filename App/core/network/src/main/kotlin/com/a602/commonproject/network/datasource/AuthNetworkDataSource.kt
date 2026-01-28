@@ -3,6 +3,7 @@ package com.a602.commonproject.network.datasource
 import com.a602.commonproject.network.api.RetrofitAuthApi
 import com.a602.commonproject.network.model.AuthResponse
 import com.a602.commonproject.network.model.ChangePasswordRequest
+import com.a602.commonproject.network.model.FcmTokenRequest
 import com.a602.commonproject.network.model.LoginRequest
 import com.a602.commonproject.network.model.SignupRequest
 import com.a602.commonproject.network.model.TokenResponse
@@ -33,6 +34,7 @@ interface AuthNetworkDataSource {
     suspend fun withdraw()
     suspend fun changePassword(request: ChangePasswordRequest)
     suspend fun refreshToken(refreshToken: String): TokenResponse
+    suspend fun updateFcmToken(fcmTokenRequest: String)
 }
 
 /**
@@ -96,4 +98,5 @@ internal class RetrofitAuthNetwork @Inject constructor(
     override suspend fun withdraw() = authApi.withdraw()
     override suspend fun changePassword(request: ChangePasswordRequest) = authApi.changePassword(request)
     override suspend fun refreshToken(refreshToken: String) = authApi.refreshToken(refreshToken)
+    override suspend fun updateFcmToken(fcmTokenRequest: String) = authApi.updateFcmToken(FcmTokenRequest(fcmTokenRequest))
 }

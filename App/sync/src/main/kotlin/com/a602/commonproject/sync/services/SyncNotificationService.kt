@@ -2,6 +2,7 @@ package com.a602.commonproject.sync.services
 
 import android.util.Log
 import com.a602.commonproject.data.repository.UserRepository
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
 import com.a602.commonproject.notifications.Notifier
 import com.a602.commonproject.sync.status.SyncManager
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -11,6 +12,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 
@@ -27,51 +29,61 @@ class SyncNotificationService : FirebaseMessagingService() {
     @Inject
     lateinit var userRepository: UserRepository // 토큰 갱신용 (아래 onNewToken 설명 참고)
 
+    // ✨ [추가] 내 로컬 그룹 ID를 찾기 위해 필요
+    @Inject
+    lateinit var userPreferences: UserPreferencesDataSource
+
     // 서비스는 생명주기가 짧지만, 비동기 작업을 위해 Scope가 필요할 수 있음
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // 메시지가 어디서 왔는지 확인 (우리가 구독한 'sync' 토픽인지)
     // 또는 data payload 특정 키가 있는지 확인해도 됩니다.
     override fun onMessageReceived(message: RemoteMessage) {
-        // ✨ 데이터 페이로드에서 groupId 추출 (서버가 보내줘야 함!)
-        val groupId = message.data["groupId"]
 
-        // 1. 단순 데이터 동기화 요청
-        if (SYNC_TOPIC_SENDER == message.from || message.data["type"] == "isSync") {
-            if (groupId != null) {
-                // ✨ 특정 그룹만 콕 집어서 동기화 (효율적!)
+        // DataStore 조회는 비동기(suspend)이므로 코루틴 실행
+        serviceScope.launch{
+            // 1. ✨ [핵심] 메시지 내용은 볼 필요 없이, 그냥 내 로컬 ID를 바로 가져옵니다.
+            val groupId = userPreferences.userGroupId.first()
+
+            // 2. 로그인 안 된 상태면(ID 없으면) 아무것도 못 하므로 중단
+            if (groupId.isNullOrBlank()) {
+                Log.w("FCM", "동기화 실패: 기기에 저장된 그룹 ID가 없습니다.")
+                return@launch
+            }
+
+            // ==========================================
+            // CASE A: 데이터 동기화 요청 (isSync)
+            // ==========================================
+            if (SYNC_TOPIC_SENDER == message.from || message.data["type"] == "isSync") {
+                Log.d("FCM", "동기화 수행 (내 그룹: $groupId)")
                 syncManager.requestSync(groupId)
-            } else {
-                // groupId가 없으면? -> 전체 동기화가 필요하거나, 에러 로그
-                Log.w("FCM", "동기화 요청이 왔지만 groupId가 없습니다.")
+            }
+
+            // ==========================================
+            // CASE B: 새 앨범 알림 (NEW_ALBUM)
+            // ==========================================
+            else if (message.data["type"] == "NEW_ALBUM") {
+                val albumTitle = message.data["title"] ?: "새 앨범"
+                val msgBody = message.data["message"] ?: "새로운 앨범이 도착했습니다."
+                val albumId = message.data["albumId"]
+                val deepLink = if (albumId != null) "myapp://album/$albumId" else null
+
+                // 1. 알림 띄우기
+                notifier.postNotification(
+                    id = albumId?.hashCode() ?: System.currentTimeMillis().toInt(),
+                    title = albumTitle,
+                    content = msgBody,
+                    deepLinkUri = deepLink,
+                )
+
+                // 2. ✨ 내 그룹 데이터 갱신 (이미 groupId를 알고 있으므로 바로 요청)
+                syncManager.requestSync(groupId)
             }
         }
 
-        // 새 앨범이 생겼을 떄 로직
-        else if (message.data["type"] == "NEW_ALBUM") {
-            val albumTitle = message.data["title"] ?: "새 앨범"
-            val msgBody = message.data["message"] ?: "새로운 앨범이 도착했습니다."
-            val albumId = message.data["albumId"]
-
-            // 사용자가 알림 누르면 바로 그 앨범으로 이동하게 DeepLink 생성 (선택사항)
-            // 예: "myapp://album/502"
-            val deepLink = if (albumId != null) "myapp://album/$albumId" else null
-
-            notifier.postNotification(
-                id = albumId?.hashCode() ?: System.currentTimeMillis().toInt(), // ID 별로 알림 따로 쌓이게
-                title = albumTitle,
-                content = msgBody,
-                deepLinkUri = deepLink
-            )
-
-            // ✨ 새 앨범이 생겼으니 해당 그룹 데이터를 갱신해야 함
-            // (보통 새 앨범 메시지에도 groupId가 같이 옵니다)
-            if (groupId != null) {
-                syncManager.requestSync(groupId)
-            }
-        }
-
-        // 알림 처리
+        // ==========================================
+        // CASE C: 일반 알림
+        // ==========================================
         message.notification?.let{
             notifier.postNotification(
                 id = message.messageId?.hashCode() ?: System.currentTimeMillis().toInt(),
