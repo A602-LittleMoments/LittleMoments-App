@@ -1,3 +1,4 @@
+/*
 package com.a602.commonproject.feature.gallery
 
 import android.graphics.Bitmap
@@ -109,7 +110,9 @@ fun CalendarPhotoView(days: List<CalendarDay>) {
              items(days) { day ->
                 CalendarDayItem(
                     day = day,
-                    onClick = { /* 나중에 Action 연결 */ }
+                    onClick = { */
+/* 나중에 Action 연결 *//*
+ }
                 )
             }
         }
@@ -253,7 +256,9 @@ fun GridGallery(
                 )
                 FillWrapButton(
                     text = "캘린더 보기",
-                    onClick= {/*이동 구현 해야함*/ },
+                    onClick= {*/
+/*이동 구현 해야함*//*
+ },
                     modifier = Modifier.align(Alignment.CenterEnd)
                 )
             }
@@ -317,7 +322,9 @@ fun TempGridGallery(
                     .padding(vertical = 16.dp)
             ) {
                 FillWrapButton(
-                    onClick = { /* 전체 비우기 로직 */ },
+                    onClick = { */
+/* 전체 비우기 로직 *//*
+ },
                     text = "전체비우기",
                     modifier = Modifier.align(Alignment.CenterStart)
                 )
@@ -350,7 +357,9 @@ fun TempGridGallery(
                     // 일반 모드일 때 (기존꺼 재활용)
                     GalleryGridPolaroid(
                         polaroids = polaroids,
-                        onClick = { /* 상세 화면 이동 등 */ }
+                        onClick = { */
+/* 상세 화면 이동 등 *//*
+ }
                     )
                 }
             }
@@ -377,7 +386,9 @@ fun TempGridGallery(
                             icon = LMicons.Delete,
                             text = "삭제",
                             color = Color.Red,
-                            onClick = { /*ConfirmDeleteDialog-> 삭제*/ }
+                            onClick = { */
+/*ConfirmDeleteDialog-> 삭제*//*
+ }
                         )
 
                         // 저장 버튼
@@ -385,7 +396,9 @@ fun TempGridGallery(
                             icon = Icons.Default.Share,
                             text = "저장",
                             color = Color(0xFF89A1F7),
-                            onClick = { /* 저장 로직 */ }
+                            onClick = { */
+/* 저장 로직 *//*
+ }
                         )
                     }
                 }
@@ -712,3 +725,4 @@ fun VideoPausedPreview() {
 }
 
 
+*/

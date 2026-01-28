@@ -92,7 +92,7 @@ private val samplePolaroids = List(9) { i ->
     )
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun GridGalleryPreview() {
     GridGallery(
