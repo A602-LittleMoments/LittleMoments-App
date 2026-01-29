@@ -35,21 +35,21 @@ fun IconActionBar(
     enabledDownload: Boolean = true,
     enabledEdit: Boolean = true,
 ) {
-    val shape = RoundedCornerShape(28.dp)
+    val shape = RoundedCornerShape(32.dp)
 
     Surface(
         modifier = modifier
-            .height(56.dp)
-            .widthIn(min = 240.dp) // 너무 짧아지지 않게(캡쳐 느낌)
+            .height(68.dp)
+            .widthIn(min = 320.dp, max = 360.dp) // 너무 짧아지지 않게
             .clip(shape),
         shape = shape,
         color = lightbackground,
         tonalElevation = 2.dp,   // 살짝 톤
-        shadowElevation = 8.dp,  // 캡쳐처럼 떠있는 그림자
+        shadowElevation = 10.dp,  // 캡쳐처럼 떠있는 그림자
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 14.dp),
+                .padding(horizontal = 20.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
