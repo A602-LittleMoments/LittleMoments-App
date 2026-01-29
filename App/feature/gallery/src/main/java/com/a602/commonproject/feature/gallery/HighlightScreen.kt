@@ -11,10 +11,15 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.PolaroidMeta
 import com.a602.coommonproject.ui.MediaDetailAction
 import com.a602.coommonproject.ui.MediaDetailScreen
 import com.a602.coommonproject.ui.MediaDetailUiState
+
+data class HighlightResultNavKey(
+    val slideshowId: String // 필요하면 id 전달
+) : NavKey
 
 
 // 하이라이트 완료창
