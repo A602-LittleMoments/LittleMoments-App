@@ -46,14 +46,18 @@ fun GroupChangeScreen(
     }
 }
 
-// 💡 3. 프리뷰에서도 샘플 데이터를 넣어줘야 빨간 줄이 생기지 않습니다.
+// 💡 프리뷰에서도 샘플 데이터를 넣어줘야 빨간 줄이 생기지 않습니다.
 @Preview(showBackground = true, name = "1. 초기 화면 (팝업 없음)", widthDp = 360, heightDp = 800)
 @Composable
 fun GroupChangeScreenPreview() {
     NiaTheme {
+        val sampleMembers = listOf(
+            GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
+            GroupMember(userId = "2", nickname = "아빠", relation = "아빠", role = GroupRole.MEMBER),
+            GroupMember(userId = "3", nickname = "언니", relation = "언니", role = GroupRole.VIEWER)
+        )
         GroupChangeScreen(
-            // SampleData에 정의된 그룹 멤버 리스트를 넣어줍니다.
-            members = SampleData.group.members,
+            members = sampleMembers,
             onBackClick = {}
         )
     }
@@ -63,10 +67,15 @@ fun GroupChangeScreenPreview() {
 @Composable
 fun GroupRoleDialogPreview() {
     NiaTheme {
+        val sampleMembers = listOf(
+            GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
+            GroupMember(userId = "2", nickname = "아빠", relation = "아빠", role = GroupRole.MEMBER),
+            GroupMember(userId = "3", nickname = "언니", relation = "언니", role = GroupRole.VIEWER)
+        )
         Box(modifier = Modifier.fillMaxSize()) {
             // 배경에도 샘플 데이터를 주입해줍니다.
             GroupManagementScreen(
-                members = SampleData.group.members
+                members = sampleMembers
             )
 
             GroupRoleSelectDialog(

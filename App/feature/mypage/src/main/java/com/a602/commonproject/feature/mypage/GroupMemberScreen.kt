@@ -97,9 +97,15 @@ fun GroupManagementScreen(
 @Composable
 fun GroupManagementPreview() {
     NiaTheme {
-        // 💡 4. 프리뷰에서도 샘플 데이터를 넣어줘야 빨간 줄이 안 생깁니다.
+        // 💡 프리뷰에서 사용할 샘플 데이터를 직접 생성합니다.
+        val sampleMembers = listOf(
+            GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
+            GroupMember(userId = "2", nickname = "아빠", relation = "아빠", role = GroupRole.MEMBER),
+            GroupMember(userId = "3", nickname = "언니", relation = "언니", role = GroupRole.VIEWER),
+            GroupMember(userId = "4", nickname = "할머니", relation = "할머니", role = GroupRole.VIEWER)
+        )
         GroupManagementScreen(
-            members = SampleData.group.members,
+            members = sampleMembers,
             onBackClick = { }
         )
     }

@@ -15,7 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import kotlin.random.Random as KotlinRandom // 이름을 겹치지 않게 별명(as)을 붙여줍니다.
 
 // 필요한 디자인 시스템 임포트 유지
 import com.a602.commonproject.designsystem.component.LMFilledIconButton
@@ -36,20 +35,25 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 // 만약 item 하나에만 빨간줄이 있다면 이것도 확인하세요
-import androidx.compose.foundation.lazy.LazyItemScope
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 // 샘플 데이터
 import com.a602.commonproject.model.data.*
 
 // 1. 랜덤 색상 생성 함수 (데이터베이스 연동 전 시각적 구분을 위함)
 fun getRandomColor(): Color {
-    // KotlinRandom이라는 별명을 명확하게 사용합니다.
-    return Color(
-        red = KotlinRandom.nextInt(180, 255),
-        green = KotlinRandom.nextInt(180, 255),
-        blue = KotlinRandom.nextInt(180, 255),
-        alpha = 255
+    val themeColors = listOf(
+        lightblue,
+        color1,
+        color2,
+        purple1,
+        purple2,
+        purple3,
+        purple4,
+        purple5,
+        purple6,
+        purple7
     )
+    return themeColors.random()
 }
 
 // 2. 마이페이지 메인 화면
@@ -60,8 +64,8 @@ fun MyPageScreen(
     baby: Baby,
     onNavigateToProfileEdit: () -> Unit = {},
     onNavigateToKidEdit: () -> Unit = {},
-    onNavigateToGroupManagement: () -> Unit = {},
-    onBackClick: () -> Unit = {}
+    onNavigateToKidAdd: () -> Unit = {}, // 💡 아이 추가 화면 이동 콜백 추가
+    onNavigateToGroupManagement: () -> Unit = {}
 ) {
     // 💡 그룹원 리스트는 나중에 DB 연결 시 Container에서 받아오도록 관리하면 더 좋습니다.
     val groupMembers = listOf(
@@ -75,8 +79,7 @@ fun MyPageScreen(
         containerColor = background,
         topBar = {
             LMTopAppBar(
-                title = "마이페이지",
-                onNavigationClick = onBackClick
+                title = "마이페이지"
             )
         }
     ) { innerPadding ->
@@ -106,7 +109,7 @@ fun MyPageScreen(
                     kidName = baby.babyName,
                     birthDate = baby.birthDate,
                     onEditClick = onNavigateToKidEdit,
-                    onAddClick = { /* 아이 추가 로직 */ }
+                    onAddClick = onNavigateToKidAdd // 💡 아이 추가 로직 연결
                 )
             }
 
@@ -132,32 +135,44 @@ fun MyPageScreen(
     }
 }
 
+// --- 추가된 Preview --- //
+@Preview(showBackground = true, name = "마이페이지 화면 단독 프리뷰")
+@Composable
+fun MyPageScreenPreview() {
+    NiaTheme {
+        MyPageScreen(
+            user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
+            baby = Baby(babyId = "1", babyName = "Leo", birthDate = "2023-05-12", gender = Baby.Gender.MALE, imageUrl = null)
+        )
+    }
+}
 
-// 화면 플로우 확인 가능
+// 화면 플로우 확인 가능 (다른 화면들이 구현되어야 정상 동작)
 @Preview(showBackground = true, name = "2. 마이페이지 전체 흐름(클릭 가능)")
 @Composable
 fun MyPageFlowPreview() {
-    MyPageMainContainer()
+    NiaTheme {
+        MyPageMainContainer()
+    }
 }
 
-// 화면 이동 구성 로직
 // 화면 이동 구성 로직
 @Composable
 fun MyPageMainContainer() {
     var currentScreen by remember { mutableStateOf("main") }
 
-    var currentUser by remember { mutableStateOf(SampleData.user) }
-    var currentBaby by remember { mutableStateOf(SampleData.baby) }
+    var currentUser by remember { mutableStateOf(User(id = "1", email = "lilly@example.com", nickname = "Lilly")) }
+    var currentBaby by remember { mutableStateOf(Baby(babyId = "1", babyName = "Leo", birthDate = "2023-05-12", gender = Baby.Gender.MALE, imageUrl = null)) }
 
     when (currentScreen) {
         "main" -> MyPageScreen(
-            // ✅ 수정: 아래처럼 user와 baby를 통째로 넘겨줘야 합니다!
+            // 수정: 아래처럼 user와 baby를 통째로 넘겨줘야 합니다!
             user = currentUser,
             baby = currentBaby,
             onNavigateToProfileEdit = { currentScreen = "profile_edit" },
             onNavigateToKidEdit = { currentScreen = "kid_edit" },
-            onNavigateToGroupManagement = { currentScreen = "group_manage" },
-            onBackClick = { /* 이전 메인 화면으로 */ }
+            onNavigateToKidAdd = { currentScreen = "kid_add" }, // 💡 아이 추가 화면으로 상태 변경
+            onNavigateToGroupManagement = { currentScreen = "group_manage" }
         )
 
         "profile_edit" -> ProfileEditScreen(
@@ -178,10 +193,19 @@ fun MyPageMainContainer() {
             onBackClick = { currentScreen = "main" }
         )
 
+        // 💡 아이 추가 화면 로직 추가
+        "kid_add" -> KidAddScreen(
+            onSaveClick = { newBaby ->
+                // 실제로는 여기서 ViewModel 등을 통해 아이를 추가합니다.
+                // 프리뷰에서는 그냥 메인으로 돌아갑니다.
+                currentScreen = "main"
+            },
+            onBackClick = { currentScreen = "main" }
+        )
+
         "group_manage" -> GroupChangeScreen(
-            members = SampleData.group.members,
+            members = emptyList(), // TODO: GroupMember 모델에 맞게 샘플 데이터 생성 필요
             onBackClick = { currentScreen = "main" }
         )
     }
 }
-

@@ -16,14 +16,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.a602.commonproject.designsystem.theme.background
-import com.a602.commonproject.designsystem.theme.main
-import com.a602.commonproject.designsystem.theme.color4
-import com.a602.commonproject.designsystem.theme.lightbackground
+import com.a602.commonproject.designsystem.theme.*
+import com.a602.commonproject.model.data.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileDetailScreen(
+    user: User, // 💡 User 객체를 직접 받도록 수정
     onEditClick: () -> Unit = {} // 💡 수정 화면으로 이동하기 위한 콜백 추가
 ) {
     Scaffold(
@@ -39,14 +38,11 @@ fun ProfileDetailScreen(
             // 상단 여백 (통합 시 상단바 공간 고려)
             Spacer(modifier = Modifier.height(150.dp))
 
-            // 정보 필드 영역
-            InfoDisplayField(label = "name", value = "홍길동", icon = Icons.Default.Person)
+            // 💡 전달받은 user 데이터 사용
+            InfoDisplayField(label = "nickname", value = user.nickname, icon = Icons.Default.Person)
             Spacer(modifier = Modifier.height(16.dp))
 
-            InfoDisplayField(label = "nickname", value = "길동이", icon = Icons.Default.Person)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            InfoDisplayField(label = "email", value = "abc@naver.com", icon = Icons.Default.Email)
+            InfoDisplayField(label = "email", value = user.email, icon = Icons.Default.Email)
             Spacer(modifier = Modifier.height(16.dp))
 
             // 💡 새로 추가된 비밀번호란 (확인창이므로 마스킹 처리된 텍스트 표시)
@@ -124,8 +120,13 @@ fun InfoDisplayField(label: String, value: String, icon: ImageVector) {
     }
 }
 
-//@Preview(showBackground = true, name = "내 정보 확인 미리보기")
-//@Composable
-//fun ProfileDetailPreview() {
-//    ProfileDetailScreen()
-//}
+@Preview(showBackground = true, name = "내 정보 확인 미리보기")
+@Composable
+fun ProfileDetailPreview() {
+    NiaTheme {
+        ProfileDetailScreen(
+            user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
+            onEditClick = {}
+        )
+    }
+}

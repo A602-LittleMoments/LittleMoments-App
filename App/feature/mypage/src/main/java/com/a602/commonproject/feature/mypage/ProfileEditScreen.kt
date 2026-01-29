@@ -10,10 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.a602.commonproject.designsystem.theme.background
-import com.a602.commonproject.designsystem.theme.main
-import com.a602.commonproject.designsystem.theme.color4
-import com.a602.commonproject.designsystem.theme.lightbackground
+import com.a602.commonproject.designsystem.theme.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
@@ -129,18 +126,14 @@ fun EditInputField(label: String, value: String, onValueChange: (String) -> Unit
     )
 }
 
-/*@Preview(showBackground = true, name = "내 정보 확인 미리보기")
+@Preview(showBackground = true, name = "내 정보 수정 미리보기")
 @Composable
-fun ProfileDetailPreview() {
-    // 💡 4. 미리보기에서도 모델 규격(id 등)을 지켜서 데이터를 넣어줍니다.
-    ProfileEditScreen(
-        user = User(
-            id = "user_123",
-            username = "홍길동",
-            nickname = "가나다",
-            email = "abc@naver.com",
-            password = "qwer123",
-            profileImageUrl = null
+fun ProfileEditScreenPreview() {
+    NiaTheme {
+        ProfileEditScreen(
+            user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
+            onSaveClick = {},
+            onBackClick = {}
         )
-    )
-}*/
+    }
+}
