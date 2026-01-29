@@ -1,4 +1,4 @@
-/*
+
 package com.a602.commonproject.feature.gallery
 
 import android.graphics.Bitmap
@@ -24,11 +24,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.FillWrapButton
-import com.a602.commonproject.designsystem.component.PolaroidMeta
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.designsystem.theme.NiaTheme
 import com.a602.commonproject.designsystem.theme.background
+import com.a602.commonproject.model.data.SharedMedia
 import com.a602.coommonproject.ui.GalleryGridPolaroid
-import com.a602.coommonproject.ui.PolaroidData
 
 
 
@@ -38,9 +38,9 @@ data object GalleryNavKey : NavKey
 // 격자 보기
 @Composable
 fun GridGallery(
-    polaroids: List<PolaroidData>,
+    polaroids: List<SharedMedia>,
     onCalendarClick: () -> Unit,
-    onPolaroidClick: (PolaroidData) -> Unit,
+    onPolaroidClick: (SharedMedia) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -61,8 +61,7 @@ fun GridGallery(
             ) {
                 Text(
                     text = "Recent",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 FillWrapButton(
@@ -74,42 +73,44 @@ fun GridGallery(
 
             Box(modifier = Modifier.weight(1f)) {
                 GalleryGridPolaroid(
-                    polaroids = polaroids,
-                    onClick = { clickedItem ->
-                        onPolaroidClick(clickedItem)
-                    }
+                    medias = polaroids,
+                    onClick = onPolaroidClick
                 )
             }
         }
 }
-private fun previewBitmap(
-    width: Int = 1080,
-    height: Int = 1440,
-    color: Int
-): ImageBitmap {
-    val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-    bmp.eraseColor(color)
-    return bmp.asImageBitmap()
-}
-private val samplePolaroids = List(9) { i ->
-    PolaroidData(
-        rearImage = previewBitmap(color = 0xFF1B1B1F.toInt() + i * 0x00101010),
-        frontImage = previewBitmap(width = 200, height = 200, color = 0xFF9BB7D4.toInt() + i * 0x00080808),
-        meta = PolaroidMeta(
-            date = "2026.01.0${i + 1}",
-            role = "엄마",
-            comment =  "오늘 사진"
+
+
+@Composable
+private fun fakeMediaList(): List<SharedMedia> {
+    return List(6) { i ->
+        SharedMedia(
+            id = i.toString(),
+            type = SharedMedia.MediaType.PHOTO,
+            localUri = null,
+            remoteUrl = "https://picsum.photos/600/80${i}",
+            thumbnailUrl = null,
+            subLocalUri = null,
+            subRemoteUrl = "https://picsum.photos/300/40${i}",
+            subThumbnailUrl = null,
+            cameraFacing = "DUAL",
+            caption = "프리뷰입니다프리뷰프리뷰프리뷰프리뷰",
+            dateTaken = System.currentTimeMillis(),
+            orientation = 0,
+            uploaderName = "엄마",
+            syncStatus = SharedMedia.SyncStatus.SYNCED
         )
-    )
+    }
 }
 
 @Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun GridGalleryPreview() {
-    GridGallery(
-        polaroids = samplePolaroids,
-        onCalendarClick = {},
-        onPolaroidClick = {}
-    )
+    NiaTheme {
+        GridGallery(
+            polaroids = fakeMediaList(),
+            onCalendarClick = {},
+            onPolaroidClick = {}
+        )
+    }
 }
-*/
