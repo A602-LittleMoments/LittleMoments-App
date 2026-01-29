@@ -95,7 +95,7 @@ fun GroupChangeScreen(
 @Preview(showBackground = true, name = "메인 화면")
 @Composable
 fun GroupChangeScreenPreview() {
-    LtTheme {
+    LMTheme {
         val sampleMembers = listOf(
             GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
             GroupMember(userId = "2", nickname = "아빠", relation = "아빠", role = GroupRole.MEMBER),

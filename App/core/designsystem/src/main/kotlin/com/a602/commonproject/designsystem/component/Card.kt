@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.icon.LMicons
-import com.a602.commonproject.designsystem.theme.NiaTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.color4
 
@@ -172,7 +172,7 @@ object LMCardDefaults {
 @Preview(showBackground = true)
 @Composable
 fun LMCardPreview() {
-    NiaTheme {
+    LMTheme {
         Column(
             modifier = Modifier
                 .background(background)

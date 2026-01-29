@@ -13,7 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @HiltAndroidApp
-class LTApplication : Application(), Configuration.Provider {
+class LMApplication : Application(), Configuration.Provider {
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
     // ✅ 추천: 필요한 매니저를 여기서 바로 주입받습니다.

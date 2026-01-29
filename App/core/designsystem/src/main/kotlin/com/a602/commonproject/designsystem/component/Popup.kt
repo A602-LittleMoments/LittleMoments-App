@@ -1,11 +1,9 @@
 package com.a602.commonproject.designsystem.component
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,7 +47,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.icon.LMicons
-import com.a602.commonproject.designsystem.theme.NiaTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color2
 import com.a602.commonproject.designsystem.theme.color3
@@ -130,7 +128,7 @@ object LMDialogDefaults {
 @Preview(showBackground = true)
 @Composable
 fun ConfirmDeleteDialogPreview() {
-    NiaTheme {
+    LMTheme {
         ConfirmDeleteDialog(
             onDismiss = {},
             onConfirm = {}
@@ -361,7 +359,7 @@ object LMGroupDialogDefaults{
 @Preview(showBackground = true)
 @Composable
 fun GroupRoleSelectDialogPreview() {
-    NiaTheme {
+    LMTheme {
         GroupRoleSelectDialog(
             onDismiss = {},
             onConfirm = {},

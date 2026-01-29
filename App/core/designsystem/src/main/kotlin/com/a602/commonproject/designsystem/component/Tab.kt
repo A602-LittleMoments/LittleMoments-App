@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.ui.text.style.TextOverflow
-import com.a602.commonproject.designsystem.theme.LtTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.color4
 
@@ -86,7 +86,7 @@ fun ScrollableUnderlineTabRow(
 @Preview(showBackground = true, widthDp = 411)
 @Composable
 fun ScrollableUnderlineTabRowPreview() {
-    LtTheme {
+    LMTheme {
         var selectedIndex by remember { mutableIntStateOf(0) }
 
         Column(

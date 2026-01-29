@@ -24,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import coil.compose.AsyncImage
-import com.a602.commonproject.designsystem.theme.NiaTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.lightbackground
@@ -240,7 +240,7 @@ fun CalendarScreenPreview() {
             syncStatus = SYNCED
         )
     )
-    NiaTheme() {
+    LMTheme() {
         Surface {
             CalendarScreen(
                 medias = sampleMedias,

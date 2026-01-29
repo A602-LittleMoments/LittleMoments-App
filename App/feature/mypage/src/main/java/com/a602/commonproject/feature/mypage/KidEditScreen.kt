@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.component.GenderToggle
-import com.a602.commonproject.designsystem.component.ProfileHead
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.theme.*
 import androidx.compose.ui.tooling.preview.Preview
@@ -129,7 +128,7 @@ fun KidEditScreen(
 @Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 fun KidEditScreenPreview() {
-    LtTheme {
+    LMTheme {
         KidEditScreen(
             baby = Baby(
                 babyId = "sampleId",

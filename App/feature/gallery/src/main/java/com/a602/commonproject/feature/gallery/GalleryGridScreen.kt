@@ -1,7 +1,6 @@
 
 package com.a602.commonproject.feature.gallery
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,21 +10,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.FillWrapButton
-import com.a602.commonproject.designsystem.icon.LMicons
-import com.a602.commonproject.designsystem.theme.NiaTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.coommonproject.ui.GalleryGridPolaroid
@@ -106,7 +99,7 @@ private fun fakeMediaList(): List<SharedMedia> {
 @Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun GridGalleryPreview() {
-    NiaTheme {
+    LMTheme {
         GridGallery(
             polaroids = fakeMediaList(),
             onCalendarClick = {},

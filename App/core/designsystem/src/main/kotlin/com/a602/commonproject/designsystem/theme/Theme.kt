@@ -95,7 +95,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun LtTheme(
+fun LMTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(

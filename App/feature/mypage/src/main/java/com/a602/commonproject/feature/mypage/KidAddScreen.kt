@@ -14,7 +14,7 @@ import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.component.GenderToggle
 import com.a602.commonproject.designsystem.component.LMTopAppBar
-import com.a602.commonproject.designsystem.theme.LtTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.designsystem.theme.main
@@ -135,7 +135,7 @@ fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
 @Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 fun KidAddScreenPreview() { // 💡 프리뷰 이름 수정
-    LtTheme {
+    LMTheme {
         KidAddScreen(
             onBackClick = {},
             onSaveClick = {}
