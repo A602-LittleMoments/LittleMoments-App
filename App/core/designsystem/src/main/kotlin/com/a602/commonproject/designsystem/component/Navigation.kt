@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.icon.LMicons
-import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.lightbackground
 
@@ -69,7 +68,7 @@ fun LMNavigationBar(
         content = content,
     )
 }
-@Preview(showBackground = true)
+/*@Preview(showBackground = true)
 @Composable
 fun LMNavigationBarPreview() {
     val items = listOf("홈", "앨범", "추억", "마이페이지")
@@ -95,7 +94,7 @@ fun LMNavigationBarPreview() {
             )
         }
     }
-}
+}*/
 
 object LMNavigationDefaults {
     @Composable

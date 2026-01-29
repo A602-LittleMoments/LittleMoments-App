@@ -1,6 +1,5 @@
 package com.a602.commonproject.feature.mypage
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.outlined.Person
@@ -131,7 +130,7 @@ fun KidEditScreen(
 @Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 fun KidEditScreenPreview() {
-    NiaTheme {
+    LtTheme {
         KidEditScreen(
             baby = Baby(
                 babyId = "sampleId",

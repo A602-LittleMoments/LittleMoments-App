@@ -99,7 +99,7 @@ fun MyPageScreen(
 @Preview(showBackground = true, name = "마이페이지 화면 단독 프리뷰")
 @Composable
 fun MyPageScreenPreview() {
-    NiaTheme {
+    LtTheme {
         // ✅ [수정] 테스트용 데이터를 GroupMember 형식에 맞게 생성
         val sampleMembers = listOf(
             GroupMember("id1", "엄마", "엄마", GroupRole.OWNER),
@@ -121,7 +121,7 @@ fun MyPageScreenPreview() {
 @Preview(showBackground = true, name = "2. 마이페이지 전체 흐름(클릭 가능)")
 @Composable
 fun MyPageFlowPreview() {
-    NiaTheme {
+    LtTheme {
         MyPageMainContainer()
     }
 }

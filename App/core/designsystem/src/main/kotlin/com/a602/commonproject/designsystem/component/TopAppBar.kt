@@ -1,7 +1,5 @@
 package com.a602.commonproject.designsystem.component
 
-import android.icu.text.CaseMap
-import androidx.annotation.StringRes
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -14,10 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.a602.commonproject.designsystem.icon.LMicons
-import com.a602.commonproject.designsystem.theme.NiaTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
 
@@ -78,6 +74,7 @@ object LMTopAppBarDefaults {
     }
 }
 
+/*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview("Top App Bar")
@@ -91,4 +88,5 @@ private fun LMTopAppBarPreview() {
     }
 }
 
+*/
 
