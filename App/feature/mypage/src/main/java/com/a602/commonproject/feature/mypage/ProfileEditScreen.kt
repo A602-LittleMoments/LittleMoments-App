@@ -24,7 +24,6 @@ import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.model.data.User
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileEditScreen(
     user: User,
