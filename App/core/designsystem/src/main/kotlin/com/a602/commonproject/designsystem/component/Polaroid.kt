@@ -1,261 +1,160 @@
 package com.a602.commonproject.designsystem.component
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import com.a602.commonproject.designsystem.theme.NiaTheme
-import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.lightbackground
-import com.a602.commonproject.model.data.SharedMedia
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.a602.commonproject.designsystem.theme.color3
+import com.a602.commonproject.designsystem.theme.color4
 
-// 프리뷰용 import
+
+import androidx.compose.ui.graphics.toArgb
 import android.graphics.Bitmap
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.foundation.Image
+import androidx.compose.ui.tooling.preview.Preview
 
+
+data class PolaroidMeta(
+    val date: String,          // "2026.01.02"
+    val role: String,          // "엄마"
+    val comment: String? = null
+)
 
 @Composable
 fun Polaroid(
-    media: SharedMedia,
+    rearImage: ImageBitmap,     // 후면 큰 사진
+    frontImage: ImageBitmap,    // 전면 작은 사진
+    meta: PolaroidMeta,
     modifier: Modifier = Modifier,
+    photoOverlay: (@Composable BoxScope.() -> Unit)? = null,
 ) {
-    // rear / front URL
-    val rearUrl = media.remoteUrl ?: media.localUri ?: media.thumbnailUrl
-    val frontUrl = media.subRemoteUrl ?: media.subLocalUri ?: media.subThumbnailUrl
-
-    // 날짜 포맷
-    val dateText = remember(media.dateTaken) {
-        SimpleDateFormat("yyyy.MM.dd", Locale.KOREA)
-            .format(Date(media.dateTaken))
-    }
-
-    // 캡션
-    val caption = media.caption
+    // 폴라로이드 느낌: 흰 종이 + 살짝 둥근 모서리
+    val paperShape = RoundedCornerShape(18.dp)
+    val photoShape = RoundedCornerShape(10.dp)
 
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
+        shape = paperShape,
         color = lightbackground,
         shadowElevation = 6.dp
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-
-            // 사진 영역 (DUAL 고정)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(3f / 4f)
-                    .background(Color.Black)
-            ) {
-                // rear (큰 사진)
-                AsyncImage(
-                    model = rearUrl,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-
-                // front (작은 사진)
-                AsyncImage(
-                    model = frontUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(10.dp)
-                        .fillMaxWidth(0.4f)
-                        .aspectRatio(3f / 4f),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // 메타 정보
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = dateText,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = color3
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "by ${media.uploaderName ?: ""}",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = color3
-                )
-            }
-
-            if (!caption.isNullOrBlank()) {
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = caption,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-    }
-}
-
-
-// 여기서부터는 프리뷰 코드
-
-// 앞뒤 둘다 검정이라 사진 구분 안돼서
-// 그 밑에 비트맵으로 색 다르게 한 거 볼 수 있음
-@Preview(showBackground = true)
-@Composable
-fun PolaroidPreview_DualPhoto() {
-    val fakeMedia = SharedMedia(
-        id = "1",
-        type = SharedMedia.MediaType.PHOTO,
-        localUri = null,
-        remoteUrl = "https://picsum.photos/600/800",
-        thumbnailUrl = null,
-        subLocalUri = null,
-        subRemoteUrl = "https://picsum.photos/300/400",
-        subThumbnailUrl = null,
-        cameraFacing = "DUAL",
-        caption = "DUAL 사진 폴라로이드 테스트 📸",
-        dateTaken = System.currentTimeMillis(),
-        orientation = 0,
-        uploaderName = "엄마",
-        syncStatus = SharedMedia.SyncStatus.SYNCED
-    )
-    NiaTheme {
-        Polaroid(
-            media = fakeMedia,
             modifier = Modifier
-                .padding(16.dp)
-                .width(320.dp)
-        )
-    }
-}
-
-
-private fun previewBitmap(
-    width: Int = 600,
-    height: Int = 800,
-    color: Int
-): ImageBitmap {
-    return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
-        eraseColor(color)
-    }.asImageBitmap()
-}
-
-@Composable
-private fun PolaroidPreviewOnly(
-    rear: ImageBitmap,
-    front: ImageBitmap,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        color = lightbackground,
-        shadowElevation = 6.dp
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
+                .padding(20.dp) // 종이 테두리 두께 느낌
+                .fillMaxWidth()
         ) {
-
-            // 📸 사진 영역
+            // 1) 사진 영역 (후면 + 전면 PIP)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(3f / 4f)
+                    .aspectRatio(3f / 4f) // 폴라로이드 사진 비율 느낌
+                    .clip(photoShape)
                     .background(Color.Black)
             ) {
+                // 후면 (큰 사진)
                 Image(
-                    bitmap = rear,
+                    bitmap = rearImage,
                     contentDescription = "rear",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
 
+                // 전면 (우하단 작은 사진) - 하나의 사진처럼 붙여놓는 느낌
                 Image(
-                    bitmap = front,
+                    bitmap = frontImage,
                     contentDescription = "front",
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(10.dp)
-                        .fillMaxWidth(0.4f)
-                        .aspectRatio(3f / 4f),
+                        .fillMaxWidth(0.40f)
+                        .aspectRatio(3f / 4f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(1.dp, lightbackground, RoundedCornerShape(12.dp)), // 종이 프레임처럼
                     contentScale = ContentScale.Crop
                 )
+
+                photoOverlay?.invoke(this)
             }
 
             Spacer(Modifier.height(12.dp))
 
-            // 📅 날짜 / by
-            Row(
+            // 2) 하단 정보 영역 (1줄: 날짜/작성자, 2줄: 코멘트)
+            Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = "2026.01.29",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = color3 // 🔥 headlineMedium 색상 override 확인용
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = meta.date,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = color4
+                    )
 
-                Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.weight(1f))
 
-                Text(
-                    text = "by 엄마",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = color3
-                )
+                    Text(
+                        text = "by ${meta.role}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = color4
+                    )
+                }
+
+                if (!meta.comment.isNullOrBlank()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = meta.comment!!,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = color3,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
-
-            Spacer(Modifier.height(6.dp))
-
-            // 📝 caption
-            Text(
-                text = "프리뷰용 캡션입니다. 폰트/컬러/정렬 확인!",
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
         }
     }
 }
 
-
+private fun previewBitmap(
+    width: Int = 1080,
+    height: Int = 1440,
+    color: Int
+): ImageBitmap {
+    val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    bmp.eraseColor(color)
+    return bmp.asImageBitmap()
+}
 
 @Preview(showBackground = true)
 @Composable
-fun PolaroidPreview_ColorTest() {
-    NiaTheme {
-        val rear = previewBitmap(color = android.graphics.Color.DKGRAY)
-        val front = previewBitmap(
-            width = 300,
-            height = 400,
-            color = android.graphics.Color.LTGRAY
-        )
+fun PolaroidPreview_WithComment() {
+    MaterialTheme {
+        val rear = previewBitmap(color = Color(0xFF1B1B1F).toArgb())   // 어두운 배경
+        val front = previewBitmap(width = 600, height = 600, color = Color(0xFF9BB7D4).toArgb()) // 밝은 배경
 
-        PolaroidPreviewOnly(
-            rear = rear,
-            front = front,
+        Polaroid(
+            rearImage = rear,
+            frontImage = front,
+            meta = PolaroidMeta(
+                date = "2026.01.02",
+                role = "엄마",
+                comment = "랄랄랄라W~~W~~~~~"
+            ),
             modifier = Modifier
                 .padding(16.dp)
                 .width(320.dp)
@@ -263,225 +162,35 @@ fun PolaroidPreview_ColorTest() {
     }
 }
 
-
-
-// 아래는 비디오 재생 넣을 때 바꿀 코드임
-// 추후 비디오 재생도 넣을 예정이라면 grandle에 아래 추가
-//implementation("androidx.media3:media3-exoplayer:1.3.1")
-//implementation("androidx.media3:media3-ui:1.3.1")
-//그리고 import하고 밑 코드 사용하기
-//import androidx.media3.exoplayer.ExoPlayer
-//import androidx.media3.common.MediaItem
-//import androidx.media3.ui.PlayerView
-
-//@Composable
-//fun Polaroid(
-//    media: SharedMedia,
-//    modifier: Modifier = Modifier,
-//    enableVideoPlayback: Boolean,
-//) {
-//    val rearUrl = media.remoteUrl ?: media.localUri ?: media.thumbnailUrl
-//    val frontUrl = media.subRemoteUrl ?: media.subLocalUri ?: media.subThumbnailUrl
-//
-//    var isPlaying by remember { mutableStateOf(false) }
-//
-//    val dateText = remember(media.dateTaken) {
-//        SimpleDateFormat("yyyy.MM.dd", Locale.KOREA)
-//            .format(Date(media.dateTaken))
-//    }
-//
-//    Surface(
-//        modifier = modifier,
-//        shape = RoundedCornerShape(18.dp),
-//        color = lightbackground,
-//        shadowElevation = 6.dp
-//    ) {
-//        Column(Modifier.padding(20.dp)) {
-//
-//            // DUAL 영역
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .aspectRatio(3f / 4f)
-//                    .background(Color.Black)
-//                    .clickable(
-//                        enabled = media.type == MediaType.VIDEO && enableVideoPlayback
-//                    ) {
-//                        isPlaying = !isPlaying
-//                    }
-//            ) {
-//
-//                // rear
-//                if (media.type == MediaType.VIDEO && enableVideoPlayback) {
-//                    PolaroidVideoPlayer(
-//                        videoUrl = rearUrl,
-//                        isPlaying = isPlaying,
-//                        modifier = Modifier.fillMaxSize()
-//                    )
-//                } else {
-//                    AsyncImage(
-//                        model = rearUrl,
-//                        contentDescription = null,
-//                        modifier = Modifier.fillMaxSize(),
-//                        contentScale = ContentScale.Crop
-//                    )
-//                }
-//
-//                // front (항상 같은 위치)
-//                if (frontUrl != null) {
-//                    if (media.type == MediaType.VIDEO && enableVideoPlayback) {
-//                        PolaroidVideoPlayer(
-//                            videoUrl = frontUrl,
-//                            isPlaying = isPlaying,
-//                            modifier = Modifier
-//                                .align(Alignment.BottomEnd)
-//                                .padding(10.dp)
-//                                .fillMaxWidth(0.4f)
-//                                .aspectRatio(3f / 4f)
-//                                .border(1.dp, lightbackground, RoundedCornerShape(12.dp))
-//                        )
-//                    } else {
-//                        AsyncImage(
-//                            model = frontUrl,
-//                            contentDescription = null,
-//                            modifier = Modifier
-//                                .align(Alignment.BottomEnd)
-//                                .padding(10.dp)
-//                                .fillMaxWidth(0.4f)
-//                                .aspectRatio(3f / 4f)
-//                                .border(1.dp, lightbackground, RoundedCornerShape(12.dp)),
-//                            contentScale = ContentScale.Crop
-//                        )
-//                    }
-//                }
-//
-//                // 재생 아이콘 (미재생 상태)
-//                if (
-//                    media.type == MediaType.VIDEO &&
-//                    enableVideoPlayback &&
-//                    !isPlaying
-//                ) {
-//                    Icon(
-//                        imageVector = Icons.Filled.PlayArrow,
-//                        contentDescription = "play",
-//                        tint = Color.White,
-//                        modifier = Modifier
-//                            .align(Alignment.Center)
-//                            .size(56.dp)
-//                            .background(
-//                                Color.Black.copy(alpha = 0.4f),
-//                                CircleShape
-//                            )
-//                            .padding(8.dp)
-//                    )
-//                }
-//            }
-//
-//            Spacer(Modifier.height(12.dp))
-//
-//            // 메타 정보
-//            Row {
-//                Text(dateText, style = MaterialTheme.typography.labelMedium)
-//                Spacer(Modifier.weight(1f))
-//                Text(
-//                    "by ${media.uploaderName ?: ""}",
-//                    style = MaterialTheme.typography.labelMedium
-//                )
-//            }
-//
-//            if (!media.caption.isNullOrBlank()) {
-//                Spacer(Modifier.height(6.dp))
-//                Text(
-//                    media.caption,
-//                    maxLines = 1,
-//                    overflow = TextOverflow.Ellipsis
-//                )
-//            }
-//        }
-//    }
+// Uri → ImageBitmap 변환 코드
+//fun imageBitmapFromUri(
+//    context: Context,
+//    uri: Uri
+//): ImageBitmap {
+//    val source = ImageDecoder.createSource(context.contentResolver, uri)
+//    val bitmap = ImageDecoder.decodeBitmap(source)
+//    return bitmap.asImageBitmap()
 //}
 
+// 화면에서 Polaroid 호출 예시
 //@Composable
-//private fun PolaroidVideoPlayer(
-//    videoUrl: String,
-//    isPlaying: Boolean,
-//    modifier: Modifier = Modifier,
-//    muted: Boolean = false,
-//    syncPositionMs: Long? = null,
-//    onPlayerReady: ((ExoPlayer) -> Unit)? = null,
+//fun PolaroidItem(
+//    rearUri: Uri,
+//    frontUri: Uri,
+//    meta: PolaroidMeta
 //) {
 //    val context = LocalContext.current
 //
-//    val exoPlayer = remember(videoUrl) {
-//        ExoPlayer.Builder(context).build().apply {
-//            setMediaItem(MediaItem.fromUri(videoUrl))
-//            prepare()
-//        }
+//    val rearBitmap = remember(rearUri) {
+//        imageBitmapFromUri(context, rearUri)
 //    }
-//
-//    // front 영상 mute 처리
-//    LaunchedEffect(muted) {
-//        exoPlayer.volume = if (muted) 0f else 1f
+//    val frontBitmap = remember(frontUri) {
+//        imageBitmapFromUri(context, frontUri)
 //    }
-//
-//    // rear, front 영상 위치 동기화
-//    LaunchedEffect(syncPositionMs) {
-//        if (syncPositionMs != null) {
-//            exoPlayer.seekTo(syncPositionMs)
-//        }
-//    }
-//
-//    // 재생 / 일시정지
-//    LaunchedEffect(isPlaying) {
-//        if (isPlaying) exoPlayer.play() else exoPlayer.pause()
-//    }
-//
-//    DisposableEffect(Unit) {
-//        onDispose { exoPlayer.release() }
-//    }
-//
-//    AndroidView(
-//        modifier = modifier,
-//        factory = {
-//            PlayerView(context).apply {
-//                player = exoPlayer
-//                useController = false
-//            }
-//        }
-//    )
-//
-//    // 부모에게 플레이어 전달 (rear 기준 시간 얻기용)
-//    LaunchedEffect(Unit) {
-//        onPlayerReady?.invoke(exoPlayer)
-//    }
-//}
-
-// 프리뷰
-//@Preview(showBackground = true)
-//@Composable
-//fun PolaroidPreview_DualVideo() {
-//    val fakeMedia = SharedMedia(
-//        id = "1",
-//        type = MediaType.VIDEO,
-//        localUri = null,
-//        remoteUrl = "https://sample-videos.com/img/Sample-jpg-image-500kb.jpg",
-//        thumbnailUrl = null,
-//        subLocalUri = null,
-//        subRemoteUrl = "https://sample-videos.com/img/Sample-jpg-image-200kb.jpg",
-//        subThumbnailUrl = null,
-//        cameraFacing = "DUAL",
-//        caption = "DUAL 영상 테스트",
-//        dateTaken = System.currentTimeMillis(),
-//        orientation = 0,
-//        uploaderName = "엄마",
-//        syncStatus = SyncStatus.SYNCED
-//    )
 //
 //    Polaroid(
-//        media = fakeMedia,
-//        enableVideoPlayback = true,
-//        modifier = Modifier
-//            .padding(16.dp)
-//            .width(320.dp)
+//        rearImage = rearBitmap,
+//        frontImage = frontBitmap,
+//        meta = meta
 //    )
 //}

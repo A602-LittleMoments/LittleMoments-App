@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.ButtonSize
 import com.a602.commonproject.designsystem.component.FilledButton
 import com.a602.commonproject.designsystem.theme.lightblue
@@ -44,7 +45,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.Calendar
 
-// 하이라이트 날짜 선택 -> 아오 화살표로 이동 왜.
 fun Long?.toDay(): String {
     if (this == null) return "-"
     return Instant.ofEpochMilli(this)
@@ -52,8 +52,20 @@ fun Long?.toDay(): String {
         .dayOfMonth
         .toString()
 }
+object HighlightCalendarNavKey : NavKey
 
-
+@Composable
+fun HighlightCalendarScreen(
+    onNavigateToLoading: () -> Unit,
+    onBack: () -> Unit
+) {
+    DateRangePickerModal(
+        onDateRangeSelected = { (start, end) ->
+            onNavigateToLoading()
+        },
+        onDismiss = onBack
+    )
+}
 
 @Composable
 fun DateRangePickerModal(
@@ -97,7 +109,7 @@ fun DateRangePickerModal(
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
-                        .padding(top = 24.dp), // ✅ X 버튼이랑 안 겹치게 여백
+                        .padding(top = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
