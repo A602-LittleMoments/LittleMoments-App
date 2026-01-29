@@ -153,7 +153,7 @@ fun KidInfoTextField(label: String, value: String, icon: androidx.compose.ui.gra
     }
 }
 
-/*@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 fun KidEditScreenPreview() {
     NiaTheme {
@@ -164,5 +164,5 @@ fun KidEditScreenPreview() {
             onSaveClick = {}
         )
     }
-}*/
+}
 

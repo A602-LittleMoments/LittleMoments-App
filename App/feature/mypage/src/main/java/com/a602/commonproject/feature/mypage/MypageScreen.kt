@@ -133,7 +133,6 @@ fun MyPageScreen(
 }
 
 
-/*
 // 화면 플로우 확인 가능
 @Preview(showBackground = true, name = "2. 마이페이지 전체 흐름(클릭 가능)")
 @Composable
@@ -158,8 +157,8 @@ fun MyPageMainContainer() {
             onNavigateToProfileEdit = { currentScreen = "profile_edit" },
             onNavigateToKidEdit = { currentScreen = "kid_edit" },
             onNavigateToGroupManagement = { currentScreen = "group_manage" },
-            onBackClick = { */
-/* 이전 메인 화면으로 *//*
+            onBackClick = {
+ 이전 메인 화면으로
  }
         )
 
@@ -188,4 +187,3 @@ fun MyPageMainContainer() {
     }
 }
 
-*/
