@@ -1,3 +1,4 @@
+/*
 package com.a602.commonproject.feature.memory
 
 import android.graphics.Bitmap
@@ -11,11 +12,13 @@ import com.a602.coommonproject.ui.MediaDetailAction
 import com.a602.coommonproject.ui.MediaDetailScreen
 import com.a602.coommonproject.ui.MediaDetailUiState
 
+*/
 /**
  * 상세 화면 "조립/상태" 담당 Route
  * - 지금: 더미 uiState 생성 + 재생 토글 처리
  * - 나중: 서버 데이터로 uiState만 교체하면 됨
- */
+ *//*
+
 @Composable
 fun MediaDetailRoute(
     keywordId: String,
@@ -35,15 +38,23 @@ fun MediaDetailRoute(
                 MediaDetailAction.TogglePlayPause -> {
                     uiState = uiState.copy(isPlaying = !uiState.isPlaying)
                 }
-                MediaDetailAction.Delete -> { /* TODO: 나중 */ }
-                MediaDetailAction.Download -> { /* TODO */ }
-                MediaDetailAction.Edit -> { /* TODO */ }
+                MediaDetailAction.Delete -> { */
+/* TODO: 나중 *//*
+ }
+                MediaDetailAction.Download -> { */
+/* TODO *//*
+ }
+                MediaDetailAction.Edit -> { */
+/* TODO *//*
+ }
             }
         }
     )
 }
 
-/* -------------------- 더미 생성 -------------------- */
+*/
+/* -------------------- 더미 생성 -------------------- *//*
+
 
 private fun dummyDetailUiState(keywordId: String, mediaId: String): MediaDetailUiState {
     val base = when (keywordId) {
@@ -80,7 +91,9 @@ private fun solidBitmap(
 }
 
 
-/* ---------------- Preview ---------------- */
+*/
+/* ---------------- Preview ---------------- *//*
+
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 760, name = "Detail - Photo")
 @Composable
@@ -105,3 +118,4 @@ private fun Preview_MediaDetail_Video() {
         )
     }
 }
+*/

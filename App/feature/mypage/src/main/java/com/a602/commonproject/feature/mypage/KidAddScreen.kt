@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.a602.commonproject.designsystem.component.AstronautPhotoPicker
+import com.a602.commonproject.designsystem.component.ProfileHead
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.component.GenderToggle
 import com.a602.commonproject.designsystem.component.LMTopAppBar
@@ -60,16 +60,15 @@ fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
             Spacer(modifier = Modifier.height(20.dp))
 
             // 2. 우주복 사진 선택기 (클릭 시 갤러리 열기)
-            AstronautPhotoPicker(
-                imageUri = selectedUri,
+            ProfileHead(
+                remoteImageUrl = null,
+                selectedImageUri = null,
                 onClick = {
 //                    pickerLauncher.launch(
 //                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
 //                    )
                 },
-                headSize = 140.dp,
-                bodyWidth = 150.dp,
-                bodyOffsetY = 100.dp
+                size = 140.dp,
             )
 
             Spacer(modifier = Modifier.height(24.dp))

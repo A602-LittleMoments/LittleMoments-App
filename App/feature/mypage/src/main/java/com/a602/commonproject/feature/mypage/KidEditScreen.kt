@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.component.GenderToggle
-import com.a602.commonproject.designsystem.component.AstronautPhotoPicker
+import com.a602.commonproject.designsystem.component.ProfileHead
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.theme.*
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,12 +51,12 @@ fun KidEditScreen(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            AstronautPhotoPicker(
-                imageUri = null,
+            ProfileHead(
+                remoteImageUrl = null,
+                selectedImageUri = null,
                 onClick = { },
-                headSize = 150.dp,
-                bodyWidth = 160.dp,
-                bodyOffsetY = 110.dp
+                size = 150.dp,
+                borderWidth = 160.dp,
             )
 
             Spacer(modifier = Modifier.height(24.dp))

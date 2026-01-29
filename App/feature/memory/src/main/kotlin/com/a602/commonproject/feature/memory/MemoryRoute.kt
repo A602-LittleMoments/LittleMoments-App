@@ -1,3 +1,4 @@
+/*
 package com.a602.commonproject.feature.memory
 
 import android.graphics.Bitmap
@@ -40,11 +41,13 @@ import kotlinx.coroutines.delay
 //}
 
 // 작동 확인용 화면 연결 및 더미 데이터
+*/
 /**
  * Memory 탭 엔트리
  * - 행성(MemoryScreen) -> 그리드(MediaGridScreen) -> 상세(MediaDetailRoute)
  * - 서버 전이라 더미 데이터로 흐름만 확인
- */
+ *//*
+
 
 @Composable
 fun MemoryRoute() {
@@ -104,7 +107,9 @@ fun MemoryRoute() {
     }
 }
 
-/* ---------------- 더미 Grid 데이터 ---------------- */
+*/
+/* ---------------- 더미 Grid 데이터 ---------------- *//*
+
 
 private fun dummyMapped(keywordId: String): List<Pair<String, PolaroidData>> {
     fun bmp(color: Int) =
@@ -132,3 +137,4 @@ private fun dummyMapped(keywordId: String): List<Pair<String, PolaroidData>> {
         )
     )
 }
+*/

@@ -16,15 +16,15 @@ import androidx.navigation3.runtime.NavEntry
 // ✨ 디자인 시스템 컴포넌트 임포트
 import com.a602.commonproject.designsystem.component.LMNavigationBar
 import com.a602.commonproject.designsystem.component.LMNavigationBarItem
-import com.a602.commonproject.designsystem.component.PolaroidMeta
-import com.a602.commonproject.feature.gallery.GridGallery
-import com.a602.commonproject.feature.memory.MemoryScreen
-import com.a602.commonproject.feature.memory.TempKeywordDto
-import com.a602.commonproject.feature.mypage.MyPageScreen
-import com.a602.commonproject.model.data.Baby
-import com.a602.commonproject.model.data.User
-import com.a602.commonproject.navigation.*
-import com.a602.coommonproject.ui.PolaroidData
+import com.a602.commonproject.navigation.AlbumNavKey
+import com.a602.commonproject.navigation.HomeNavKey
+import com.a602.commonproject.navigation.MemoryNavKey
+import com.a602.commonproject.navigation.MyPageNavKey
+import com.a602.commonproject.navigation.Navigator
+import com.a602.commonproject.navigation.TOP_LEVEL_NAV_ITEMS
+import com.a602.commonproject.navigation.rememberNavigationState
+import com.a602.commonproject.navigation.toEntries
+
 
 @Composable
 fun LTApp() {
@@ -63,12 +63,9 @@ fun LTApp() {
             NavEntry(key) { route ->
                 when (route) {
                     is HomeNavKey -> Text("메인 화면 (준비 중)")
-                    is AlbumNavKey -> GridGallery(polaroids = emptyList())
-                    is MemoryNavKey -> MemoryScreen(items){}
-                    is MyPageNavKey -> MyPageScreen(
-                        user = dummyUser,
-                        baby = dummyBaby
-                    )
+                    is AlbumNavKey -> Text("메인 화면 (준비 중)")
+                    is MemoryNavKey -> Text("메인 화면 (준비 중)")
+                    is MyPageNavKey ->  Text("메인 화면 (준비 중)")
                     else -> Text("Unknown Route")
                 }
             }
@@ -91,6 +88,7 @@ fun LTApp() {
     }
 }
 
+/*
 
 // 1. User 더미 데이터
 val dummyUser = User(
@@ -135,3 +133,4 @@ val dummyPolaroidList: List<PolaroidData> = List(10) { index ->
     )
 }
 
+*/

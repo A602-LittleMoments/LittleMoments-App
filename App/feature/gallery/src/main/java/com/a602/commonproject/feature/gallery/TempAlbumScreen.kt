@@ -1,3 +1,4 @@
+/*
 package com.a602.commonproject.feature.gallery
 
 import android.graphics.Bitmap
@@ -99,7 +100,9 @@ fun TempGridGallery(
                         .padding(vertical = 16.dp, horizontal = 10.dp),
                 ) {
                     FillWrapButton(
-                        onClick = { /* 전체 비우기 로직 */ },
+                        onClick = { */
+/* 전체 비우기 로직 *//*
+ },
                         text = "전체비우기",
                         modifier = Modifier.align(Alignment.CenterStart),
                     )
@@ -132,7 +135,9 @@ fun TempGridGallery(
 
                         GalleryGridPolaroid(
                             polaroids = polaroids,
-                            onClick = { /* 상세 화면 이동 등 */ },
+                            onClick = { */
+/* 상세 화면 이동 등 *//*
+ },
                         )
                     }
                 }
@@ -169,7 +174,9 @@ fun TempGridGallery(
                                 icon = LMicons.Download,
                                 text = "저장",
                                 color = color3,
-                                onClick = { /* 저장 로직 */ },
+                                onClick = { */
+/* 저장 로직 *//*
+ },
                             )
                         }
                     }
@@ -252,3 +259,4 @@ fun TempGridGallerySelectModePreview() {
     }
 }
 
+*/

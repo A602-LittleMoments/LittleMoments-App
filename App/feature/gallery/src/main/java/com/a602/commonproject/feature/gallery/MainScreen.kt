@@ -1,3 +1,4 @@
+/*
 package com.a602.commonproject.feature.gallery
 
 import android.graphics.Bitmap
@@ -105,7 +106,9 @@ private fun MainScreenHeader(
         // Baby Profile with Astronaut Body
         AstronautPhotoPicker(
             imageUri = babyImageUri,
-            onClick = { /* 사진 등록 로직 필요 없음 */ },
+            onClick = { */
+/* 사진 등록 로직 필요 없음 *//*
+ },
             modifier = Modifier.padding(bottom = 16.dp),
             headSize = 140.dp,
             bodyWidth = 120.dp,
@@ -419,3 +422,4 @@ private fun PreviewMainScreenEmpty() {
         )
     }
 }
+*/
