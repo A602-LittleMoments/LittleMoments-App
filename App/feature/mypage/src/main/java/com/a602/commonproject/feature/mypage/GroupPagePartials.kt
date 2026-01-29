@@ -47,8 +47,8 @@ fun ManageableMemberItem(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp), // 이미지의 둥근 곡률 재현
-        colors = CardDefaults.cardColors(containerColor = lightbackground), // 0xFFFFFEFB
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = lightbackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(

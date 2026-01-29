@@ -8,17 +8,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.designsystem.component.GroupRoleSelectDialog
 import androidx.compose.ui.tooling.preview.Preview
-// 💡 데이터 모델 인식을 위해 반드시 필요한 임포트
 import com.a602.commonproject.model.data.*
 
 @Composable
 fun GroupChangeScreen(
-    // 💡 메인에서 온 데이터를 받아서
+    // 메인에서 온 데이터를 받아서
     members: List<GroupMember>,
     onBackClick: () -> Unit = {}
 ) {
