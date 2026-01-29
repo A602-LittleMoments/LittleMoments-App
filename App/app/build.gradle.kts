@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.feature.gallery)
     implementation(projects.feature.memory)
     implementation(projects.feature.mypage)
+    implementation(projects.feature.home)
 
     ksp(libs.hilt.compiler)
 

@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.runtime.NavKey
-import com.a602.commonproject.navigation.HomeNavKey
+import com.a602.commonproject.feature.home.navigation.HomeNavKey
 import com.a602.commonproject.navigation.NavigationState
 import com.a602.commonproject.navigation.Navigator
 import com.a602.commonproject.navigation.TOP_LEVEL_NAV_ITEMS

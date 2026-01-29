@@ -6,6 +6,10 @@ import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.R
 import com.a602.commonproject.designsystem.icon.LMicons
 import kotlinx.serialization.Serializable
+import com.a602.commonproject.feature.home.navigation.HomeNavKey
+import com.a602.commonproject.navigation.GalleryNavKey
+import com.a602.commonproject.navigation.MemoryNavKey
+import com.a602.commonproject.navigation.MyPageNavKey
 
 data class TopLevelNavItem(
     val selectedIcon: ImageVector,
@@ -43,19 +47,7 @@ val MY_PAGE = TopLevelNavItem(
     titleTextId = R.string.app_name,
 )
 
-@Serializable
-object HomeNavKey : NavKey
-
-@Serializable
-object GalleryNavKey : NavKey
-
-@Serializable
-object MemoryNavKey : NavKey
-
-@Serializable
-object MyPageNavKey : NavKey
-
-val TOP_LEVEL_NAV_ITEMS = mapOf(
+val TOP_LEVEL_NAV_ITEMS = mapOf<NavKey, TopLevelNavItem>(
     HomeNavKey to HOME,
     GalleryNavKey to GALLERY,
     MemoryNavKey to MEMORY,

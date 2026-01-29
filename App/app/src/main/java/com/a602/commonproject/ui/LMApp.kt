@@ -10,14 +10,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
 // ✨ 디자인 시스템 컴포넌트 임포트
 import com.a602.commonproject.designsystem.component.LMNavigationBar
 import com.a602.commonproject.designsystem.component.LMNavigationBarItem
+import com.a602.commonproject.feature.home.navigation.HomeNavKey
+import com.a602.commonproject.feature.home.navigation.NotificationNavKey
+import com.a602.commonproject.feature.home.navigation.UploadNavKey
+import com.a602.commonproject.feature.home.navigation.homeEntries
 import com.a602.commonproject.navigation.GalleryNavKey
-import com.a602.commonproject.navigation.HomeNavKey
 import com.a602.commonproject.navigation.MemoryNavKey
 import com.a602.commonproject.navigation.MyPageNavKey
 import com.a602.commonproject.navigation.TOP_LEVEL_NAV_ITEMS
+
 import com.a602.commonproject.navigation.toEntries
 import com.a602.commonproject.ui.rememberLMAppState
 
@@ -38,7 +43,7 @@ fun LMApp() {
                         // 3. ✨ 사용자님이 만든 LMNavigationBarItem 적용
                         LMNavigationBarItem(
                             selected = isSelected,
-                            onClick = { appState.navigator.navigate(navKey) },
+                            onClick = { appState.navigator.navigate(navKey as NavKey) },
                             icon = {
                                 Icon(
                                     imageVector = if (isSelected) navItem.selectedIcon else navItem.unselectedIcon,
@@ -52,17 +57,22 @@ fun LMApp() {
             }
         },
     ) { innerPadding ->
-        val entries = appState.navigationState.toEntries { key ->
-            NavEntry(key) { route ->
-                when (route) {
-                    is HomeNavKey -> Text("메인 화면 (준비 중)")
-                    is GalleryNavKey -> Text("사진 화면 (준비 중)")
-                    is MemoryNavKey -> Text("추억 화면 (준비 중)")
-                    is MyPageNavKey -> Text("마이페이지 화면 (준비 중)")
-                    else -> Text("Unknown Route")
-                }
-            }
+        // 5. 모듈별 EntryProvider 연결
+        // 5. 모듈별 EntryProvider 연결
+        val provider = androidx.navigation3.runtime.entryProvider<NavKey> {
+            homeEntries(appState.navigator)
+            
+            // Fallback / Placeholder for unimplemented features
+            entry<GalleryNavKey> { Text("사진 화면 (준비 중)") }
+            entry<MemoryNavKey> { Text("추억 화면 (준비 중)") }
+            entry<MyPageNavKey> { Text("마이페이지 화면 (준비 중)") }
         }
+        
+        val combinedEntryProvider: (NavKey) -> NavEntry<NavKey> = { key ->
+            provider.invoke(key) ?: error("Unknown key: $key")
+        }
+
+        val entries = appState.navigationState.toEntries(combinedEntryProvider)
 
         // 4. 화면 표시 영역 (하단 바 높이만큼 padding 적용)
         NavDisplay(
