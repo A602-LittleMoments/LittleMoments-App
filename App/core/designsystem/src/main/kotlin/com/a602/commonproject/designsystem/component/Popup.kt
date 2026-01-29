@@ -49,6 +49,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.designsystem.theme.NiaTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color2
 import com.a602.commonproject.designsystem.theme.color3
@@ -74,7 +75,7 @@ fun ConfirmDeleteDialog(
             Text(
                 text = "삭제하시겠습니까?",
                 color = LMDialogDefaults.titleColor(),
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.headlineLarge
             )
         },
         text = {
@@ -82,7 +83,7 @@ fun ConfirmDeleteDialog(
                 text = "삭제된 항목은 복구할 수 없습니다.",
                 modifier = Modifier.fillMaxWidth(),
                 color = LMDialogDefaults.textColor(),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.labelMedium,
                 textAlign = TextAlign.Center
 
             )
@@ -92,7 +93,8 @@ fun ConfirmDeleteDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     "삭제",
-                    color = LMDialogDefaults.confirmTextColor()
+                    color = LMDialogDefaults.confirmTextColor(),
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
         },
@@ -100,7 +102,8 @@ fun ConfirmDeleteDialog(
             TextButton(onClick = onDismiss) {
                 Text(
                     "취소",
-                    color = LMDialogDefaults.dismissTextColor()
+                    color = LMDialogDefaults.dismissTextColor(),
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
         }
@@ -127,7 +130,7 @@ object LMDialogDefaults {
 @Preview(showBackground = true)
 @Composable
 fun ConfirmDeleteDialogPreview() {
-    MaterialTheme {
+    NiaTheme {
         ConfirmDeleteDialog(
             onDismiss = {},
             onConfirm = {}
@@ -188,12 +191,12 @@ fun RoleItem(
         Column{
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.headlineLarge,
                 color = LMGroupDialogDefaults.titleColor()
             )
             Text(
                 text = desc,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.labelMedium,
                 color = LMGroupDialogDefaults.descColor()
             )
         }
@@ -255,25 +258,25 @@ fun GroupRoleSelectDialog(
                     .padding(20.dp),
             ) {
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
 
                     Text(
                         text = "그룹원 추가 코드",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = LMGroupDialogDefaults.titleColor(),
+                        style = MaterialTheme.typography.headlineLarge,
                         textAlign = TextAlign.Center
                     )
 
-                    IconButton(onClick = onCloseClick,
-//                        modifier = Modifier.align(Alignment.End)
+                    IconButton(
+                        onClick = onCloseClick,
+                        modifier = Modifier.align(Alignment.CenterEnd)
                     ) {
                         Icon(
                             imageVector = closeIcon,
-                            contentDescription = "닫기"
+                            contentDescription = "닫기",
+                            tint = color3
                         )
                     }
                 }
@@ -358,7 +361,7 @@ object LMGroupDialogDefaults{
 @Preview(showBackground = true)
 @Composable
 fun GroupRoleSelectDialogPreview() {
-    MaterialTheme {
+    NiaTheme {
         GroupRoleSelectDialog(
             onDismiss = {},
             onConfirm = {},
