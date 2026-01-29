@@ -80,6 +80,7 @@ fun GroupChangeScreen(
         }
 
         if (showChangeDialog && selectedMember != null) {
+
             GroupRoleChangeDialog(
                 currentRole = selectedMember!!.role.name,
                 onDismiss = { showChangeDialog = false },
