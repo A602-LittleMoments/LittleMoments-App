@@ -26,7 +26,7 @@ import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.model.data.*
 
 /**
- * 우리 앱 테마(color.kt)에 정의된 색상들 중 하나를 무작위로 반환하는 함수
+ * 우리 앱 테마(color.kt)에 정의된 색상들 중 하나를 무작위로 반환하는 함수입니다.
  * @return Color 객체를 반환합니다.
  */
 fun getRandomColor(): Color {
@@ -50,6 +50,7 @@ fun getRandomColor(): Color {
  *
  * @param user 화면에 표시할 사용자의 정보 (User 데이터 클래스).
  * @param baby 화면에 표시할 아기의 정보 (Baby 데이터 클래스).
+ * @param groupMembers 화면에 표시할 그룹 멤버 목록.
  * @param onNavigateToProfileEdit '내 정보 수정' 버튼을 눌렀을 때 실행될 화면 이동 함수.
  * @param onNavigateToKidEdit '아이 정보 수정' 버튼을 눌렀을 때 실행될 화면 이동 함수.
  * @param onNavigateToKidAdd '아이 추가' 버튼을 눌렀을 때 실행될 화면 이동 함수.
@@ -60,30 +61,17 @@ fun MyPageScreen(
     //  1. 닉네임 문자열 대신 User와 Baby 객체
     user: User,
     baby: Baby,
+    groupMembers: List<GroupMember>, // ✅ [수정] 외부에서 그룹 멤버 리스트를 받도록 변경
     onNavigateToProfileEdit: () -> Unit = {},
     onNavigateToKidEdit: () -> Unit = {},
     onNavigateToKidAdd: () -> Unit = {},
     onNavigateToGroupManagement: () -> Unit = {}
 ) {
-    // TODO: 현재는 임시 데이터. 나중에 ViewModel에서 실제 그룹원 목록을 받아오도록 수정해야 합니다.
-    val groupMembers = listOf(
-        Pair("엄마", "관리자"),
-        Pair("아빠", "멤버"),
-        Pair("언니", "뷰어"),
-        Pair("할머니", "뷰어")
-    )
-
     // Scaffold는 화면의 기본 구조(상단바, 본문 등)를 잡아주는 유용한 틀입니다.
     Scaffold(
-        containerColor = background, // 전체 화면의 배경색 설정
-        topBar = {
-            LMTopAppBar(
-                title = "마이페이지"
-            )
-        }
-    ) { innerPadding -> // 상단바 영역을 제외한, 본문 내용이 채워질 공간의 패딩 값입니다.
-
-        // 스크롤이 필요한 긴 콘텐츠 목록을 효율적으로 표시하는 컴포넌트입니다.
+        containerColor = background,
+        topBar = { LMTopAppBar(title = "마이페이지") }
+    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize() // 화면을 가득 채우고
@@ -92,48 +80,14 @@ fun MyPageScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp), // 각 항목 사이의 수직 간격을 16.dp로 줍니다.
             contentPadding = PaddingValues(top = 40.dp, bottom = 40.dp) // 목록 전체의 위, 아래 여백을 줍니다.
         ) {
-            // [내 정보 섹션]
-            item {
-                // 밖에서 전달받은 user 객체의 데이터를 ProfileInfoCard 컴포넌트에 전달합니다.
-                ProfileInfoCard(
-                    name = user.nickname,
-                    nickname = user.nickname,
-                    email = user.email,
-                    // 수정 버튼이 눌리면, 밖에서 전달받은 onNavigateToProfileEdit 함수를 실행합니다.
-                    onEditClick = onNavigateToProfileEdit
-                )
-            }
+            item { ProfileInfoCard(name = user.nickname, nickname = user.nickname, email = user.email, onEditClick = onNavigateToProfileEdit) }
+            item { KidInfoCard(kidName = baby.babyName, birthDate = baby.birthDate, onEditClick = onNavigateToKidEdit, onAddClick = onNavigateToKidAdd) }
+            item { GroupSectionHeader(memberCount = groupMembers.size, onEditClick = onNavigateToGroupManagement) }
 
-            // [아이 정보 섹션]
-            item {
-                KidInfoCard(
-                    // 밖에서 전달받은 baby 객체의 데이터를 KidInfoCard 컴포넌트에 전달합니다.
-                    kidName = baby.babyName,
-                    birthDate = baby.birthDate,
-                    onEditClick = onNavigateToKidEdit, // 수정 버튼과 화면 이동 함수 연결
-                    onAddClick = onNavigateToKidAdd // 추가 버튼과 화면 이동 함수 연결
-                )
-            }
-
-            // [그룹원 헤더]
-            item {
-                GroupSectionHeader(
-                    memberCount = groupMembers.size,
-                    onEditClick = onNavigateToGroupManagement
-                )
-            }
-
-            // [그룹원 리스트]
-            // groupMembers 리스트의 각 항목을 순회하며 MemberItem UI를 동적으로 생성합니다.
-            items(groupMembers) { (name, role) ->
-                // 멤버의 이름별로 고유한 랜덤 색상을 기억합니다.
-                val boxColor = remember(name) { getRandomColor() }
-
-                MemberItem(
-                    name = name,
-                    role = role,
-                    color = boxColor
-                )
+            // ✅ [수정] 중첩된 items 블록을 제거하고, 올바른 형식의 items 블록 하나만 남깁니다.
+            items(groupMembers) { member ->
+                val boxColor = remember(member.nickname) { getRandomColor() }
+                MemberItem(name = member.nickname, role = member.role.name, color = boxColor)
             }
         }
     }
@@ -141,16 +95,20 @@ fun MyPageScreen(
 
 /**
  * [정적 프리뷰]
- * MyPageScreen 컴포저블 하나만 독립적으로 테스트하기 위한 미리보기입니다.
- * 실제 데이터가 없으므로, User와 Baby 객체를 직접 만들어서 화면에 전달해줍니다.
  */
 @Preview(showBackground = true, name = "마이페이지 화면 단독 프리뷰")
 @Composable
 fun MyPageScreenPreview() {
     NiaTheme {
+        // ✅ [수정] 테스트용 데이터를 GroupMember 형식에 맞게 생성
+        val sampleMembers = listOf(
+            GroupMember("id1", "엄마", "엄마", GroupRole.OWNER),
+            GroupMember("id2", "아빠", "아빠", GroupRole.MEMBER)
+        )
         MyPageScreen(
             user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
-            baby = Baby(babyId = "1", babyName = "Leo", birthDate = "2023-05-12", gender = Baby.Gender.MALE, imageUrl = null)
+            baby = Baby(babyId = "1", babyName = "Leo", birthDate = "2023-05-12", gender = Baby.Gender.MALE, imageUrl = null),
+            groupMembers = sampleMembers
         )
     }
 }
@@ -181,13 +139,22 @@ fun MyPageMainContainer() {
     var currentUser by remember { mutableStateOf(User(id = "1", email = "길동이@example.com", nickname = "길동이")) }
     var currentBaby by remember { mutableStateOf(Baby(babyId = "1", babyName = "튼튼이", birthDate = "2023-05-12", gender = Baby.Gender.MALE, imageUrl = null)) }
 
-    // currentScreen의 값에 따라 어떤 화면을 보여줄지 결정하는 분기문입니다.
+    // ✅ [핵심 수정] 컨테이너 내에서 테스트용 그룹 멤버 데이터를 생성하고 관리합니다.
+    val sampleMembers = remember {
+        listOf(
+            GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
+            GroupMember(userId = "2", nickname = "아빠", relation = "아빠", role = GroupRole.MEMBER),
+            GroupMember(userId = "3", nickname = "언니", relation = "언니", role = GroupRole.VIEWER),
+            GroupMember(userId = "4", nickname = "할머니", relation = "할머니", role = GroupRole.VIEWER)
+        )
+    }
+
     when (currentScreen) {
         // currentScreen이 "main"일 경우, MyPageScreen을 보여줍니다.
         "main" -> MyPageScreen(
             user = currentUser,
             baby = currentBaby,
-            // 각 버튼을 누르면 currentScreen의 값을 다른 화면의 이름으로 변경하여 화면 전환
+            groupMembers = sampleMembers, // ✅ [수정] 누락되었던 groupMembers 파라미터 전달
             onNavigateToProfileEdit = { currentScreen = "profile_edit" },
             onNavigateToKidEdit = { currentScreen = "kid_edit" },
             onNavigateToKidAdd = { currentScreen = "kid_add" },
@@ -214,15 +181,14 @@ fun MyPageMainContainer() {
         )
 
         "kid_add" -> KidAddScreen(
-            onSaveClick = { newBaby ->
-                // TODO: 프리뷰에서는 저장 로직 없이 그냥 메인으로 돌아갑니다.
+            onSaveClick = { _ ->
                 currentScreen = "main"
             },
             onBackClick = { currentScreen = "main" }
         )
 
         "group_manage" -> GroupChangeScreen(
-            members = emptyList(), // TODO: 실제 GroupMember 데이터로 연결해야 합니다.
+            members = sampleMembers, // ✅ [수정] emptyList() 대신 생성된 테스트 데이터를 전달
             onBackClick = { currentScreen = "main" }
         )
     }

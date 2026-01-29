@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.component.LMTopAppBar
@@ -30,13 +31,20 @@ fun ProfileEditScreen(
     onSaveClick: (User) -> Unit = {},
     onBackClick: () -> Unit = {}
 ) {
-    var nameValue by remember { mutableStateOf(user.nickname) }
-    var nicknameValue by remember { mutableStateOf(user.nickname) }
-    var emailValue by remember { mutableStateOf(user.email) }
+    // ✅ [수정] 한글 입력 문제 해결을 위해 String 대신 TextFieldValue 사용
+    // var nameValue by remember { mutableStateOf(user.nickname) }
+    var nameValue by remember { mutableStateOf(TextFieldValue(user.nickname)) }
+    // var nicknameValue by remember { mutableStateOf(user.nickname) }
+    var nicknameValue by remember { mutableStateOf(TextFieldValue(user.nickname)) }
+    // var emailValue by remember { mutableStateOf(user.email) }
+    var emailValue by remember { mutableStateOf(TextFieldValue(user.email)) }
 
-    var currentPassword by remember { mutableStateOf("") }
-    var newPassword by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    // var currentPassword by remember { mutableStateOf("") }
+    var currentPassword by remember { mutableStateOf(TextFieldValue("")) }
+    // var newPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf(TextFieldValue("")) }
+    // var confirmPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf(TextFieldValue("")) }
 
     Scaffold(
         containerColor = background,
@@ -75,9 +83,11 @@ fun ProfileEditScreen(
 
             Button(
                 onClick = {
+                    // ✅ [수정] 저장 시에는 .text를 붙여 String 값만 추출하여 전달
+                    // val updatedUser = user.copy(nickname = nicknameValue, email = emailValue)
                     val updatedUser = user.copy(
-                        nickname = nicknameValue,
-                        email = emailValue
+                        nickname = nicknameValue.text,
+                        email = emailValue.text
                     )
                     onSaveClick(updatedUser)
                 },
@@ -98,10 +108,13 @@ fun ProfileEditScreen(
 @Composable
 fun EditInputField(
     label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
+    // ✅ [수정] 타입을 TextFieldValue로 변경
+    // value: String,
+    value: TextFieldValue,
+    // onValueChange: (String) -> Unit,
+    onValueChange: (TextFieldValue) -> Unit,
     icon: ImageVector,
-    isPassword: Boolean = false // 비밀번호 입력을 위한 파라미터 추가
+    isPassword: Boolean = false
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -112,7 +125,7 @@ fun EditInputField(
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 4.dp) // 세로 패딩 조절
+                .padding(horizontal = 16.dp, vertical = 4.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -121,15 +134,12 @@ fun EditInputField(
                 value = value,
                 onValueChange = onValueChange,
                 modifier = Modifier.weight(1f),
-                // ✅ [수정] 폰트 스타일과 색상을 ProfileDetailScreen과 동일하게 맞춤
-                textStyle = AppTypography.titleMedium,
+                textStyle = AppTypography.titleMedium.copy(color = color4),
                 label = { Text(label, style = AppTypography.labelMedium, color = color4.copy(alpha = 0.6f)) },
-                // 비밀번호 입력일 경우 점(•)으로 표시
                 visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
-                // TextField의 기본 배경과 밑줄을 투명하게 만들어 카드와 겹쳐보이게 함
                 colors = TextFieldDefaults.colors(
-                    focusedTextColor = color4, // 입력된 텍스트 색상
-                    unfocusedTextColor = color4, // 입력된 텍스트 색상
+                    focusedTextColor = color4,
+                    unfocusedTextColor = color4,
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
