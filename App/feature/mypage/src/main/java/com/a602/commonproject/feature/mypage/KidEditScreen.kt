@@ -15,6 +15,7 @@ import com.a602.commonproject.designsystem.component.ProfileHead
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.theme.*
 import androidx.compose.ui.tooling.preview.Preview
+import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 
 import com.a602.commonproject.model.data.*
 
@@ -50,12 +51,19 @@ fun KidEditScreen(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            ProfileHead(
+            // 2. 우주복 사진 선택기 (클릭 시 갤러리 열기)
+            ProfileFullAstronaut(
                 remoteImageUrl = null,
                 selectedImageUri = null,
-                onClick = { },
-                size = 150.dp,
-                borderWidth = 160.dp,
+                onClick = {
+//                    pickerLauncher.launch(
+//                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+//                    )
+                },
+                // ✅ [수정] 아래 파라미터들을 추가하여 크기를 조절합니다.
+                headSize = 140.dp,
+                bodyWidth = 150.dp,
+                bodyOffsetY = 100.dp
             )
 
             Spacer(modifier = Modifier.height(24.dp))

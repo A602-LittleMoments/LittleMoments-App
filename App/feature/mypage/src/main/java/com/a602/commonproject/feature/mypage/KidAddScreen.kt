@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.a602.commonproject.designsystem.component.ProfileHead
+import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.component.GenderToggle
 import com.a602.commonproject.designsystem.component.LMTopAppBar
@@ -57,7 +57,7 @@ fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
             Spacer(modifier = Modifier.height(20.dp))
 
             // 2. 우주복 사진 선택기 (클릭 시 갤러리 열기)
-            ProfileHead(
+            ProfileFullAstronaut(
                 remoteImageUrl = null,
                 selectedImageUri = null,
                 onClick = {
@@ -65,10 +65,13 @@ fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
 //                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
 //                    )
                 },
-                size = 140.dp,
+                // ✅ [수정] 아래 파라미터들을 추가하여 크기를 조절합니다.
+                headSize = 140.dp,
+                bodyWidth = 150.dp,
+                bodyOffsetY = 100.dp
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(0.dp))
 
             // 3. 실제 입력이 가능한 필드로 변경
             KidEditInputField(
