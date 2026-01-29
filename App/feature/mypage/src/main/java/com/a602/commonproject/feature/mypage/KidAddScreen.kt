@@ -21,7 +21,6 @@ import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.model.data.Baby
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
     onBackClick: () -> Unit = {},

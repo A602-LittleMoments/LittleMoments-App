@@ -21,7 +21,6 @@ import com.a602.commonproject.model.data.*
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KidEditScreen(
     baby: Baby,
