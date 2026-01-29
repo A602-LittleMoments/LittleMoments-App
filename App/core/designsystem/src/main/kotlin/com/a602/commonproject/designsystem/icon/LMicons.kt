@@ -59,6 +59,8 @@ object LMicons {
 
     val Star = Icons.Outlined.Star
 
+    val Star2 = Icons.Outlined.StarOutline
+
     val Mypage = Icons.Outlined.AccountCircle
 
     val Person = Icons.Outlined.Person //회원가입 인물 아이콘

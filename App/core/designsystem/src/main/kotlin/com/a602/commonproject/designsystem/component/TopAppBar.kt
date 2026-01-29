@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.designsystem.theme.NiaTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
 
@@ -37,7 +38,7 @@ fun LMTopAppBar(
                     title = {
                         Text(
                             text = title,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.headlineLarge
             )
         },
         navigationIcon = {
@@ -82,10 +83,12 @@ object LMTopAppBarDefaults {
 @Preview("Top App Bar")
 @Composable
 private fun LMTopAppBarPreview() {
-    LMTopAppBar(
-        title = "프리뷰",
-        actionIcon = LMicons.Mypage,
-    )
+    NiaTheme {
+        LMTopAppBar(
+            title = "프리뷰",
+            actionIcon = LMicons.Mypage,
+        )
+    }
 }
 
 

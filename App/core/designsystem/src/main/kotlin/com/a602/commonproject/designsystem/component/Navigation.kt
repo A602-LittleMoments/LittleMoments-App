@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
+import com.a602.commonproject.designsystem.theme.lightbackground
 
 /**
  * @param selected 이 항목이 선택된 상태인지 여부를 나타냅니다.
@@ -62,7 +63,7 @@ fun LMNavigationBar(
 ) {
     NavigationBar(
         modifier = modifier,
-        containerColor = background, // 배경색 적용
+        containerColor = lightbackground, // 배경색 적용
         contentColor = LMNavigationDefaults.navigationContentColor(),
         tonalElevation = 0.dp,
         content = content,
@@ -75,7 +76,7 @@ fun LMNavigationBarPreview() {
     val icons = listOf(
         LMicons.Home,
         LMicons.Photo,
-        LMicons.Star,
+        LMicons.Star2,
         LMicons.Mypage,
     )
 
