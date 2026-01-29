@@ -186,7 +186,7 @@ fun EditInputField(
 @Preview(showBackground = true, name = "내 정보 수정 미리보기")
 @Composable
 fun ProfileEditScreenPreview() {
-    LtTheme {
+    LMTheme {
         ProfileEditScreen(
             user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
             onSaveClick = {},

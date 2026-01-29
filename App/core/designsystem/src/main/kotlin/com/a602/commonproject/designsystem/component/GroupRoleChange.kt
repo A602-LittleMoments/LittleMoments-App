@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -21,7 +20,6 @@ import androidx.compose.ui.zIndex
 import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.designsystem.icon.LMicons
-import com.a602.commonproject.designsystem.component.* // RoleItem 등을 가져오기 위함
 import androidx.compose.ui.tooling.preview.Preview
 
 
@@ -137,7 +135,7 @@ fun GroupRoleChangeDialog(
 @Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
 fun GroupRoleChangeDialogPreview() {
-    LtTheme {
+    LMTheme {
         // 실제 앱처럼 보이기 위해 배경색이 있는 Box로 감쌉니다.
         Box(
             modifier = Modifier

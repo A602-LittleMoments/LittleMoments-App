@@ -14,7 +14,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.a602.commonproject.designsystem.theme.LtTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.model.data.SharedMedia
@@ -141,7 +141,7 @@ fun PolaroidPreview_DualPhoto() {
         uploaderName = "엄마",
         syncStatus = SharedMedia.SyncStatus.SYNCED
     )
-    LtTheme {
+    LMTheme {
         Polaroid(
             media = fakeMedia,
             modifier = Modifier
@@ -243,7 +243,7 @@ private fun PolaroidPreviewOnly(
 @Preview(showBackground = true)
 @Composable
 fun PolaroidPreview_ColorTest() {
-    LtTheme {
+    LMTheme {
         val rear = previewBitmap(color = android.graphics.Color.DKGRAY)
         val front = previewBitmap(
             width = 300,

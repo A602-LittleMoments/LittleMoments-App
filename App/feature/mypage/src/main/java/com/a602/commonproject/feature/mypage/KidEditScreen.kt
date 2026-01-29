@@ -144,7 +144,7 @@ fun KidEditScreen(
 @Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 fun KidEditScreenPreview() {
-    LtTheme {
+    LMTheme {
         KidEditScreen(
             baby = Baby(
                 babyId = "sampleId",

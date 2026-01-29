@@ -1,6 +1,5 @@
 package com.a602.commonproject.designsystem.component
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -180,7 +179,7 @@ private fun TimerDisplay(time: String) {
 @Preview
 @Composable
 fun GroupCodeDialogPreview() {
-    LtTheme {
+    LMTheme {
         GroupCodeDialog(
             onDismissRequest = {},
             onRefreshClick = {}

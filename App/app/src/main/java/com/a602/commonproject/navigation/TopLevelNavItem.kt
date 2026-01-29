@@ -1,13 +1,6 @@
 package com.a602.commonproject.navigation
 
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Photo
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Photo
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.R
@@ -54,7 +47,7 @@ val MY_PAGE = TopLevelNavItem(
 object HomeNavKey : NavKey
 
 @Serializable
-object AlbumNavKey : NavKey
+object GalleryNavKey : NavKey
 
 @Serializable
 object MemoryNavKey : NavKey
@@ -64,7 +57,7 @@ object MyPageNavKey : NavKey
 
 val TOP_LEVEL_NAV_ITEMS = mapOf(
     HomeNavKey to HOME,
-    AlbumNavKey to GALLERY,
+    GalleryNavKey to GALLERY,
     MemoryNavKey to MEMORY,
     MyPageNavKey to MY_PAGE,
 )
