@@ -20,6 +20,10 @@ import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.model.data.Baby
 
+//import androidx.activity.compose.rememberLauncherForActivityResult
+//import androidx.activity.result.PickVisualMediaRequest
+//import androidx.activity.result.contract.ActivityResultContracts
+
 
 @Composable
 fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
@@ -32,7 +36,7 @@ fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
     var selectedGender by remember { mutableStateOf<Gender?>(null) }
 
-    // 사진 선택기 (주석 해제해서 사용하세요!)
+//     사진 선택기 (주석 해제해서 사용하세요!)
 //    val pickerLauncher = rememberLauncherForActivityResult(
 //        contract = ActivityResultContracts.PickVisualMedia()
 //    ) { uri -> selectedUri = uri }

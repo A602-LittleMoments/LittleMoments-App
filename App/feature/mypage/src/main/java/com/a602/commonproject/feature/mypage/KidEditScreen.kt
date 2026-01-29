@@ -11,13 +11,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.component.GenderToggle
-import com.a602.commonproject.designsystem.component.ProfileHead
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.theme.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 
 import com.a602.commonproject.model.data.*
+
+//import androidx.activity.compose.rememberLauncherForActivityResult
+//import androidx.activity.result.PickVisualMediaRequest
+//import androidx.activity.result.contract.ActivityResultContracts
 
 
 
