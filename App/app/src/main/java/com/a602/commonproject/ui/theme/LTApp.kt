@@ -64,7 +64,7 @@ fun LTApp() {
                 when (route) {
                     is HomeNavKey -> Text("메인 화면 (준비 중)")
                     is AlbumNavKey -> GridGallery(polaroids = emptyList())
-                    is MemoryNavKey -> MemoryScreen(items)
+                    is MemoryNavKey -> MemoryScreen(items){}
                     is MyPageNavKey -> MyPageScreen(
                         user = dummyUser,
                         baby = dummyBaby

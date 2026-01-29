@@ -1,15 +1,20 @@
 package com.a602.commonproject.sync.status
 
 import android.content.Context
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.a602.commonproject.sync.initializers.SyncConstraints
 import com.a602.commonproject.sync.workers.FetchWorker
+import com.a602.commonproject.sync.workers.MediaCleanupWorker
 import com.a602.commonproject.sync.workers.UploadWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
@@ -33,8 +38,6 @@ internal class WorkManagerSyncManager @Inject constructor(
 
 
     override fun requestSync() {
-
-
         val uploadWorkRequest = OneTimeWorkRequestBuilder<UploadWorker>()
             .setConstraints(SyncConstraints)
 //            .setInputData(inputData)
@@ -55,8 +58,29 @@ internal class WorkManagerSyncManager @Inject constructor(
             .enqueue()
     }
 
+
+    override fun initializePeriodicCleanup() {
+        // 제약 조건: 저장소 공간이 부족하지 않을 때만 실행 (배터리 절약 등 추가 가능)
+        val constraints = Constraints.Builder()
+            .setRequiresStorageNotLow(true)
+            .build()
+
+        // 24시간마다 반복
+        val cleanupRequest = PeriodicWorkRequestBuilder<MediaCleanupWorker>(1, TimeUnit.DAYS)
+            .setConstraints(constraints)
+            .build()
+
+        // 큐에 등록 (KEEP: 이미 예약돼 있으면 덮어쓰지 않고 유지함)
+        workManager.enqueueUniquePeriodicWork(
+            CLEANUP_WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP, // ✨ 중복 실행 방지 핵심
+            cleanupRequest
+        )
+    }
+
     companion object {
         const val SYNC_WORK_NAME = "SyncWorkName"
+        const val CLEANUP_WORK_NAME = "MediaCleanupWork"
     }
 }
 
