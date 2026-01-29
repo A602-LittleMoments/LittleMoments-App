@@ -30,6 +30,8 @@ fun ProfileEditScreen(
     onSaveClick: (User) -> Unit = {},
     onBackClick: () -> Unit = {}
 ) {
+    // 화면 맨 위에 추가
+    var isVerified by remember { mutableStateOf(false) } // 처음에는 미확인 상태
     // ✅ [수정] 한글 입력 문제 해결을 위해 String 대신 TextFieldValue 사용
     // var nameValue by remember { mutableStateOf(user.nickname) }
     var nameValue by remember { mutableStateOf(TextFieldValue(user.nickname)) }
@@ -58,48 +60,73 @@ fun ProfileEditScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
+            // 🟢 기본 정보 입력 (이름, 닉네임, 이메일)
             EditInputField(label = "이름", value = nameValue, onValueChange = { nameValue = it }, icon = LMicons.Person)
             Spacer(modifier = Modifier.height(16.dp))
-
             EditInputField(label = "닉네임", value = nicknameValue, onValueChange = { nicknameValue = it }, icon = LMicons.Person)
             Spacer(modifier = Modifier.height(16.dp))
-
             EditInputField(label = "이메일", value = emailValue, onValueChange = { emailValue = it }, icon = LMicons.Email)
-            Spacer(modifier = Modifier.height(16.dp))
 
-            // ✅ [수정] LMicons에 없는 Lock 아이콘은 표준 아이콘(Icons.Outlined.Lock)을 사용하도록 수정
-            EditInputField(label = "현재 비밀번호", value = currentPassword, onValueChange = { currentPassword = it }, icon = Icons.Outlined.Lock, isPassword = true)
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+            Divider(color = color4.copy(alpha = 0.2f)) // 구분선 추가
+            Spacer(modifier = Modifier.height(32.dp))
 
-            EditInputField(label = "새 비밀번호", value = newPassword, onValueChange = { newPassword = it }, icon = Icons.Outlined.Lock, isPassword = true)
-            Spacer(modifier = Modifier.height(16.dp))
+            // ✅ 3. 비밀번호 변경 단계별 화면 제어
+            if (!isVerified) {
+                // 🛑 1단계: 현재 비밀번호를 먼저 확인받아야 함
+                EditInputField(
+                    label = "비밀번호 변경을 위해 현재 비번 입력",
+                    value = currentPassword,
+                    onValueChange = { currentPassword = it },
+                    icon = Icons.Outlined.Lock,
+                    isPassword = true
+                )
+                Spacer(modifier = Modifier.height(16.dp))
 
-            EditInputField(label = "새 비밀번호 확인", value = confirmPassword, onValueChange = { confirmPassword = it }, icon = Icons.Outlined.Lock, isPassword = true)
+                Button(
+                    onClick = {
+                        // 💡 임시 로직: 입력값이 비어있지 않으면 확인된 것으로 간주 (내일 API 연결)
+                        if (currentPassword.text.isNotEmpty()) { isVerified = true }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = color4),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("현재 비밀번호 확인", color = lightbackground)
+                }
+            } else {
+                // 🟢 2단계: 확인이 완료되면 새 비밀번호 입력창 등장
+                EditInputField(label = "새 비밀번호", value = newPassword, onValueChange = { newPassword = it }, icon = Icons.Outlined.Lock, isPassword = true)
+                Spacer(modifier = Modifier.height(16.dp))
+                EditInputField(label = "새 비밀번호 확인", value = confirmPassword, onValueChange = { confirmPassword = it }, icon = Icons.Outlined.Lock, isPassword = true)
 
-            Spacer(modifier = Modifier.height(60.dp))
+                // 확인 완료 메시지
+                Text("✅ 현재 비밀번호가 확인되었습니다.", style = AppTypography.labelSmall, color = main, modifier = Modifier.padding(top = 8.dp))
+            }
 
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 최종 저장 버튼
             Button(
                 onClick = {
-                    // ✅ [수정] 저장 시에는 .text를 붙여 String 값만 추출하여 전달
-                    // val updatedUser = user.copy(nickname = nicknameValue, email = emailValue)
                     val updatedUser = user.copy(
+//                        name = nameValue.text,
                         nickname = nicknameValue.text,
                         email = emailValue.text
                     )
                     onSaveClick(updatedUser)
+
+                    // 새 비밀번호가 있고 확인까지 끝났다면 서버에 변경 요청 (UserRepository 호출 예정)
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = main)
             ) {
-                Text(
-                    text = "저장하기",
-                    color = lightbackground,
-                    style = AppTypography.labelLarge // 버튼 텍스트는 labelLarge 스타일 사용
-                )
+                Text(text = "최종 저장하기", color = lightbackground, style = AppTypography.labelLarge)
             }
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
