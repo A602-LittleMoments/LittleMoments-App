@@ -40,11 +40,6 @@ data class CalendarDay(
     val representativeThumbUrl: String? = null
 )
 
-data object CalendarNavKey : NavKey
-data class GridNavKey(
-    val selectedDate: LocalDate? = null
-) : NavKey
-
 fun mapToCalendarDays(
     yearMonth: YearMonth,
     medias: List<SharedMedia>
@@ -87,7 +82,6 @@ fun mapToCalendarDays(
 fun CalendarScreen(
     medias: List<SharedMedia>,
     initialMonth: YearMonth = YearMonth.now(),
-    onBackClick: () -> Unit,
     onDateClick: (LocalDate) -> Unit,
 ) {
     var currentMonth by remember { mutableStateOf(initialMonth) }
@@ -245,7 +239,6 @@ fun CalendarScreenPreview() {
             CalendarScreen(
                 medias = sampleMedias,
                 initialMonth = YearMonth.now(),
-                onBackClick = {},
                 onDateClick = {}
             )
         }

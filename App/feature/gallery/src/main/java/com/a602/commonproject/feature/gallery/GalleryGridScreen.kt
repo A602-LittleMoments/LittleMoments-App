@@ -1,7 +1,6 @@
 
 package com.a602.commonproject.feature.gallery
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,20 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.FillWrapButton
-import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.NiaTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.model.data.SharedMedia
@@ -38,23 +31,23 @@ data object GalleryNavKey : NavKey
 // 격자 보기
 @Composable
 fun GridGallery(
-    polaroids: List<SharedMedia>,
+    medias : List<SharedMedia>,
     onCalendarClick: () -> Unit,
-    onPolaroidClick: (SharedMedia) -> Unit,
+    onMediaClick: (SharedMedia) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
-        Column(modifier = Modifier
+        Column(modifier = modifier
             .fillMaxSize()
             .background(background)
             .padding(horizontal = 16.dp)
 
         ){
-            Spacer(modifier = Modifier.height(56.dp))
+            Spacer(modifier = modifier.height(56.dp))
 
             // 1. 상단 헤더 영역
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxWidth()
                     .padding(vertical = 24.dp, horizontal = 10.dp,),
                 contentAlignment = Alignment.CenterStart
@@ -73,8 +66,8 @@ fun GridGallery(
 
             Box(modifier = Modifier.weight(1f)) {
                 GalleryGridPolaroid(
-                    medias = polaroids,
-                    onClick = onPolaroidClick
+                    medias = medias ,
+                    onClick = onMediaClick
                 )
             }
         }
@@ -108,9 +101,9 @@ private fun fakeMediaList(): List<SharedMedia> {
 fun GridGalleryPreview() {
     NiaTheme {
         GridGallery(
-            polaroids = fakeMediaList(),
+            medias  = fakeMediaList(),
             onCalendarClick = {},
-            onPolaroidClick = {}
+            onMediaClick = {}
         )
     }
 }
