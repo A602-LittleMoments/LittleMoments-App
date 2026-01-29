@@ -36,6 +36,10 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.navigation)
 
+    implementation(projects.feature.gallery)
+    implementation(projects.feature.memory)
+    implementation(projects.feature.mypage)
+
     ksp(libs.hilt.compiler)
 
 
@@ -63,4 +67,6 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    implementation(libs.androidx.navigation3.ui)
 }
