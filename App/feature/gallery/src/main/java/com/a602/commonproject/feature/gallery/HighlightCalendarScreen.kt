@@ -22,6 +22,7 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDateRangePickerState
@@ -36,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.ButtonSize
 import com.a602.commonproject.designsystem.component.FilledButton
 import com.a602.commonproject.designsystem.theme.lightblue
@@ -52,16 +52,15 @@ fun Long?.toDay(): String {
         .dayOfMonth
         .toString()
 }
-object HighlightCalendarNavKey : NavKey
 
 @Composable
 fun HighlightCalendarScreen(
-    onNavigateToLoading: () -> Unit,
+    onDateRangeSelected: (Long, Long) -> Unit,
     onBack: () -> Unit
 ) {
     DateRangePickerModal(
-        onDateRangeSelected = { (start, end) ->
-            onNavigateToLoading()
+        onDateRangeSelected = { start, end ->
+            onDateRangeSelected(start, end)
         },
         onDismiss = onBack
     )
@@ -69,12 +68,19 @@ fun HighlightCalendarScreen(
 
 @Composable
 fun DateRangePickerModal(
-    onDateRangeSelected: (Pair<Long?, Long?>) -> Unit,
+    onDateRangeSelected: (Long, Long) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val state = rememberDateRangePickerState()
+    val state = rememberDateRangePickerState(
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                val today = System.currentTimeMillis()
+                return utcTimeMillis <= today
+            }
+        }
+    )
 
-    // 현재 표시 중인 월의 텍스트 (예: 2026년 1월)
+    // 현재 표시 중인 월의 텍스트
     val currentMonthText = remember(state.displayedMonthMillis) {
         val instant = Instant.ofEpochMilli(state.displayedMonthMillis)
         val date = instant.atZone(ZoneId.systemDefault())
@@ -216,15 +222,16 @@ fun DateRangePickerModal(
                     // 4. 생성 버튼
                     FilledButton(
                         text = "하이라이트 생성하기",
-                        onClick = {
-                            onDateRangeSelected(
-                                state.selectedStartDateMillis to state.selectedEndDateMillis
-                            )
-                            onDismiss()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
                         enabled = state.selectedStartDateMillis != null &&
                             state.selectedEndDateMillis != null,
+                        onClick = {
+                            val start = state.selectedStartDateMillis ?: return@FilledButton
+                            val end = state.selectedEndDateMillis ?: return@FilledButton
+
+                            onDismiss()
+                            onDateRangeSelected(start, end)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
                         size = ButtonSize.Full
                     )
                 }
@@ -275,9 +282,10 @@ fun DateRangePickerModalPreview() {
     MaterialTheme {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             DateRangePickerModal(
-                onDateRangeSelected = { },
+                onDateRangeSelected = { _, _ -> },
                 onDismiss = { }
             )
         }
     }
 }
+

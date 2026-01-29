@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -91,8 +92,8 @@ fun CalendarScreen(
     }
     Column(
         modifier = Modifier
-            .fillMaxSize()
             .background(background)
+            .fillMaxSize()
     ) {
         Spacer(modifier = Modifier.height(56.dp))
 
@@ -101,7 +102,13 @@ fun CalendarScreen(
             contentAlignment = Alignment.Center
         ) {
             Column(
-                modifier = Modifier.padding(30.dp).background(lightbackground),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .background(
+                        lightbackground,
+                        shape = RoundedCornerShape(20.dp)
+                    ).padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 // 월 이동 헤더]
@@ -135,6 +142,7 @@ fun CalendarPhotoView(
         Spacer(modifier = Modifier.height(8.dp))
 
         LazyVerticalGrid(
+            modifier = Modifier.fillMaxWidth(),
             columns = GridCells.Fixed(7),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
