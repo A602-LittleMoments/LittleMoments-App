@@ -1,6 +1,6 @@
 package com.a602.coommonproject.ui
 
-import android.graphics.Bitmap
+import Polaroid
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,11 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.a602.commonproject.designsystem.component.Polaroid
 import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.model.data.SharedMedia
 
@@ -150,7 +147,7 @@ fun SelectableGalleryGrid(
 private fun fakeMediaList(): List<SharedMedia> {
     return List(6) { i ->
         SharedMedia(
-            id = i.toString(), // 🔥 String id
+            id = i.toString(),
             type = SharedMedia.MediaType.PHOTO,
             localUri = null,
             remoteUrl = "https://picsum.photos/600/80${i}",
