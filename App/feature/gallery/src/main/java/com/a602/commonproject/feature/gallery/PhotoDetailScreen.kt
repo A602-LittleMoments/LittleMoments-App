@@ -1,63 +1,57 @@
-/*
 package com.a602.commonproject.feature.gallery
 
-import android.graphics.Bitmap
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation3.runtime.NavKey
-import com.a602.commonproject.designsystem.component.PolaroidMeta
-import com.a602.coommonproject.ui.MediaDetailAction
+import com.a602.commonproject.designsystem.theme.NiaTheme
 import com.a602.coommonproject.ui.MediaDetailScreen
-import com.a602.coommonproject.ui.MediaDetailUiState
+import com.a602.commonproject.model.data.SharedMedia
 
-
-data class DetailNavKey(
-    val mediaId: String
-) : NavKey
 
 @Composable
 fun PhotoDetail(
-    uiState: MediaDetailUiState,
-    onAction: (MediaDetailAction) -> Unit,
+    media: SharedMedia,
     modifier: Modifier = Modifier,
 ) {
     MediaDetailScreen(
-        uiState = uiState,
-        onAction = onAction,
+        media = media,
         modifier = modifier
     )
 }
-
-
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 760
+)
 @Composable
 private fun PhotoDetailPreview() {
-        val rear = Bitmap.createBitmap(1080, 1440, Bitmap.Config.ARGB_8888).apply {
-            eraseColor(Color.Gray.toArgb())
-        }.asImageBitmap()
-        val front = Bitmap.createBitmap(600, 600, Bitmap.Config.ARGB_8888).apply {
-            eraseColor(Color.LightGray.toArgb())
-        }.asImageBitmap()
 
-        PhotoDetail(
-            uiState = MediaDetailUiState(
-                title = "사진 상세 보기",
-                isVideo = false,
-                isPlaying = false,
-                rearImage = rear,
-                frontImage = front,
-                meta = PolaroidMeta(
-                    date = "2024.05.20",
-                    role = "엄마",
-                    comment = "행복한 순간"
-                )
-            ),
-            onAction = {}
-        )
+    val fakeMedia = SharedMedia(
+        id = "1",
+        type = SharedMedia.MediaType.PHOTO,
+        localUri = null,
+        remoteUrl = "https://picsum.photos/600/800",
+        thumbnailUrl = null,
+        subLocalUri = null,
+        subRemoteUrl = null,
+        subThumbnailUrl = "https://picsum.photos/150/150",
+        cameraFacing = "DUAL",
+        caption = "vmvmvmvmmvmvmflvm",
+        dateTaken = System.currentTimeMillis(),
+        orientation = 0,
+        uploaderName = "엄마",
+        syncStatus = SharedMedia.SyncStatus.SYNCED
+    )
 
+    NiaTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            PhotoDetail(media = fakeMedia)
+        }
+    }
 }
-*/
