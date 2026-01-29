@@ -22,9 +22,12 @@ class UserPreferencesDataSource @Inject constructor(
         private val KEY_REFRESH_TOKEN = stringPreferencesKey("refresh_token")
 
         // 사용자 프로필 정보
-        private val KEY_USER_ID = stringPreferencesKey("user_id")     // UUID or Server ID
         private val KEY_USER_EMAIL = stringPreferencesKey("user_email")
         private val KEY_USER_NICKNAME = stringPreferencesKey("user_nickname")
+        private val KEY_USER_PROFILE_IMAGE = stringPreferencesKey("user_profile_image") // ✨ 추가됨
+
+        // ✨ [추가] 그룹 ID (백그라운드 동기화의 핵심 키)
+        private val KEY_GROUP_ID = stringPreferencesKey("group_id")
     }
 
     // =================================================================
@@ -52,9 +55,12 @@ class UserPreferencesDataSource @Inject constructor(
     // 사용자 정보 전체
     // (화면에 뿌리기 좋게 데이터 클래스로 묶지 않고 Flow로 각각 제공하거나, 필요 시 묶습니다)
     // 여기서는 간단하게 각각 제공하는 방식과 묶는 방식을 보여드릴게요.
-    val userNickname: Flow<String?> = dataStore.data.map { prefs ->
-        prefs[KEY_USER_NICKNAME]
-    }
+    val userEmail: Flow<String?> = dataStore.data.map { prefs -> prefs[KEY_USER_EMAIL] }       // ✨ 추가됨
+    val userNickname: Flow<String?> = dataStore.data.map { prefs -> prefs[KEY_USER_NICKNAME] }
+    val userProfileImage: Flow<String?> = dataStore.data.map { prefs -> prefs[KEY_USER_PROFILE_IMAGE] } // ✨ 추가됨
+
+    // ✨ [추가] 그룹 ID 조회 (Worker나 FCM 서비스에서 사용)
+    val userGroupId: Flow<String?> = dataStore.data.map { prefs -> prefs[KEY_GROUP_ID] }
 
     // =================================================================
     // 3. 쓰기 (Write) - suspend 함수 (비동기)
@@ -64,19 +70,53 @@ class UserPreferencesDataSource @Inject constructor(
      * [로그인 성공 시] 서버에서 받은 모든 정보를 한 번에 저장합니다.
      * - edit 블록은 "트랜잭션"으로 동작하여, 중간에 실패하면 저장되지 않습니다. (안전함)
      */
-    suspend fun saveLoginInfo(
+    suspend fun setAuthData(
         accessToken: String,
         refreshToken: String,
-        userId: String,
         email: String,
         nickname: String,
+        profileImageUrl: String?,
+        groupId: String? // ✨ 파라미터 추가됨
     ) {
         dataStore.edit { prefs ->
             prefs[KEY_ACCESS_TOKEN] = accessToken
             prefs[KEY_REFRESH_TOKEN] = refreshToken
-            prefs[KEY_USER_ID] = userId
             prefs[KEY_USER_EMAIL] = email
             prefs[KEY_USER_NICKNAME] = nickname
+            if (profileImageUrl != null) {
+                prefs[KEY_USER_PROFILE_IMAGE] = profileImageUrl
+            } else {
+                prefs.remove(KEY_USER_PROFILE_IMAGE)
+            }
+            // ✨ 그룹 ID 저장
+            if (groupId != null) {
+                prefs[KEY_GROUP_ID] = groupId
+            } else {
+                prefs.remove(KEY_GROUP_ID)
+            }
+        }
+    }
+
+    /**
+     * [내 정보 수정/새로고침 시] 유저 정보만 업데이트 (토큰 유지)
+     */
+    suspend fun setUserData(
+        email: String?, // 이메일은 변경 안되면 null 전달
+        nickname: String,
+        profileImageUrl: String?,
+        groupId: String? // ✨ 파라미터 추가됨
+    ) {
+        dataStore.edit { prefs ->
+            if (email != null) prefs[KEY_USER_EMAIL] = email
+            prefs[KEY_USER_NICKNAME] = nickname
+            if (profileImageUrl != null) {
+                prefs[KEY_USER_PROFILE_IMAGE] = profileImageUrl
+            } else {
+                prefs.remove(KEY_USER_PROFILE_IMAGE)
+            }
+            if (groupId != null) {
+                prefs[KEY_GROUP_ID] = groupId
+            }
         }
     }
 

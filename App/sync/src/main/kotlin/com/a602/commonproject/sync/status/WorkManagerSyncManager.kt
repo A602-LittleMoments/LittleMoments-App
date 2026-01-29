@@ -5,6 +5,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.a602.commonproject.sync.initializers.SyncConstraints
 import com.a602.commonproject.sync.workers.FetchWorker
 import com.a602.commonproject.sync.workers.UploadWorker
@@ -33,12 +34,15 @@ internal class WorkManagerSyncManager @Inject constructor(
 
     override fun requestSync() {
 
+
         val uploadWorkRequest = OneTimeWorkRequestBuilder<UploadWorker>()
             .setConstraints(SyncConstraints)
+//            .setInputData(inputData)
             .build()
 
         val fetchWorkRequest = OneTimeWorkRequestBuilder<FetchWorker>()
             .setConstraints(SyncConstraints)
+//            .setInputData(inputData)
             .build()
 
         workManager

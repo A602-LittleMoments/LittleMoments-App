@@ -2,7 +2,6 @@ package com.a602.commonproject.database.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.a602.commonproject.model.data.Media
 
 @Entity(tableName= "shared_media")
 data class ShareMediaEntity(

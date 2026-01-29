@@ -1,7 +1,7 @@
 package com.a602.commonproject.data.model
 
 import com.a602.commonproject.database.model.ShareMediaEntity
-import com.a602.commonproject.model.data.Media
+import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.network.model.MediaFileKey
 import com.a602.commonproject.network.model.MediaResponse
 import com.a602.commonproject.network.model.MediaUploadMetadata
@@ -10,10 +10,10 @@ import kotlin.time.Instant
 // =================================================================
 // 1. [DB -> UI] 화면 표시용 (DB에 없는 필드는 기본값 처리)
 // =================================================================
-fun ShareMediaEntity.asExternalModel(): Media {
-    return Media(
+fun ShareMediaEntity.asExternalModel(): SharedMedia {
+    return SharedMedia(
         id = mediaId,
-        type = Media.MediaType.from(type), // "PHOTO"/"VIDEO" -> Enum
+        type = SharedMedia.MediaType.from(type), // "PHOTO"/"VIDEO" -> Enum
 
         localUri = localUri,
         remoteUrl = remoteUrl,
@@ -33,9 +33,9 @@ fun ShareMediaEntity.asExternalModel(): Media {
         uploaderName = uploaderName,
 
         syncStatus = when (syncStatus) {
-            "SYNCED" -> Media.SyncStatus.SYNCED
-            "TO_BE_DELETE" -> Media.SyncStatus.TO_BE_DELETED // 오타 주의: TO_BE_DELETE
-            else -> Media.SyncStatus.NOT_UPLOADED
+            "SYNCED" -> SharedMedia.SyncStatus.SYNCED
+            "TO_BE_DELETE" -> SharedMedia.SyncStatus.TO_BE_DELETED // 오타 주의: TO_BE_DELETE
+            else -> SharedMedia.SyncStatus.NOT_UPLOADED
         }
     )
 }
@@ -44,7 +44,7 @@ fun ShareMediaEntity.asExternalModel(): Media {
 // =================================================================
 // 2. [UI -> DB] 로컬 저장용
 // =================================================================
-fun Media.toEntity(): ShareMediaEntity {
+fun SharedMedia.toEntity(): ShareMediaEntity {
     return ShareMediaEntity(
         mediaId = id,
         localUri = localUri,
@@ -60,7 +60,7 @@ fun Media.toEntity(): ShareMediaEntity {
         uploaderName = uploaderName ?: "나",
         orientation = orientation,
         syncStatus = when (syncStatus) {
-            Media.SyncStatus.SYNCED -> "SYNCED"
+            SharedMedia.SyncStatus.SYNCED -> "SYNCED"
             else -> "NOT_UPLOADED"
         }
     )
@@ -91,10 +91,10 @@ fun MediaResponse.toEntity(): ShareMediaEntity {
 // =================================================================
 // 4. [Network(List) -> UI] 리스트 조회 결과 바로 변환 (DB 안 거칠 때)
 // =================================================================
-fun MediaResponse.asExternalModel(): Media {
-    return Media(
+fun MediaResponse.asExternalModel(): SharedMedia {
+    return SharedMedia(
         id = mediaId,
-        type = Media.MediaType.from(mediaType),
+        type = SharedMedia.MediaType.from(mediaType),
         localUri = null,
         remoteUrl = storageUrl,
         thumbnailUrl = thumbUrl,
@@ -103,7 +103,7 @@ fun MediaResponse.asExternalModel(): Media {
         dateTaken = try { Instant.parse(takenAt).toEpochMilliseconds() } catch(e:Exception){ 0L },
         orientation = orientation,
         uploaderName = uploadedBy.nickname,
-        syncStatus = Media.SyncStatus.SYNCED
+        syncStatus = SharedMedia.SyncStatus.SYNCED
     )
 }
 
