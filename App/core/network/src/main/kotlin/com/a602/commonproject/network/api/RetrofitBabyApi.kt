@@ -31,12 +31,15 @@ internal interface RetrofitBabyApi {
     ): BabyListResponse
 
     // 3.2 아기 정보 수정
+    // ✨ [수정] 반환 타입 제거 (Response Body 없음)
+    @Multipart
     @PUT("groups/{groupId}/babies/{babyId}")
     suspend fun updateBaby(
         @Path("groupId") groupId: String,
         @Path("babyId") babyId: String,
-        @Body request: BabyRequest
-    )
+        @Part("data") data: RequestBody,
+        @Part babyPicture: MultipartBody.Part?
+    ) :BabyResponse
 
     // 3.2 아기 삭제
     @DELETE("groups/{groupId}/babies/{babyId}")

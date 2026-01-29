@@ -29,7 +29,12 @@ interface BabyNetworkDataSource {
     suspend fun getBabies(groupId: String): BabyListResponse
 
     // 3.2 아기 정보 수정: 사진 수정은 별도 API가 없다면 정보만 수정합니다.
-    suspend fun updateBaby(groupId: String, babyId: String, request: BabyRequest)
+    suspend fun updateBaby(
+        groupId: String,
+        babyId: String,
+        babyRequest: BabyRequest,
+        imageFile: File?,
+    ) : BabyResponse
 
     // 3.2 아기 삭제: 목록에서 제거합니다.
     suspend fun deleteBaby(groupId: String, babyId: String)
@@ -80,10 +85,31 @@ internal class RetrofitBabyNetwork @Inject constructor(
         return babyApi.getBabies(groupId)
     }
 
-    override suspend fun updateBaby(groupId: String, babyId: String, request: BabyRequest) {
-        // 수정은 JSON Body로만 보내므로 간단하게 전달합니다.
-        babyApi.updateBaby(groupId, babyId, request)
+    override suspend fun updateBaby (
+        groupId: String,
+        babyId: String,
+        babyRequest: BabyRequest,
+        imageFile: File?,
+    ):BabyResponse {
+        // [Step 1] 아기 정보(DTO)를 JSON 문자열로 변환합니다.
+        val jsonString = networkJson.encodeToString(babyRequest)
+        // [Step 2] JSON 문자열을 RequestBody로 포장합니다.
+        val dataPart = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
+
+        // [Step 3] 이미지 파일이 있다면 MultipartBody.Part로 변환합니다.
+        val imagePart = imageFile?.let { file ->
+            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData("baby_picture", file.name, requestFile)
+        }
+
+        return babyApi.updateBaby(
+            groupId = groupId,
+            babyId = babyId,
+            data = dataPart,
+            babyPicture = imagePart,
+        )
     }
+
 
     override suspend fun deleteBaby(groupId: String, babyId: String) {
         babyApi.deleteBaby(groupId, babyId)

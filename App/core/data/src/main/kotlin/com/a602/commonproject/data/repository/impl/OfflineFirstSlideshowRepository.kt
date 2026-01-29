@@ -1,0 +1,206 @@
+package com.a602.commonproject.data.repository.impl
+
+import android.content.Context
+import com.a602.commonproject.data.model.asExternalModel
+import com.a602.commonproject.data.model.toEntity
+import com.a602.commonproject.data.repository.SlideshowRepository
+import com.a602.commonproject.database.dao.SlideshowDao
+import com.a602.commonproject.database.model.SlideshowEntity
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
+import com.a602.commonproject.model.data.Slideshow
+import com.a602.commonproject.network.datasource.SlideshowNetworkDataSource
+import com.a602.commonproject.network.model.CreateSlideshowRequest
+import com.a602.commonproject.network.model.ExportSlideshowRequest
+import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URL
+import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+
+class OfflineFirstSlideshowRepository @Inject constructor(
+    private val slideshowDao: SlideshowDao,
+    private val networkDataSource: SlideshowNetworkDataSource,
+    private val userPreferences: UserPreferencesDataSource,
+    @ApplicationContext private val context: Context // 파일 저장을 위해 Context 필요
+) : SlideshowRepository {
+
+    // =================================================================
+    // 1. 목록 조회 (DB -> UI)
+    // =================================================================
+    override fun getSlideshowsStream(): Flow<List<Slideshow>> =
+        slideshowDao.getSlideShows().map { list -> list.map { it.asExternalModel() } }
+
+
+    // =================================================================
+    // 2. 목록 새로고침 (Network -> DB)
+    // =================================================================
+    override suspend fun refreshSlideshows(): Result<Unit> {
+        return try {
+            val groupId = getGroupIdOrThrow()
+
+            // 1. 서버에서 목록 가져오기
+            val serverList = networkDataSource.getSlideshowList(groupId)
+
+            // 2. DB 업데이트 (주의: 기존에 다운로드된 파일 경로는 유지해야 함!)
+            // 현재 DB 상태를 한 번 가져와서 비교합니다.
+            val currentDbList = slideshowDao.getSlideShows().first()
+            val dbMap = currentDbList.associateBy { it.slideshowId }
+
+            serverList.forEach { summary ->
+                val cached = dbMap[summary.slideshowId]
+
+                // Mapper 사용
+                var entity = summary.toEntity()
+
+                // ✨ [보완 1] 파일이 실제로 존재하는지 확인 (Ghost File 방지)
+                val isFileExists = cached?.localVideoPath?.let { File(it).exists() } == true
+
+                // ✨ [핵심] 이미 다운로드된 상태라면, 로컬 경로와 상태를 유지합니다.
+                if (cached != null && cached.status == "DOWNLOADED" && cached.localVideoPath != null) {
+                    entity = entity.copy(
+                        localVideoPath = cached.localVideoPath,
+                        status = "DOWNLOADED"
+                    )
+                }
+
+                slideshowDao.insertSlideshow(entity) //
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    // =================================================================
+    // 3. 생성 요청
+    // =================================================================
+    override suspend fun createSlideshow(request: CreateSlideshowRequest): Result<Unit> {
+        return try {
+            val groupId = getGroupIdOrThrow()
+
+            // 1. 서버에 생성 요청
+            val response = networkDataSource.createSlideshow(groupId, request)
+
+            // 2. DB에 "PROCESSING" 상태로 임시 저장 (즉각적인 UI 반응)
+            val initialEntity = SlideshowEntity(
+                slideshowId = response.slideshowId,
+                title = "추억 영상 생성 중...", // 기본값
+                createAt = System.currentTimeMillis(),
+                status = response.status // "QUEUED" or "PROCESSING"
+            )
+            slideshowDao.insertSlideshow(initialEntity)
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // =================================================================
+    // 4. 상세 정보 동기화
+    // =================================================================
+    override suspend fun syncSlideshowDetail(slideshowId: String): Result<Unit> {
+        return try {
+            val groupId = getGroupIdOrThrow()
+            val detail = networkDataSource.getSlideshowDetail(groupId, slideshowId)
+
+            // 기존 다운로드 정보 보존 로직
+            val current = slideshowDao.getSlideShows().first().find { it.slideshowId == slideshowId }
+            var entity = detail.toEntity(slideshowId)
+
+            // 파일이 살아있다면 경로 유지
+            if (current?.localVideoPath != null && File(current.localVideoPath).exists()) {
+                entity = entity.copy(
+                    localVideoPath = current.localVideoPath,
+                    status = "DOWNLOADED"
+                )
+            }
+
+            slideshowDao.insertSlideshow(entity)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // =================================================================
+    // 5. 영상 다운로드 (안전한 다운로드: tmp -> mp4)
+    // =================================================================
+    override suspend fun downloadSlideshow(slideshowId: String): Result<File> {
+        return withContext(Dispatchers.IO) {
+            var tempFile: File? = null
+            try {
+                val groupId = getGroupIdOrThrow()
+
+                // 1. URL 발급
+                val exportResponse = networkDataSource.exportSlideshow(
+                    groupId,
+                    slideshowId,
+                    ExportSlideshowRequest()
+                )
+                val downloadUrl = exportResponse.data.downloadUrl
+                val fileName = "${slideshowId}.mp4"
+
+                // 2. 임시 파일(.tmp) 준비
+                val finalFile = File(context.filesDir, fileName)
+                tempFile = File(context.filesDir, "${fileName}.tmp")
+
+                // 3. 스트림 다운로드
+                URL(downloadUrl).openStream().use { input ->
+                    FileOutputStream(tempFile).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                // 4. 이름 변경 (Atomic Move) -> 성공 시에만 DB 업데이트
+                if (tempFile.renameTo(finalFile)) {
+                    val entity = exportResponse.toEntity(finalFile.absolutePath)
+                    slideshowDao.insertSlideshow(entity) //
+
+                    Result.success(finalFile)
+                } else {
+                    throw Exception("파일 저장 중 오류 발생 (Rename Failed)")
+                }
+
+            } catch (e: Exception) {
+                // 실패 시 임시 파일 정리
+                tempFile?.delete()
+                Result.failure(e)
+            }
+        }
+    }
+
+    // =================================================================
+    // 6. 삭제
+    // =================================================================
+    override suspend fun deleteSlideshow(slideshowId: String): Result<Unit> {
+        return try {
+            // 1. 로컬 파일 경로 확인 후 삭제
+            val currentList = slideshowDao.getSlideShows().first()
+            val target = currentList.find { it.slideshowId == slideshowId }
+
+            target?.localVideoPath?.let { path ->
+                val file = File(path)
+                if (file.exists()) file.delete()
+            }
+
+            // 2. DB 삭제
+            slideshowDao.deleteSlideshow(slideshowId)
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    // 🔒 헬퍼: 그룹 ID 조회
+    private suspend fun getGroupIdOrThrow(): String =
+    userPreferences.userGroupId.first()
+            ?: throw IllegalStateException("그룹 정보가 없습니다.")
+}

@@ -56,7 +56,7 @@ class SyncNotificationService : FirebaseMessagingService() {
             val albumTitle = message.data["title"] ?: "새 앨범"
             val msgBody = message.data["message"] ?: "새로운 앨범이 도착했습니다."
             val albumId = message.data["albumId"]
-            val deepLink = if (albumId != null) "myapp://album/$albumId" else null
+            val deepLink = if (albumId != null) "littlemoments://album/$albumId" else null
 
             // 1. 알림 띄우기
             notifier.postNotification(
@@ -69,9 +69,31 @@ class SyncNotificationService : FirebaseMessagingService() {
             syncManager.requestSync()
         }
 
+        // ==========================================
+        // ✨ CASE C: 슬라이드쇼 제작 완료 (추가됨!)
+        // ==========================================
+        else if (message.data["type"] == "SLIDESHOW_COMPLETED") {
+            val title = message.data["title"] ?: "추억 영상 완성!"
+            val msgBody = message.data["message"] ?: "멋진 영상이 만들어졌어요. 지금 확인해보세요!"
+            val slideshowId = message.data["slideshowId"]
+
+            // 딥링크 예시 (슬라이드쇼 목록으로 이동)
+            val deepLink = "littlemoments://slideshows"
+
+            // 1. 알림 띄우기
+            notifier.postNotification(
+                id = slideshowId?.hashCode() ?: System.currentTimeMillis().toInt(),
+                title = title,
+                content = msgBody,
+                deepLinkUri = deepLink,
+            )
+
+            // 2. 데이터 동기화 요청 (FetchWorker 실행)
+            syncManager.requestSync()
+        }
 
         // ==========================================
-        // CASE C: 일반 알림
+        // CASE D: 일반 알림
         // ==========================================
         message.notification?.let {
             notifier.postNotification(

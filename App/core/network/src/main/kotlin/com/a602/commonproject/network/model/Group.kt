@@ -17,7 +17,7 @@ data class GroupResponse(
 @Serializable
 data class CreateGroupRequest(
     val groupName: String,
-    val role: String, // OWNER
+    val role: String ?= "OWNER", // OWNER
     val relation: String,  // Mother
 )
 

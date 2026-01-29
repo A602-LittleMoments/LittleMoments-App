@@ -8,11 +8,14 @@ import androidx.work.WorkerParameters
 import com.a602.commonproject.common.network.Dispatcher
 import com.a602.commonproject.common.network.LMDispatchers
 import com.a602.commonproject.data.repository.SharedMediaRepository
+import com.a602.commonproject.data.repository.SlideshowRepository
 import com.a602.commonproject.data.repository.UserRepository
 import com.a602.commonproject.sync.initializers.syncForegroundInfo
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
 /**
@@ -23,6 +26,7 @@ class FetchWorker @AssistedInject constructor(
     @Assisted private val appContext : Context,
     @Assisted workerParams : WorkerParameters,
     private val mediaRepository: SharedMediaRepository,
+    private val slideshowRepository: SlideshowRepository, // ✨ 주입 추가
     private val userRepository: UserRepository,
     @Dispatcher(LMDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
 ) : CoroutineWorker(appContext, workerParams) {
@@ -45,10 +49,21 @@ class FetchWorker @AssistedInject constructor(
             }
 
 
-            // p
-            val isSuccess = mediaRepository.syncWithServer(groupId)
+            // ✨ 사진 동기화와 슬라이드쇼 동기화를 병렬(async)로 처리
+            val jobs = listOf(
+                async { mediaRepository.syncWithServer(groupId) }, // 사진 갱신 (Boolean)
+                async {
+                    // 슬라이드쇼 갱신 (Result<Unit> -> Boolean 변환)
+                    slideshowRepository.refreshSlideshows().isSuccess
+                }
+            )
+            // 두 작업이 모두 끝날 때까지 대기
+            val results = jobs.awaitAll()
 
-            if(isSuccess) Result.success() else Result.retry()
+            // 둘 다 성공해야 성공으로 간주 (정책에 따라 any { it } 로 변경 가능)
+            val allSuccess = results.all { it }
+
+            if(allSuccess) Result.success() else Result.retry()
         }
         catch (e : Exception){
             Result.failure()

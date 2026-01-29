@@ -1,6 +1,6 @@
-package com.a602.commonproject.data.repository
+package com.a602.commonproject.data.repository.impl
 
-import android.util.Log
+import com.a602.commonproject.data.repository.UserRepository
 import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
 import com.a602.commonproject.model.data.AuthState
 import com.a602.commonproject.model.data.User
@@ -12,7 +12,6 @@ import com.a602.commonproject.network.model.SignupRequest
 import com.a602.commonproject.network.model.UpdateProfileRequest
 import java.io.File
 import javax.inject.Inject
-import kotlin.math.log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -74,14 +73,7 @@ class OfflineFirstUserRepository @Inject constructor(
             try {
                 val groupResponse = groupDataSource.getMyGroup()
 
-                // 그룹이 있다면 Group ID 업데이트
-                // (굳이 getMyProfile을 또 호출할 필요 없이, 위에서 받은 정보 + 그룹 ID만 갱신)
-                userPreferences.setUserData(
-                    email = null,
-                    nickname = loginResponse.user.nickname, // 기존 정보 재사용
-                    profileImageUrl = loginResponse.user.profileImageUrl, // 기존 정보 재사용
-                    groupId = groupResponse.groupId // ✨ (필드명이 id인지 groupId인지 확인 필요)
-                )
+                userPreferences.setGroupId(id = groupResponse.groupId )// ✨ (필드명이 id인지 groupId인지 확인 필요))
 
             } catch (e: Exception) {
                 // ⚠️ 그룹이 없거나 가져오기 실패해도 로그인은 성공으로 처리!
@@ -120,27 +112,8 @@ class OfflineFirstUserRepository @Inject constructor(
                 email = response.user.email,
                 nickname = response.user.nickname,
                 profileImageUrl = response.user.profileImageUrl,
-                groupId = null // ✨ 일단 null로 저장
+                groupId = null // 👈 여기가 핵심! (그룹 없음 상태로 시작)
             )
-
-            // [STEP 3] 혹시 그룹이 있는지 확인 (안전하게 try-catch)
-            // 가입 후 바로 그룹이 생기는 정책일 수도 있으므로 확인합니다.
-            try {
-                // 토큰이 저장됐으니 호출 가능
-                val groupResponse = groupDataSource.getMyGroup()
-
-                // 그룹이 있다면 Group ID 업데이트
-                userPreferences.setUserData(
-                    email = null,
-                    nickname = response.user.nickname,
-                    profileImageUrl = response.user.profileImageUrl,
-                    groupId = groupResponse.groupId // ✨ 저장!
-                )
-            } catch (e: Exception) {
-                // 신규 회원은 그룹이 없을 확률이 높으므로 404가 떠도 정상 흐름으로 봅니다.
-                // 에러 로그만 찍고 넘어갑니다.
-                Log.d("SignUp", "신규 가입자라 아직 그룹 정보가 없습니다. (정상)")
-            }
 
             Result.success(Unit)
         } catch (e: Exception) {
@@ -182,8 +155,11 @@ class OfflineFirstUserRepository @Inject constructor(
                 email = userResponse.email,
                 nickname = userResponse.nickname,
                 profileImageUrl = userResponse.profileImageUrl,
-                groupId = currentGroupId // ✨ 여기서 최신 상태 반영!
             )
+
+            if (currentGroupId != null) {
+                userPreferences.setGroupId(currentGroupId)
+            }
 
             Result.success(Unit)
         } catch (e: Exception) {
@@ -216,10 +192,6 @@ class OfflineFirstUserRepository @Inject constructor(
                 email = null, // 이메일 변경 없음
                 nickname = response.nickname,
                 profileImageUrl = response.profileImageUrl,
-
-                // ✨ [핵심] 프로필 변경은 그룹과 무관하므로 null 전달
-                // (UserPreferences 로직상 null이면 기존 그룹ID가 유지됨)
-                groupId = null
             )
 
             Result.success(Unit)
