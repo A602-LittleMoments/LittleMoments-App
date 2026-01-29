@@ -93,7 +93,7 @@ fun GroupManagementScreen(
     }
 }
 
-@Preview(showBackground = true, name = "그룹 구성원 관리 메인", widthDp = 360, heightDp = 800)
+/*@Preview(showBackground = true, name = "그룹 구성원 관리 메인", widthDp = 360, heightDp = 800)
 @Composable
 fun GroupManagementPreview() {
     NiaTheme {
@@ -103,4 +103,4 @@ fun GroupManagementPreview() {
             onBackClick = { }
         )
     }
-}
+}*/

@@ -51,6 +51,8 @@ class SyncInitializer : Initializer<Unit> {
 
         syncManager.requestSync()
 
+        syncManager.initializePeriodicCleanup()
+
         // 2. 비동기 작업 실행 (DataStore 읽기 + 동기화 예약 + FCM 구독)
         // Main Thread를 차단하지 않기 위해 IO Dispatcher 사용
         CoroutineScope(Dispatchers.IO).launch {

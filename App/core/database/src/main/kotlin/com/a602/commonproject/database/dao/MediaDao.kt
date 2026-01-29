@@ -79,6 +79,10 @@ interface MediaDao {
     @Query("SELECT * FROM temp_media WHERE expirationDate < :currentTimeMillis")
     suspend fun getExpiredTempMedia(currentTimeMillis: Long): List<TempMediaEntity>
 
+    // ✨ [추가] 삭제 전 파일 경로 확보를 위한 일괄 조회
+    @Query("SELECT * FROM temp_media WHERE tempId IN (:ids)")
+    suspend fun getTempMediaListByIds(ids: List<String>): List<TempMediaEntity>
+
     // 2. 파일 삭제 확인 후 DB에서 제거 (기존 쿼리 유지 또는 ID 리스트로 삭제) -> repo에서 호출
     @Query("DELETE FROM temp_media WHERE tempId IN (:ids)")
     suspend fun deleteTempMediaByIds(ids: List<String>)

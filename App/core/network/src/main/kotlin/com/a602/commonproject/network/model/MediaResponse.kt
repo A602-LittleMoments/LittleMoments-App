@@ -72,10 +72,13 @@ data class MediaResponse(
     val groupId: String,
     val uploadedBy: MediaUserResponse, // 아래 JSON 맞춤형 클래스 사용
     val mediaType: String,
+
     val storageUrl: String,
     val thumbUrl: String,
-    val subThumbUrl: String,
+
     val subStorageUrl: String,
+    val subThumbUrl: String,
+
     val takenAt: String,
     val cameraFacing: String,
     val orientation: Int,

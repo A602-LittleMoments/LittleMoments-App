@@ -1,7 +1,8 @@
-package com.a602.commonproject.data.repository
+package com.a602.commonproject.data.repository.impl
 
 import android.content.Context
 import com.a602.commonproject.data.model.asExternalModel
+import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.database.dao.MediaDao
 import com.a602.commonproject.database.model.ShareMediaEntity
 import com.a602.commonproject.model.data.SharedMedia
