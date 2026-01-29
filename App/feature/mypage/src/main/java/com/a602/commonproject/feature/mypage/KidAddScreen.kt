@@ -62,7 +62,7 @@ fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
             // 2. 우주복 사진 선택기 (클릭 시 갤러리 열기)
             ProfileFullAstronaut(
                 remoteImageUrl = null,
-                selectedImageUri = null,
+                selectedImageUri = null, // selectedUri 연결
                 onClick = {
 //                    pickerLauncher.launch(
 //                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
