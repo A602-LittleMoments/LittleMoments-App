@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.runtime.NavKey
 import coil.compose.AsyncImage
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
@@ -42,6 +43,10 @@ data class CalendarDay(
     val date: LocalDate?,
     val representativeThumbUrl: String? = null
 )
+data object CalendarNavKey : NavKey
+data class GridNavKey(
+    val selectedDate: LocalDate? = null
+) : NavKey
 
 
 fun mapToCalendarDays(
@@ -87,6 +92,8 @@ fun mapToCalendarDays(
 fun CalendarScreen(
     medias: List<Media>,
     initialMonth: YearMonth = YearMonth.now(),
+    onBackClick: () -> Unit,
+    onDateClick: (LocalDate) -> Unit,
 
     ) {
     var currentMonth by remember { mutableStateOf(initialMonth) }
@@ -122,7 +129,7 @@ fun CalendarScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                CalendarPhotoView(days = days)
+                CalendarPhotoView(days = days, onDateClick = onDateClick)
             }
         }
         Spacer(modifier = Modifier.height(80.dp))
@@ -130,7 +137,10 @@ fun CalendarScreen(
 }
 
 @Composable
-fun CalendarPhotoView(days: List<CalendarDay>) {
+fun CalendarPhotoView(
+    days: List<CalendarDay>,
+    onDateClick: (LocalDate) -> Unit
+    ) {
     Column {
         DayOfWeekHeader()
 
@@ -142,12 +152,16 @@ fun CalendarPhotoView(days: List<CalendarDay>) {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(days) { day ->
-                CalendarDayItem(day = day)
+                CalendarDayItem(
+                    day = day,
+                    onClick = {
+                        day.date?.let { onDateClick(it) }
+                    }
+                )
+                }
             }
         }
-    }
 }
-
 @Composable
 fun DayOfWeekHeader() {
     val days = listOf("일", "월", "화", "수", "목", "금", "토")
@@ -170,7 +184,8 @@ fun DayOfWeekHeader() {
 
 @Composable
 fun CalendarDayItem(
-    day: CalendarDay
+    day: CalendarDay,
+    onClick: () -> Unit
 ) {
     val isPreview = LocalInspectionMode.current
 
@@ -188,9 +203,11 @@ fun CalendarDayItem(
                 // 프리뷰용 원형
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                        .background(Color.LightGray)
+                        .aspectRatio(1f)
+                        .fillMaxWidth()
+                        .clickable(
+                            enabled = day.date != null,
+                            onClick = onClick),
                 )
             } else {
                 AsyncImage(
@@ -243,7 +260,9 @@ fun CalendarScreenPreview() {
     Surface {
         CalendarScreen(
             medias = sampleMedias,
-            initialMonth = YearMonth.of(2026, 1)
+            initialMonth = YearMonth.of(2026, 1),
+            onBackClick = {},
+            onDateClick = {}
         )
     }
 }

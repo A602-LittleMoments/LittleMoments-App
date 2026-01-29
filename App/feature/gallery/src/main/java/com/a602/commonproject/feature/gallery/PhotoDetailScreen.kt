@@ -7,10 +7,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.PolaroidMeta
 import com.a602.coommonproject.ui.MediaDetailAction
 import com.a602.coommonproject.ui.MediaDetailScreen
 import com.a602.coommonproject.ui.MediaDetailUiState
+
+
+data class DetailNavKey(
+    val mediaId: String
+) : NavKey
 
 @Composable
 fun PhotoDetail(

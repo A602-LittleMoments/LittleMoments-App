@@ -46,6 +46,7 @@ fun MainScreen(
     onMemoryPhotoClick: (MemoryPhoto) -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
+    Spacer(modifier = Modifier.height(40.dp))
 
     Column(
         modifier = modifier
@@ -55,7 +56,6 @@ fun MainScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
 
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
 
         // Header Section
         MainScreenHeader(
@@ -225,66 +225,7 @@ private fun CollectionCard(
         modifier = modifier.width(130.dp)
     )
 }
-/*
-* simplePolaroid 사용 하고 싶은디;;;
-*
-// Data classes
-data class CollectionWithThumbnail(
-    val collection: Collection,
-    val thumbnailMedia: Media? = null // Collection의 대표 미디어
-)
 
-@Composable
-private fun CollectionSection(
-    collections: List<CollectionWithThumbnail>,
-    onCollectionClick: (CollectionWithThumbnail) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.padding(horizontal = 24.dp)
-    ) {
-        Text(
-            text = "기억하고 싶은 순간",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            color = MaterialTheme.colorScheme.onBackground
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(collections) { collectionWithThumb ->
-                CollectionCard(
-                    collectionWithThumbnail = collectionWithThumb,
-                    onClick = { onCollectionClick(collectionWithThumb) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CollectionCard(
-    collectionWithThumbnail: CollectionWithThumbnail,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val thumbnail = collectionWithThumbnail.thumbnailMedia
-
-    SimplePolaroid(
-        rearImageUrl = thumbnail?.remoteUrl ?: thumbnail?.thumbnailUrl,
-        frontImageUrl = thumbnail?.subRemoteUrl ?: thumbnail?.subThumbnailUrl,
-        onClick = onClick,
-        modifier = modifier.width(160.dp)
-    )
-}
-
-*
-* */
 @Composable
 private fun MemoryTimelineSection(
     memoryPhotos: List<MemoryPhoto>,

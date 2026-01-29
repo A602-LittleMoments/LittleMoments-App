@@ -18,7 +18,7 @@ import com.a602.coommonproject.ui.MediaDetailScreen
 import com.a602.coommonproject.ui.MediaDetailUiState
 
 data class HighlightResultNavKey(
-    val slideshowId: String // 필요하면 id 전달
+    val slideshowId: String
 ) : NavKey
 
 

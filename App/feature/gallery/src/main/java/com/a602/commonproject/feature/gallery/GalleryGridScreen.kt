@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.FillWrapButton
 import com.a602.commonproject.designsystem.component.PolaroidMeta
 import com.a602.commonproject.designsystem.icon.LMicons
@@ -28,10 +29,17 @@ import com.a602.commonproject.designsystem.theme.background
 import com.a602.coommonproject.ui.GalleryGridPolaroid
 import com.a602.coommonproject.ui.PolaroidData
 
+
+
+data object GalleryNavKey : NavKey
+
+
 // 격자 보기
 @Composable
 fun GridGallery(
     polaroids: List<PolaroidData>,
+    onCalendarClick: () -> Unit,
+    onPolaroidClick: (PolaroidData) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -58,7 +66,7 @@ fun GridGallery(
 
                 FillWrapButton(
                     text = "캘린더 보기",
-                    onClick= {/*이동 구현 해야함*/ },
+                    onClick = onCalendarClick,
                     modifier = Modifier.align(Alignment.CenterEnd)
                 )
             }
@@ -66,7 +74,9 @@ fun GridGallery(
             Box(modifier = Modifier.weight(1f)) {
                 GalleryGridPolaroid(
                     polaroids = polaroids,
-                    onClick = { clickedItem ->}
+                    onClick = { clickedItem ->
+                        onPolaroidClick(clickedItem)
+                    }
                 )
             }
         }
@@ -96,6 +106,8 @@ private val samplePolaroids = List(9) { i ->
 @Composable
 fun GridGalleryPreview() {
     GridGallery(
-        polaroids = samplePolaroids
+        polaroids = samplePolaroids,
+        onCalendarClick = {},
+        onPolaroidClick = {}
     )
 }
