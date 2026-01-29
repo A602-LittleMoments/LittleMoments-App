@@ -1,6 +1,5 @@
 package com.a602.commonproject.feature.mypage
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +17,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -29,6 +27,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,69 +42,79 @@ import com.a602.commonproject.designsystem.component.LMFilledIconButton
 
 import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.designsystem.theme.AppTypography
-import androidx.compose.foundation.clickable
 
-// 마이페이지 화면에서 사용하는 컴포넌트들 모음
-// 그룹 구성원 개별 컴포넌트
+// 마이페이지 화면에서 사용하는 재사용 가능한 UI 컴포넌트들을 모아놓은 파일
+
+/**
+ * 그룹 구성원 한 명의 정보를 보여주는 카드 형태의 컴포저블입니다.
+ *
+ * @param name 멤버의 이름.
+ * @param role 멤버의 역할 (예: "관리자", "멤버").
+ * @param color 멤버를 대표하는 색상 (프로필 이미지 대신 사용).
+ */
 @Composable
 fun MemberItem(name: String, role: String, color: Color) {
+    // Card를 사용해 그림자 효과와 둥근 모서리를 적용합니다.
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp), // 상세 페이지와 동일한 24.dp 곡률
-        colors = CardDefaults.cardColors(containerColor = lightbackground), // 0xFFFFFEFB
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(24.dp), // 모서리 곡률
+        colors = CardDefaults.cardColors(containerColor = lightbackground), // 카드 배경색
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // 그림자 깊이
     ) {
+        // UI 요소들을 가로로 배치하기 위해 Row를 사용합니다.
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically // 자식 요소들을 수직 중앙 정렬.
         ) {
-            // 1. 상세 페이지와 동일한 크기의 컬러 박스
+            // 1. 멤버의 고유 색상을 보여주는 네모 상자
             Box(
                 modifier = Modifier
-                    .size(50.dp) // 40dp에서 50dp로 키워 상세 페이지와 맞춤
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(color)
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(12.dp)) // 모서리
+                    .background(color) // 전달받은 색상으로 배경을 칠합니다.
             )
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp)) // 색상 상자와 텍스트 사이의 간격
 
+            // 이름과 역할을 세로로 배치하기 위해 Column을 사용합니다.
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // 2. 이름 및 가족 태그
+                    // 2. 멤버의 이름과 "가족" 태그
                     Text(text = name, style = AppTypography.bodyMedium)
                     Spacer(modifier = Modifier.width(6.dp))
+                    // Surface는 배경색과 모양을 지정할 수 있는 UI의 기본 판입니다. 태그 모양을 만드는 데 사용됩니다.
                     Surface(
-                        color = Color(0xFFF5F5F5), // 상세 페이지와 동일한 연회색 태그
+                        color = gray1,
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             text = "가족",
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            fontSize = 10.sp,
+                            style = AppTypography.labelSmall,
                             color = color4
                         )
                     }
                 }
 
-                // 3. 역할별 아이콘 및 텍스트 로직 (상세 페이지와 동일)
+                // 3. 멤버의 역할("관리자", "멤버" 등)에 따라 다른 아이콘과 색상을 표시하는 로직
                 val (icon, tint) = when(role) {
-                    "관리자" -> Icons.Default.EmojiEvents to color1
-                    "멤버" -> Icons.Default.Shield to main
-                    else -> Icons.Default.StarBorder to color4
+                    "관리자" -> Icons.Default.EmojiEvents to color1 // 관리자는 왕관 아이콘과 노란색
+                    "멤버" -> Icons.Default.Shield to main       // 멤버는 방패 아이콘과 메인 색상
+                    else -> Icons.Default.StarBorder to color4   // 그 외는 별 아이콘과 회색
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = tint,
+                        imageVector = icon, // 위에서 결정된 아이콘
+                        contentDescription = null, // 장식용 아이콘이므로 설명은 null
+                        tint = tint, // 위에서 결정된 색상
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = role,
                         color = tint,
-                        style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Bold)
+                        style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Bold) // 기본 스타일에 굵기만 추가
                     )
                 }
             }
@@ -112,87 +122,95 @@ fun MemberItem(name: String, role: String, color: Color) {
     }
 }
 
-// --- [분리된 함수: 그룹 섹션 헤더] ---
+/**
+ * "그룹원" 텍스트와 멤버 수, "수정" 버튼을 포함하는 섹션 헤더입니다.
+ *
+ * @param memberCount 그룹 멤버의 총 수.
+ * @param onEditClick "수정" 버튼을 눌렀을 때 실행될 함수.
+ */
 @Composable
 fun GroupSectionHeader(memberCount: Int, onEditClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceBetween, // 자식 요소들을 양쪽 끝으로 밀어냅니다.
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // 왼쪽 부분 (그룹원 텍스트 + 인원수)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // 1. '그룹원' 텍스트
             Text(
                 text = "그룹원",
-                style = AppTypography.headlineSmall,
-                color = color3 // 0xFF6D625E
+                style = AppTypography.headlineSmall, // 디자인 시스템의 작은 제목 스타일
+                color = color3
             )
             Spacer(modifier = Modifier.width(8.dp))
 
-            // 2. 인원수 배지 (상세 페이지와 동일)
+            // 인원수를 보여주는 둥근 사각형 배지
             Surface(
-                color = lightblue, // 0xFFEBF0FF
+                color = lightblue, // 디자인 시스템의 밝은 파란색
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
                     text = "${memberCount}명",
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                     style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = main // 0xFF6ca0ff
+                    color = main
                 )
             }
         }
 
-        // 3. 통일된 파란색 상자 수정 버튼
+        // 오른쪽 부분 (수정 버튼)
+        // Surface에 onClick을 지정하여 버튼처럼 사용합니다.
         Surface(
             onClick = onEditClick,
-            color = main, // 0xFF6ca0ff
+            color = main, // 메인 색상을 배경으로 사용
             shape = RoundedCornerShape(8.dp)
         ) {
             Text(
                 text = "수정",
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                color = lightbackground, // 0xFFFFFEFB
-                fontSize = 10.sp,
+                color = lightbackground,
                 style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Medium)
             )
         }
     }
 }
 
-// --- ProfileInfoCard와 KidInfoCard 컴포넌트
+/**
+ * 사용자의 프로필 정보(이름, 닉네임, 이메일)를 보여주는 카드입니다.
+ *
+ * @param name 사용자의 실명.
+ * @param nickname 사용자의 닉네임.
+ * @param email 사용자의 이메일.
+ * @param onEditClick "수정" 버튼 클릭 시 실행될 함수.
+ */
 @Composable
 fun ProfileInfoCard(
-    // 💡 고정된 기본값을 삭제하여, 반드시 상위에서 데이터를 넘겨주도록 설정합니다.
-    name: String,      // user.username (실명)를 받습니다.
-    nickname: String,  // user.nickname (별명)을 받습니다.
-    email: String,     // user.email (이메일)을 받습니다.
+    name: String,
+    nickname: String,
+    email: String,
     onEditClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = lightbackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            // 1. 헤더: 내 정보 라벨 & 수정 버튼
+            // 1. 헤더: "내 정보" 라벨과 "수정" 버튼
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceBetween, // 양쪽 끝으로 정렬
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "내 정보",
                     style = AppTypography.labelMedium,
-                    color = color4.copy(alpha = 0.6f)
+                    color = color4.copy(alpha = 0.6f) // 기존 색상을 약간 투명하게 만듦
                 )
 
-                // 수정 버튼 (메인 컬러 상자 스타일)
                 Surface(
                     onClick = onEditClick,
                     color = main,
@@ -202,16 +220,15 @@ fun ProfileInfoCard(
                         text = "수정",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         color = lightbackground,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium
+                        style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Medium)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 2. 텍스트 정보 레이아웃
-            // 상위에서 받은 name, nickname, email 변수가 여기에 꽂힙니다.
+            // 2. 실제 정보 (이름, 닉네임, 이메일)
+            // 재사용 가능한 InfoRow 컴포넌트를 사용하여 정보를 표시합니다.
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 InfoRow(label = "이름", value = name)
                 InfoRow(label = "닉네임", value = nickname)
@@ -221,7 +238,9 @@ fun ProfileInfoCard(
     }
 }
 
-// 정보 표시용 소형 한 줄 부품
+/**
+ * "라벨: 값" 형태의 텍스트 한 줄을 표시하기 위한 작은 재사용 컴포넌트입니다.
+ */
 @Composable
 fun InfoRow(label: String, value: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -229,35 +248,41 @@ fun InfoRow(label: String, value: String) {
             text = label,
             style = AppTypography.labelSmall,
             color = color4,
-            modifier = Modifier.width(60.dp)
+            modifier = Modifier.width(60.dp) // 라벨의 너비를 고정하여 콜론(:) 위치를 맞추는 효과
         )
         Text(
             text = value,
             style = AppTypography.bodyMedium,
-            color = color3 // 0xFF6D625E
+            color = color3
         )
     }
 }
 
+/**
+ * 아이의 정보(사진, 이름, 생년월일)와 추가 버튼을 보여주는 카드입니다.
+ *
+ * @param kidName 아이의 이름.
+ * @param birthDate 아이의 생년월일.
+ * @param imageUri 아이의 프로필 사진 URI (없을 경우 기본 이미지 표시).
+ * @param onEditClick "수정" 버튼 클릭 시 실행될 함수.
+ * @param onAddClick "+" 버튼 클릭 시 실행될 함수.
+ */
 @Composable
 fun KidInfoCard(
-    // 💡 1. 기본값을 삭제하고 상위(MyPageScreen)에서 데이터를 직접 받도록 수정합니다.
-    kidName: String,   // baby.babyName을 받습니다.
-    birthDate: String, // baby.birthDate를 받습니다.
+    kidName: String,
+    birthDate: String,
     imageUri: android.net.Uri? = null,
     onEditClick: () -> Unit = {},
     onAddClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = lightbackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            // 1. 상단 라벨 및 수정 버튼
+            // 1. 헤더: "아이 정보" 라벨과 "수정" 버튼
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -265,7 +290,6 @@ fun KidInfoCard(
             ) {
                 Text(text = "아이 정보", style = MaterialTheme.typography.labelMedium, color = color4)
 
-                // 수정 버튼 (메인 파란색 테마)
                 Surface(
                     onClick = onEditClick,
                     color = main,
@@ -275,39 +299,38 @@ fun KidInfoCard(
                         text = "수정",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         color = lightbackground,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium
+                        style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Medium)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 2. 사진 + 이름/생년월일 배치
+            // 2. 본문: 아이 사진과 텍스트 정보
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 아이 사진 영역 (현재는 기본 이모지로 설정)
+                // 아이 사진을 보여주는 동그란 영역
                 Box(
                     modifier = Modifier
                         .size(60.dp)
-                        .clip(CircleShape)
+                        .clip(CircleShape) // 원 모양으로 자름
                         .background(background)
-                        .border(2.dp, color4, CircleShape),
-                    contentAlignment = Alignment.Center
+                        .border(2.dp, color4, CircleShape), // 원 모양 테두리
+                    contentAlignment = Alignment.Center // 내용물(이모지)을 중앙에 배치
                 ) {
+                    // imageUri가 있으면 실제 사진을, 없으면 기본 이모지를 보여줍니다.
                     if (imageUri != null) {
-                        // 실제 사진이 연동될 때 보여주는 로직 (AsyncImage 등 사용 가능)
+                        // TODO: Coil이나 Glide 같은 이미지 로딩 라이브러리를 사용해 사진을 표시합니다.
                     } else {
-                        Text("👶", fontSize = 32.sp)
+                        Text("👶", fontSize = 32.sp) // 사진이 없을 때 보여줄 기본 이모지
                     }
                 }
 
                 Spacer(modifier = Modifier.width(20.dp))
 
-                // 이름 및 생년월일 정보
-                // 💡 2. 전달받은 kidName과 birthDate 변수를 여기에 꽂아줍니다.
+                // 이름과 생년월일 텍스트
                 Column {
                     Text(
                         text = kidName,
@@ -320,18 +343,19 @@ fun KidInfoCard(
                         text = birthDate,
                         style = MaterialTheme.typography.bodyMedium,
                         color = color4,
-                        letterSpacing = 0.5.sp
+                        letterSpacing = 0.5.sp // 자간을 약간 넓혀 가독성 향상
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 3. 중앙 하단 추가 버튼 (LMFilledIconButton 사용)
+            // 3. 하단 중앙의 아이 추가 버튼
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
+                // designsystem에 미리 만들어둔 버튼 컴포넌트를 사용합니다.
                 LMFilledIconButton(
                     onClick = onAddClick,
                     modifier = Modifier.size(44.dp)
@@ -345,4 +369,36 @@ fun KidInfoCard(
             }
         }
     }
+}
+
+@Composable
+fun KidEditInputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String = "",
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = {Text(label, color = color4.copy(alpha = 0.6f), style = AppTypography.labelMedium) },
+        placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f)) },
+        // ✅ [수정] 사용자가 입력하는 글씨 스타일을 titleMedium으로 지정
+        textStyle = AppTypography.titleMedium.copy(color = color4),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        singleLine = true,
+        trailingIcon = {
+            if (icon != null) {
+                Icon(imageVector = icon, contentDescription = null, tint = color4.copy(alpha = 0.4f))
+            }
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = lightbackground,
+            unfocusedContainerColor = lightbackground,
+            focusedBorderColor = main,
+            unfocusedBorderColor = lightblue
+        )
+    )
 }

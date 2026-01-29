@@ -8,13 +8,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.component.AstronautPhotoPicker
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.component.GenderToggle
 import com.a602.commonproject.designsystem.component.LMTopAppBar
+import com.a602.commonproject.designsystem.theme.AppTypography
 import com.a602.commonproject.designsystem.theme.NiaTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color4
@@ -133,36 +133,6 @@ fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
     }
 }
 
-// 💡 입력 전용 컴포넌트 추가
-@Composable
-fun KidEditInputField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String = "",
-    icon: androidx.compose.ui.graphics.vector.ImageVector? = null
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label, color = color4.copy(alpha = 0.6f)) },
-        placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f)) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        singleLine = true,
-        trailingIcon = {
-            if (icon != null) {
-                Icon(imageVector = icon, contentDescription = null, tint = color4.copy(alpha = 0.4f))
-            }
-        },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
-            focusedBorderColor = main,
-            unfocusedBorderColor = lightblue
-        )
-    )
-}
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
