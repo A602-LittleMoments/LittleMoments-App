@@ -3,14 +3,11 @@ package com.a602.commonproject.navigation
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Photo
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Photo
-import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material.icons.outlined.Tablet
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.R
@@ -26,45 +23,48 @@ data class TopLevelNavItem(
 
 
 val HOME = TopLevelNavItem(
-    selectedIcon = Icons.Filled.Home,
-    unselectedIcon = LMicons.Home,
+    selectedIcon = LMicons.Home_Selected,
+    unselectedIcon = LMicons.Home_Unselected,
     iconTextId = R.string.home,
-    titleTextId = R.string.app_name
+    titleTextId = R.string.app_name,
 )
 
-val ALBUM = TopLevelNavItem(
-    selectedIcon = Icons.Filled.Photo,
-    unselectedIcon = LMicons.Photo,
+val GALLERY = TopLevelNavItem(
+    selectedIcon = LMicons.Gallery_Selected,
+    unselectedIcon = LMicons.Gallery_Unselected,
     iconTextId = R.string.gallery,
-    titleTextId = R.string.app_name
+    titleTextId = R.string.app_name,
 )
 
 val MEMORY = TopLevelNavItem(
-    selectedIcon = Icons.Filled.Star,
-    unselectedIcon = Icons.Outlined.Tablet,
+    selectedIcon = LMicons.Memory_Selected,
+    unselectedIcon = LMicons.Memory_Unselected,
     iconTextId = R.string.memory,
-    titleTextId = R.string.app_name
+    titleTextId = R.string.app_name,
 )
 
 val MY_PAGE = TopLevelNavItem(
-    selectedIcon = Icons.Filled.AccountCircle,
-    unselectedIcon = LMicons.Mypage,
+    selectedIcon = LMicons.my_page_Selected,
+    unselectedIcon = LMicons.my_page_Unselected,
     iconTextId = R.string.my_page,
-    titleTextId = R.string.app_name
+    titleTextId = R.string.app_name,
 )
 
 @Serializable
 object HomeNavKey : NavKey
+
 @Serializable
 object AlbumNavKey : NavKey
+
 @Serializable
 object MemoryNavKey : NavKey
+
 @Serializable
 object MyPageNavKey : NavKey
 
 val TOP_LEVEL_NAV_ITEMS = mapOf(
     HomeNavKey to HOME,
-    AlbumNavKey to ALBUM,
+    AlbumNavKey to GALLERY,
     MemoryNavKey to MEMORY,
-    MyPageNavKey to MY_PAGE
+    MyPageNavKey to MY_PAGE,
 )

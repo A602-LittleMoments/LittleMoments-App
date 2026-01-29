@@ -147,7 +147,7 @@ fun InfoDisplayField(label: String, value: String, icon: ImageVector) {
 @Preview(showBackground = true, name = "내 정보 확인 미리보기")
 @Composable
 fun ProfileDetailPreview() {
-    NiaTheme {
+    LtTheme {
         ProfileDetailScreen(
             user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
             onEditClick = {}

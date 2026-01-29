@@ -47,7 +47,7 @@ fun GroupChangeScreen(
 @Preview(showBackground = true, name = "1. 초기 화면 (팝업 없음)", widthDp = 360, heightDp = 800)
 @Composable
 fun GroupChangeScreenPreview() {
-    NiaTheme {
+    LtTheme {
         val sampleMembers = listOf(
             GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
             GroupMember(userId = "2", nickname = "아빠", relation = "아빠", role = GroupRole.MEMBER),
@@ -63,7 +63,7 @@ fun GroupChangeScreenPreview() {
 @Preview(showBackground = true, name = "2. 권한 변경 팝업 노출 상태", widthDp = 360, heightDp = 800)
 @Composable
 fun GroupRoleDialogPreview() {
-    NiaTheme {
+    LtTheme {
         val sampleMembers = listOf(
             GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
             GroupMember(userId = "2", nickname = "아빠", relation = "아빠", role = GroupRole.MEMBER),

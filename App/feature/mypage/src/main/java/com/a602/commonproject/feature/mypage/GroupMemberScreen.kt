@@ -138,7 +138,7 @@ fun GroupManagementScreen(
 @Preview(showBackground = true, name = "그룹 구성원 관리 메인", widthDp = 360, heightDp = 800)
 @Composable
 fun GroupManagementPreview() {
-    NiaTheme {
+    LtTheme {
         // 💡 프리뷰에서 사용할 샘플 데이터를 직접 생성합니다.
         val sampleMembers = listOf(
             GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
