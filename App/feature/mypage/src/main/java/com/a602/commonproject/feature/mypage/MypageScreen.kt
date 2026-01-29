@@ -157,7 +157,9 @@ fun MyPageMainContainer() {
             onNavigateToProfileEdit = { currentScreen = "profile_edit" },
             onNavigateToKidEdit = { currentScreen = "kid_edit" },
             onNavigateToGroupManagement = { currentScreen = "group_manage" },
-            onBackClick = { /* 이전 메인 화면으로 */ }
+            onBackClick = {
+ 이전 메인 화면으로
+ }
         )
 
         "profile_edit" -> ProfileEditScreen(

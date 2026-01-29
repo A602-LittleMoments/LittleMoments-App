@@ -75,7 +75,7 @@ class UserPreferencesDataSource @Inject constructor(
         refreshToken: String,
         email: String,
         nickname: String,
-        profileImageUrl: String?,
+        profileImageUrl: String? = null,
         groupId: String? // ✨ 파라미터 추가됨
     ) {
         dataStore.edit { prefs ->
@@ -85,14 +85,10 @@ class UserPreferencesDataSource @Inject constructor(
             prefs[KEY_USER_NICKNAME] = nickname
             if (profileImageUrl != null) {
                 prefs[KEY_USER_PROFILE_IMAGE] = profileImageUrl
-            } else {
-                prefs.remove(KEY_USER_PROFILE_IMAGE)
             }
             // ✨ 그룹 ID 저장
             if (groupId != null) {
                 prefs[KEY_GROUP_ID] = groupId
-            } else {
-                prefs.remove(KEY_GROUP_ID)
             }
         }
     }
@@ -103,20 +99,33 @@ class UserPreferencesDataSource @Inject constructor(
     suspend fun setUserData(
         email: String?, // 이메일은 변경 안되면 null 전달
         nickname: String,
-        profileImageUrl: String?,
-        groupId: String? // ✨ 파라미터 추가됨
+        profileImageUrl: String? = null,
     ) {
         dataStore.edit { prefs ->
             if (email != null) prefs[KEY_USER_EMAIL] = email
             prefs[KEY_USER_NICKNAME] = nickname
+
             if (profileImageUrl != null) {
                 prefs[KEY_USER_PROFILE_IMAGE] = profileImageUrl
-            } else {
-                prefs.remove(KEY_USER_PROFILE_IMAGE)
             }
-            if (groupId != null) {
-                prefs[KEY_GROUP_ID] = groupId
-            }
+        }
+    }
+
+    /**
+     * ✨ [신규] 그룹 ID만 확실하게 업데이트
+     */
+    suspend fun setGroupId(id: String) {
+        dataStore.edit { prefs ->
+            prefs[KEY_GROUP_ID] = id
+        }
+    }
+
+    /**
+     * ✨ [신규] 그룹 ID만 확실하게 삭제 (탈퇴 시 사용)
+     */
+    suspend fun deleteGroupId() {
+        dataStore.edit { prefs ->
+            prefs.remove(KEY_GROUP_ID)
         }
     }
 
