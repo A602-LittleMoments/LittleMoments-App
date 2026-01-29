@@ -1,6 +1,5 @@
 package com.a602.commonproject.feature.mypage
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,19 +8,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp // dp 단위를 위해 반드시 필요합니다!
-import com.a602.commonproject.designsystem.component.*
-import com.a602.commonproject.designsystem.theme.*
-import com.a602.commonproject.designsystem.icon.LMicons
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.text.font.FontWeight
 
-//import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.border
-import androidx.compose.material.icons.outlined.Person // 아이콘 경로 확인
+import androidx.compose.ui.unit.dp
+import com.a602.commonproject.designsystem.component.LMTopAppBar
+import com.a602.commonproject.designsystem.component.GenderToggle
+import com.a602.commonproject.designsystem.component.AstronautPhotoPicker
+import com.a602.commonproject.designsystem.component.Gender
+import com.a602.commonproject.designsystem.theme.*
+import androidx.compose.ui.tooling.preview.Preview
+
 import com.a602.commonproject.model.data.*
 
 
@@ -125,41 +120,18 @@ fun KidEditScreen(
     }
 }
 
-@Composable
-fun KidInfoTextField(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector? = null) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White, RoundedCornerShape(12.dp))
-            .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(12.dp))
-            .padding(16.dp)
-    ) {
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = color4.copy(alpha = 0.4f))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(text = value, style = MaterialTheme.typography.bodyMedium, color = color4)
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color3.copy(alpha = 0.4f),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-}
-
 @Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 fun KidEditScreenPreview() {
     NiaTheme {
-        // 💡 실제 데이터 대신 'SampleData.baby'를 넣어주면 됩니다!
         KidEditScreen(
-            baby = SampleData.baby,
+            baby = Baby(
+                babyId = "sampleId",
+                babyName = "김이든",
+                birthDate = "2023-08-25",
+                gender = Baby.Gender.MALE,
+                imageUrl = null
+            ),
             onBackClick = {},
             onSaveClick = {}
         )
