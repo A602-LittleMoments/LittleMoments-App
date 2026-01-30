@@ -15,9 +15,9 @@ import com.a602.commonproject.designsystem.R // 패키지명에 맞는 R 클래�
 
 // 1. 폰트 폴더에 넣은 파일들(suite 글꼴)을 하나의 패밀리로 묶기
 val NewFontFamily = FontFamily(
-    Font(R.font.Light, FontWeight.Normal),
-    Font(R.font.Regular, FontWeight.Medium),
-    Font(R.font.Bold, FontWeight.Bold)
+    Font(R.font.light, FontWeight.Normal),
+    Font(R.font.regular, FontWeight.Medium),
+    Font(R.font.bold, FontWeight.Bold)
 )
 
 
