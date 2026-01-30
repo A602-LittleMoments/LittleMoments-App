@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.component.IconActionBar
 import com.a602.commonproject.designsystem.component.LMTopAppBar
-import com.a602.commonproject.designsystem.theme.NiaTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.model.data.SharedMedia
 @Composable
 fun PhotoDetail(
@@ -38,6 +38,25 @@ fun PhotoDetail(
         onEdit = onEdit,
     )
 }
+
+@Composable
+fun MediaDetailRoute(
+    onBack: () -> Unit,
+    onDelete: () -> Unit,
+    onDownload: () -> Unit,
+    onEdit: () -> Unit,
+){
+    val title = " "
+    MediaDetailScreen(
+        title = title,
+        media = TODO(),
+        onBack = onBack,
+        onDelete = onDelete,
+        onDownload = onDownload,
+        onEdit = onEdit,
+    )
+}
+
 @Composable
 fun MediaDetailScreen(
     title: String,
@@ -127,7 +146,7 @@ private fun fakePhotoMedia(): SharedMedia {
 )
 @Composable
 private fun Preview_Detail_Photo_Pixel4XL() {
-    NiaTheme {
+    LMTheme {
         MediaDetailScreen(
             title = "자세히 보기",
             media = fakePhotoMedia(),

@@ -11,10 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.theme.*
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.text.KeyboardOptions
 
@@ -26,9 +23,8 @@ fun LMEditInputField(
     placeholder: String = "",
     icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     modifier: Modifier = Modifier,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    singleLine: Boolean = true
+    singleLine: Boolean = true,
     isPassword: Boolean = false,
     enabled: Boolean = true
 ) {
@@ -41,7 +37,6 @@ fun LMEditInputField(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         singleLine = singleLine,
-        visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         trailingIcon = {

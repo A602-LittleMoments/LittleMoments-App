@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.component.ButtonSize
@@ -64,7 +63,6 @@ fun UserInfoContent(
             onValueChange = { password = it },
             label = "비밀번호",
             modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         )
         Spacer(Modifier.height(8.dp))

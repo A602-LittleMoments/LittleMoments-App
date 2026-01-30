@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.a602.commonproject.data.repository.CollectionRepository
 import com.a602.commonproject.feature.memory.data.MemoryRepoProvider
-import com.a602.commonproject.feature.memory.navigation.MemoryMainKey
+import com.a602.commonproject.feature.memory.navigation.MemoryNavKey
 
 private const val MAKE_SCREEN_MS = 5000L
 
@@ -28,7 +28,7 @@ sealed interface MemoryMainUiState {
 
 @HiltViewModel(assistedFactory = MemoryMainViewModel.Factory::class)
 class MemoryMainViewModel @AssistedInject constructor(
-    @Assisted val key: MemoryMainKey,
+    @Assisted val key: MemoryNavKey,
 ) : ViewModel() {
 
     private val collectionRepository =
@@ -65,6 +65,6 @@ class MemoryMainViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(key: MemoryMainKey): MemoryMainViewModel
+        fun create(key: MemoryNavKey): MemoryMainViewModel
     }
 }

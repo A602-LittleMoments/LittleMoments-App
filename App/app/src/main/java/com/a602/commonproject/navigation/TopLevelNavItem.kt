@@ -5,12 +5,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.R
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.feature.gallery.GalleryNavKey
 import kotlinx.serialization.Serializable
 import com.a602.commonproject.feature.home.navigation.HomeNavKey
-import com.a602.commonproject.navigation.GalleryNavKey
-import com.a602.commonproject.navigation.MemoryNavKey
-import com.a602.commonproject.navigation.MyPageNavKey
-
+import com.a602.commonproject.feature.memory.navigation.MemoryNavKey
+import com.a602.commonproject.feature.mypage.navigation.MyPageNavKey
 data class TopLevelNavItem(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,

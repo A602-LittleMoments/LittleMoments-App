@@ -1,8 +1,12 @@
 package com.a602.commonproject.designsystem.theme
 
+import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 //private val LightColorScheme = lightColorScheme(
 //    // --- Primary (주요 강조색) ---
@@ -98,9 +102,27 @@ private val LightColorScheme = lightColorScheme(
 fun LMTheme(
     content: @Composable () -> Unit
 ) {
+    // 1. 색상 테마를 항상 Light로 고정
+    val colorScheme = LightColorScheme
+
+    // 2. 상태바(Status Bar) 색상 및 아이콘 설정
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+
+            // ✅ 수정됨: android.graphics.Color 대신 Compose Color 사용
+            // (배경색을 테마의 배경색과 일치시키려면 colorScheme.background.toArgb() 사용)
+            window.isNavigationBarContrastEnforced = true
+
+            // 상태바 아이콘(시간, 배터리)을 검은색으로 강제 (Light Mode 스타일)
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+        }
+    }
+
     MaterialTheme(
-        colorScheme = LightColorScheme,
-        typography = AppTypography, // 💡 Type.kt의 AppTypography 참조
+        colorScheme = colorScheme,
+        typography = AppTypography,
         content = content
     )
 }

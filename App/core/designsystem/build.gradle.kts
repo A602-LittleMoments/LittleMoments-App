@@ -18,9 +18,10 @@ dependencies {
     api(libs.androidx.compose.runtime)
     api(libs.androidx.compose.ui.util)
 
+
     implementation(libs.coil.kt.compose)
     implementation(projects.core.model)
-
+    implementation(libs.androidx.core)
     testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.androidx.compose.ui.test.manifest)
 

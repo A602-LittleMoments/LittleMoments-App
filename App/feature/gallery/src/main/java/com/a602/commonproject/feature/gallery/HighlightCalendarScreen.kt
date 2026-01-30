@@ -53,6 +53,16 @@ fun Long?.toDay(): String {
         .toString()
 }
 
+
+@Composable
+fun HighlightCalendarRoute(
+
+){
+    HighlightCalendarScreen(
+        onDateRangeSelected = TODO(),
+        onBack = TODO()
+    )
+}
 @Composable
 fun HighlightCalendarScreen(
     onDateRangeSelected: (Long, Long) -> Unit,

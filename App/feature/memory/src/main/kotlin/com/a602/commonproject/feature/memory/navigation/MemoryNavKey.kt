@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 // 추억 들어오면 처음 연결될 곳
 // 데이터 있을때, 없을 때 분기될 예정
 @Serializable
-object MemoryMainKey : NavKey
+object MemoryNavKey : NavKey
 
 // 행성 선택하면 연결될 사진 목록
 @Serializable

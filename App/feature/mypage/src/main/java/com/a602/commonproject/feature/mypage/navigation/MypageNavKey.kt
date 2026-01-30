@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
 //    @Serializable 어노테이션은 이 주소들이 안전하게 전달될 수 있도록 보장합니다.
 
 @Serializable
-object MyPageKey : NavKey
+object MyPageNavKey : NavKey
+
 
 @Serializable
 object ProfileEditKey : NavKey

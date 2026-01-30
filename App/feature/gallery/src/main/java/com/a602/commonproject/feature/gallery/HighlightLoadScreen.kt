@@ -20,6 +20,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.LaunchedEffect
+import com.a602.commonproject.designsystem.R
+
+
+@Composable
+fun HighlightLoadingRoute(){
+    HighlightLoadingScreen(
+        startMillis = TODO(),
+        endMillis = TODO(),
+        requestCreateSlideshow = TODO(),
+        onSuccess = TODO(),
+        onFailure = TODO()
+    )
+}
 
 @Composable
 fun HighlightLoadingScreen(
@@ -46,7 +59,7 @@ fun LoadingContent(
     Box(modifier = modifier.fillMaxSize()) {
 
         Image(
-            painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.empty_planet),
+            painter = painterResource(id = R.drawable.empty_planet),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -61,7 +74,7 @@ fun LoadingContent(
 
         ) {
             Image(
-                painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.moon),
+                painter = painterResource(id = R.drawable.moon),
                 contentDescription = null,
                 modifier = Modifier.size(200.dp),
                 contentScale = ContentScale.Fit

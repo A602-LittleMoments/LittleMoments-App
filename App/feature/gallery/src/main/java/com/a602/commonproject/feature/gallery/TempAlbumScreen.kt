@@ -19,6 +19,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,13 +42,28 @@ import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.component.ConfirmDeleteDialog
 import com.a602.commonproject.designsystem.component.FillWrapButton
 import com.a602.commonproject.designsystem.icon.LMicons
-import com.a602.commonproject.designsystem.theme.NiaTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.designsystem.theme.lightblue
 import com.a602.commonproject.model.data.SharedMedia
 import kotlinx.coroutines.launch
+
+
+@Composable
+fun TempGridGalleryRoute(
+
+){
+    TempGridGallery(
+        medias = TODO(),
+        onMediaClick = TODO(),
+        onDeleteSelected = TODO(),
+        onSaveSelected = TODO(),
+        onClearAll = TODO(),
+        modifier = TODO()
+    )
+}
 
 @Composable
 fun TempGridGallery(
@@ -58,7 +77,7 @@ fun TempGridGallery(
     var isSelectMode by remember { mutableStateOf(false) }
     val selectedIds = remember { mutableStateListOf<String>() }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     Box(
         modifier = modifier
@@ -168,7 +187,7 @@ fun TempGridGallery(
                                 snackbarHostState.showSnackbar(
                                     message = "사진이 가족 앨범에 저장되었어요",
                                     withDismissAction = false,
-                                    duration = androidx.compose.material3.SnackbarDuration.Short
+                                    duration = SnackbarDuration.Short
                                 )
                             }
                             selectedIds.clear()
@@ -178,13 +197,13 @@ fun TempGridGallery(
                 }
             }
         }
-        androidx.compose.material3.SnackbarHost(
+        SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
                 .align(Alignment.Center)
                 .padding(horizontal = 24.dp),
         ) { data ->
-            androidx.compose.material3.Snackbar(
+            Snackbar(
                 snackbarData = data,
                 containerColor = lightblue,
                 contentColor = color3
@@ -258,7 +277,7 @@ fun TempGridGalleryPreview() {
         )
     }
 
-    NiaTheme {
+    LMTheme {
         TempGridGallery(
             medias = fakeMedias,
             onMediaClick = {},

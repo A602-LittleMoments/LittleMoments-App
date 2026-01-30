@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.component.LMTopAppBar
@@ -27,7 +28,7 @@ import com.a602.commonproject.model.data.User
 import com.a602.commonproject.navigation.Navigator
 
 @Composable
-fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = viewModel()) {
+fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.isLoading) {

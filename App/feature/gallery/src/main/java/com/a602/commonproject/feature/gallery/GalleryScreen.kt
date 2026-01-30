@@ -25,12 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import coil.compose.AsyncImage
-<<<<<<< HEAD
 import com.a602.commonproject.designsystem.component.FillWrapButton
-import com.a602.commonproject.designsystem.theme.NiaTheme
-=======
 import com.a602.commonproject.designsystem.theme.LMTheme
->>>>>>> 63f49f37c97fc85ebab79f60b57a0421f56f55b7
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.lightbackground
@@ -83,6 +79,24 @@ fun mapToCalendarDays(
 
     return days
 }
+
+@Composable
+fun CalendarRoute(
+    onDateClick: () -> Unit,
+    onGridClick: () -> Unit,
+    onTempAlbumClick: () -> Unit,
+    onHighLightClick: () -> Unit
+){
+     val medias = emptyList<SharedMedia>()
+    CalendarScreen(
+        medias = medias,
+        onDateClick = onDateClick,
+        onGridClick = onGridClick,
+        onTempAlbumClick = onTempAlbumClick,
+        onHighLightClick = onHighLightClick,
+    )
+}
+
 
 @Composable
 fun CalendarScreen(

@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.a602.commonproject.designsystem.component.GroupCodeDialog
@@ -50,7 +51,7 @@ import com.a602.commonproject.navigation.Navigator
 @Composable
 fun GroupManageContainer(
     navigator: Navigator,
-    viewModel: GroupMemberViewModel = viewModel()
+    viewModel: GroupMemberViewModel =hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

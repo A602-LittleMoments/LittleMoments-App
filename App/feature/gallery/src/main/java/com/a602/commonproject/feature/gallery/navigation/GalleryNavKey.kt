@@ -4,10 +4,12 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 
+@Serializable
+object GalleryNavKey : NavKey
 
 // 메인 -> 캘린더
-@Serializable
-data object CalendarNavKey : NavKey
+/*@Serializable
+data object CalendarNavKey : NavKey*/
 
 
 // 그리드 보기

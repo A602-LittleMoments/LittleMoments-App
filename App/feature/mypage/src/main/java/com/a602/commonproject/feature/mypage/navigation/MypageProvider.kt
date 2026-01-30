@@ -9,11 +9,11 @@ import com.a602.commonproject.feature.mypage.MyPageMainContainer
 import com.a602.commonproject.feature.mypage.ProfileEditContainer
 import com.a602.commonproject.navigation.Navigator
 
-fun EntryProviderScope<NavKey>.myPageEntryProvider(
+fun EntryProviderScope<NavKey>.myPageEntries(
     navigator: Navigator
 ) {
     // 1. 마이페이지 메인
-    entry<MyPageKey> {
+    entry<MyPageNavKey> {
         MyPageMainContainer(navigator)
     }
 

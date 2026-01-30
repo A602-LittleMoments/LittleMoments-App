@@ -21,16 +21,15 @@ import com.a602.commonproject.feature.home.navigation.HomeNavKey
 import com.a602.commonproject.feature.home.navigation.NotificationNavKey
 import com.a602.commonproject.feature.home.navigation.UploadNavKey
 import com.a602.commonproject.feature.home.navigation.homeEntries
-import com.a602.commonproject.navigation.GalleryNavKey
-import com.a602.commonproject.navigation.MemoryNavKey
-import com.a602.commonproject.navigation.MyPageNavKey
 import com.a602.commonproject.navigation.TOP_LEVEL_NAV_ITEMS
-
 import com.a602.commonproject.navigation.toEntries
 import com.a602.commonproject.ui.rememberLMAppState
-
-
 import com.a602.commonproject.designsystem.component.CameraButton
+import com.a602.commonproject.feature.gallery.GalleryNavKey
+import com.a602.commonproject.feature.gallery.navigation.galleryEntries
+import com.a602.commonproject.feature.memory.navigation.MemoryNavKey
+import com.a602.commonproject.feature.memory.navigation.memoryEntries
+import com.a602.commonproject.feature.mypage.navigation.myPageEntries
 
 @Composable
 fun LMApp() {
@@ -87,9 +86,12 @@ fun LMApp() {
             )
             homeEntries(appState.navigator)
             // Fallback / Placeholder for unimplemented features
-            entry<GalleryNavKey> { Text("사진 화면 (준비 중)") }
-            entry<MemoryNavKey> { Text("추억 화면 (준비 중)") }
-            entry<MyPageNavKey> { Text("마이페이지 화면 (준비 중)") }
+
+            galleryEntries(appState.navigator)
+
+            memoryEntries(appState.navigator)
+
+            myPageEntries(appState.navigator)
         }
 
         val combinedEntryProvider: (NavKey) -> NavEntry<NavKey> = { key ->
@@ -103,7 +105,9 @@ fun LMApp() {
             entries = entries,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding), // ✨ 하단 바에 가려지지 않게 처리
+                // 💡 innerPadding 전체를 적용하지 않고, '하단(Bottom)' 패딩만 적용합니다.
+                // 이렇게 하면 TopBar 영역(원래라면 비어있을 상단)까지 NavDisplay가 꽉 차게 됩니다.
+                .padding(bottom = innerPadding.calculateBottomPadding()),
             onBack = { appState.navigator.goBack() },
         )
     }

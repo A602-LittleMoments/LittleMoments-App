@@ -12,11 +12,11 @@ import com.a602.commonproject.feature.memory.MemoryMainContainer
 import com.a602.commonproject.feature.memory.MemoryMainViewModel
 import com.a602.commonproject.navigation.Navigator
 
-fun EntryProviderScope<NavKey>.memoryEntryProvider(
+fun EntryProviderScope<NavKey>.memoryEntries(
     navigator: Navigator
 ) {
     // 1) Main (데이터 있을때, 없을때 분기 포함)
-    entry<MemoryMainKey> { key ->
+    entry<MemoryNavKey> { key ->
         val viewModel = hiltViewModel<MemoryMainViewModel, MemoryMainViewModel.Factory> {
             it.create(key)
         }
