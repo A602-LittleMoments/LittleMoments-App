@@ -54,10 +54,7 @@ class FetchWorker @AssistedInject constructor(
             // ✨ 사진 동기화와 슬라이드쇼 동기화를 병렬(async)로 처리
             val jobs = listOf(
                 async { mediaRepository.syncWithServer(groupId) }, // 사진 갱신 (Boolean)
-                async {
-                    // 슬라이드쇼 갱신 (Result<Unit> -> Boolean 변환)
-                    slideshowRepository.refreshSlideshows().isSuccess
-                },
+                async { slideshowRepository.refreshSlideshows().isSuccess },
                 async { babyRepository.syncWithServer(groupId) }
             )
             // 두 작업이 모두 끝날 때까지 대기

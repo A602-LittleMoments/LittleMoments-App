@@ -51,7 +51,7 @@ internal class WorkManagerSyncManager @Inject constructor(
         workManager
             .beginUniqueWork(
                 SYNC_WORK_NAME,
-                ExistingWorkPolicy.KEEP, // 이미 돌고 있으면 무시 (중복 방지)
+                ExistingWorkPolicy.REPLACE, // 이미 돌고 있어도 새로 요청 들어오면 다시 시작
                 uploadWorkRequest, // 업로드 작업
             )
             .then(fetchWorkRequest) // 없로드 끝나면 다운으로

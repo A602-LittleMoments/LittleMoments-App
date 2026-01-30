@@ -8,6 +8,7 @@ import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.data.repository.UserRepository
 import com.a602.commonproject.model.data.Baby
 import com.a602.commonproject.model.data.Collection
+import com.a602.commonproject.model.data.AuthState
 import com.a602.commonproject.model.data.SharedMedia
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,7 +74,8 @@ class HomeViewModel @Inject constructor(
                     _collections.value = it
                 }
                 .onFailure {
-                    _isError.value = true
+                    // _isError.value = true 
+                    // 컬렉션 로딩 실패해도 메인 화면은 보여줘야 함 (DB 데이터 우선)
                 }
         }
     }
