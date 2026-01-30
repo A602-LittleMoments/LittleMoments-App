@@ -18,40 +18,40 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-// 1. 화면에 필요한 모든 데이터를 담을 그릇(data class)을 정의합니다.
+// 마이페이지
+// 1. 화면에 필요한 모든 데이터를 담을 data class을 정의
 //    (로딩 상태, 오류 메시지 등 UI 상태 전체를 포함합니다.)
 data class MyPageUiState(
-    val user: User? = null,
-    val baby: Baby? = null,
-    val groupMembers: List<GroupMember> = emptyList(),
+    val user: User? = null, // 로그인한 사용자 정보
+    val babies: List<Baby> = emptyList(), // 등록된 아기 정보 리스트(한 명만 나오는 문제 해결)
+    val groupMembers: List<GroupMember> = emptyList(), // 그룹 구성원 리스트
     val isLoading: Boolean = true,
     val errorMessage: String? = null
 )
 
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
-    userRepository: UserRepository,
-    babyRepository: BabyRepository,
-    private val groupRepository: GroupRepository
+    userRepository: UserRepository, // 유저
+    babyRepository: BabyRepository, // 아기정보
+    private val groupRepository: GroupRepository // 그룹 데이터
 ) : ViewModel() {
 
     val uiState: StateFlow<MyPageUiState> =
         combine(
-            userRepository.authState,
-            babyRepository.getBabyStream()
+            userRepository.authState, // 유저 데이터
+            babyRepository.getBabyStream() // 아기 데이터
         ) { authState, babyList ->
             Pair(authState, babyList)
         }.flatMapLatest { (authState, babyList) ->
             flow {
                 val user = if (authState is AuthState.LoggedIn) authState.user else null
-                val baby = babyList.firstOrNull()
                 val groupMembersResult = groupRepository.getGroupMembers()
                 val groupMembers = groupMembersResult.getOrNull() ?: emptyList()
 
                 emit(
                     MyPageUiState(
                         user = user,
-                        baby = baby,
+                        babies = babyList, // 아기 목록 전체를 전달
                         groupMembers = groupMembers,
                         isLoading = false
                     )
