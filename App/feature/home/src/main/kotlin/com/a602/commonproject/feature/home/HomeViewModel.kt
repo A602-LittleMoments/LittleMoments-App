@@ -17,30 +17,39 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import okhttp3.internal.userAgent
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     babyRepository: BabyRepository,
     sharedMediaRepository: SharedMediaRepository,
     private val collectionRepository: CollectionRepository,
-    userRepository: UserRepository
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _collections = MutableStateFlow<List<Collection>>(emptyList())
+    private val _isError = MutableStateFlow(false)
 
     val uiState: StateFlow<HomeUiState> = combine(
         babyRepository.getBabyStream(),
         sharedMediaRepository.getSharedAlbumStream(),
         _collections,
-        userRepository.authState
-    ) { babies, mediaList, collections, authState ->
-        val currentBaby = babies.firstOrNull()
+        userRepository.authState,
+        _isError
+    ) { babies, mediaList, collections, authState, isError ->
+        if (isError) {
+            // 데이터가 아예 없는 경우: 단순히 Success(empty)로 보여줄지, Error로 보여줄지 결정
+            // 여기서는 서버 에러가 났을 때를 위해 Error 상태를 활용할 수 있습니다.
+            HomeUiState.Error("데이터를 불러오지 못했습니다. 네트워크를 확인해주세요.")
+        }else {
+            val currentBaby = babies.firstOrNull()
 
-        HomeUiState.Success(
-            baby = currentBaby,
-            mediaList = mediaList,
-            collections = collections
-        )
+            HomeUiState.Success(
+                baby = currentBaby,
+                mediaList = mediaList,
+                collections = collections
+            )
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -50,15 +59,21 @@ class HomeViewModel @Inject constructor(
     init {
         fetchCollections()
     }
+    fun logout(){
+        viewModelScope.launch {
+            userRepository.logout()
+        }
+    }
 
     private fun fetchCollections() {
         viewModelScope.launch {
             collectionRepository.getCollections()
                 .onSuccess {
+                    _isError.value = false
                     _collections.value = it
                 }
                 .onFailure {
-                    // 에러 처리 (로그 등)
+                    _isError.value = true
                 }
         }
     }
@@ -72,5 +87,7 @@ sealed interface HomeUiState {
         val collections: List<Collection> = emptyList(),
         val hasNotifications: Boolean = false
     ) : HomeUiState
-    data object Error : HomeUiState
+    data class Error(
+        val errorMessage : String?
+    ) : HomeUiState
 }

@@ -2,16 +2,19 @@ package com.a602.commonproject.ui.theme
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold // 표준 Scaffold 사용
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
-// ✨ 디자인 시스템 컴포넌트 임포트
+import androidx.navigation3.runtime.entryProvider
+import com.a602.commonproject.feature.login.navigation.loginEntries
 import com.a602.commonproject.designsystem.component.LMNavigationBar
 import com.a602.commonproject.designsystem.component.LMNavigationBarItem
 import com.a602.commonproject.feature.home.navigation.HomeNavKey
@@ -27,12 +30,15 @@ import com.a602.commonproject.navigation.toEntries
 import com.a602.commonproject.ui.rememberLMAppState
 
 
+import com.a602.commonproject.designsystem.component.CameraButton
+
 @Composable
 fun LMApp() {
     val appState = rememberLMAppState()
     // 1. NavigationSuiteScaffold 대신 표준 Scaffold 사용
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        floatingActionButtonPosition = FabPosition.Center,
         bottomBar = {
             // 2. ✨ 사용자님이 만든 LMNavigationBar 적용
             if (appState.shouldShowBottomBar) {
@@ -56,18 +62,36 @@ fun LMApp() {
                 }
             }
         },
+        floatingActionButton = {
+            // ✨ 홈, 앨범, 추억 탭에서만 FAB 표시
+            val currentKey = appState.navigationState.currentTopLevelKey
+            val isTopLevelTab = currentKey == HomeNavKey || currentKey == GalleryNavKey || currentKey == MemoryNavKey
+
+            if (isTopLevelTab) {
+                CameraButton(
+                    onClick = { appState.navigator.navigate(UploadNavKey) },
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+            }
+        }
     ) { innerPadding ->
         // 5. 모듈별 EntryProvider 연결
-        // 5. 모듈별 EntryProvider 연결
-        val provider = androidx.navigation3.runtime.entryProvider<NavKey> {
+        val provider = entryProvider<NavKey> {
+            loginEntries(
+                navigator = appState.navigator,
+                onLoginSuccess = {
+                    // 로그인 성공 시 홈으로 이동하고, 백스택을 정리합니다 (뒤로가기 시 로그인 화면 안 나오게)
+                    // replaceRoot를 사용하여 스택을 초기화하고 홈을 새로운 루트로 설정합니다.
+                    appState.navigator.replaceRoot(HomeNavKey)
+                }
+            )
             homeEntries(appState.navigator)
-            
             // Fallback / Placeholder for unimplemented features
             entry<GalleryNavKey> { Text("사진 화면 (준비 중)") }
             entry<MemoryNavKey> { Text("추억 화면 (준비 중)") }
             entry<MyPageNavKey> { Text("마이페이지 화면 (준비 중)") }
         }
-        
+
         val combinedEntryProvider: (NavKey) -> NavEntry<NavKey> = { key ->
             provider.invoke(key) ?: error("Unknown key: $key")
         }

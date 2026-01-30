@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.BaseAndroid" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.LittleMoments" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background, animated icon, and post-splash theme -->
+        <item name="windowSplashScreenBackground">@color/primary_ivory</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.LittleMoments</item>
+    </style>
 </resources>

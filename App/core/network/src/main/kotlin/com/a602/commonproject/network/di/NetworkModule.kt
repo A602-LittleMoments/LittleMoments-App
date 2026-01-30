@@ -52,8 +52,9 @@ object NetworkModule {
             }
         }
         return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor) // 🔑 헤더 관리 (토큰 자동 추가/제거)
-            .addInterceptor(loggingInterceptor) // 📜 로그 출력
+            .addInterceptor(authInterceptor)   // 📜 로그 출력
+            .addInterceptor(loggingInterceptor) // 🔑 헤더 관리 (토큰 자동 추가/제거)
+            .addInterceptor(ApiLogger())
             .connectTimeout(30, TimeUnit.SECONDS) // 연결 타임아웃
             .readTimeout(30, TimeUnit.SECONDS) // 읽기 타임 아웃
             .writeTimeout(30, TimeUnit.SECONDS) // 쓰기(업로드) 타임 아웃

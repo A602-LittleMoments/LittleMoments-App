@@ -4,9 +4,11 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 @Singleton
@@ -28,6 +30,9 @@ class UserPreferencesDataSource @Inject constructor(
 
         // ✨ [추가] 그룹 ID (백그라운드 동기화의 핵심 키)
         private val KEY_GROUP_ID = stringPreferencesKey("group_id")
+
+        // ✨ [추가] 기기 고유 식별자 키
+        private val KEY_DEVICE_ID = stringPreferencesKey("device_id")
     }
 
     // =================================================================
@@ -61,6 +66,15 @@ class UserPreferencesDataSource @Inject constructor(
 
     // ✨ [추가] 그룹 ID 조회 (Worker나 FCM 서비스에서 사용)
     val userGroupId: Flow<String?> = dataStore.data.map { prefs -> prefs[KEY_GROUP_ID] }
+
+    /**
+     * ✨ [추가] 저장된 기기 고유 ID(UUID)를 가져옵니다.
+     */
+    val deviceId: Flow<String?> = dataStore.data.map { prefs ->
+        prefs[KEY_DEVICE_ID]
+    }
+
+
 
     // =================================================================
     // 3. 쓰기 (Write) - suspend 함수 (비동기)
@@ -149,5 +163,22 @@ class UserPreferencesDataSource @Inject constructor(
         dataStore.edit { prefs ->
             prefs.clear()
         }
+    }
+
+
+    /**
+     * ✨ [추가] 앱 최초 실행 시 기기 고유 ID를 생성하거나 기존 ID를 반환합니다.
+     * 이 함수는 앱이 시작될 때나 FCM 토큰을 서버에 보낼 때 호출하여 기기 식별자로 사용하세요.
+     */
+    suspend fun getOrCreateDeviceId(): String {
+        val currentId = deviceId.first() // 현재 저장된 값이 있는지 확인
+        if (currentId != null) return currentId
+
+        // 저장된 값이 없으면 새로 생성 후 저장
+        val newId = UUID.randomUUID().toString()
+        dataStore.edit { prefs ->
+            prefs[KEY_DEVICE_ID] = newId
+        }
+        return newId
     }
 }

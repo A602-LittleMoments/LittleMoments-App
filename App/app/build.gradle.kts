@@ -40,6 +40,7 @@ dependencies {
     implementation(projects.feature.memory)
     implementation(projects.feature.mypage)
     implementation(projects.feature.home)
+    implementation(projects.feature.login)
 
     ksp(libs.hilt.compiler)
 
@@ -57,6 +58,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.material.iconsExtended)

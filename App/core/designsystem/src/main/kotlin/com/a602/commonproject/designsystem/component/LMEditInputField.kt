@@ -14,24 +14,33 @@ import androidx.compose.ui.tooling.preview.Preview
 
 
 
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.foundation.text.KeyboardOptions
+
 @Composable
 fun LMEditInputField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String = "",
-    icon: androidx.compose.ui.graphics.vector.ImageVector? = null
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    modifier: Modifier = Modifier,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    singleLine: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = {Text(label, color = color4.copy(alpha = 0.6f), style = AppTypography.labelMedium) },
-        placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f)) },
-        // ✅ [수정] 사용자가 입력하는 글씨 스타일을 titleMedium으로 지정
+        label = { Text(label, color = color4.copy(alpha = 0.6f), style = AppTypography.labelMedium) },
+        placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f), style = AppTypography.titleMedium) },
+        // ✅ 사용자가 입력하는 글씨 스타일과 Placeholder 스타일을 통일하여 크기 변화를 방지
         textStyle = AppTypography.titleMedium.copy(color = color4),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        singleLine = true,
+        singleLine = singleLine,
+        visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions,
         trailingIcon = {
             if (icon != null) {
                 Icon(imageVector = icon, contentDescription = null, tint = color4.copy(alpha = 0.4f))

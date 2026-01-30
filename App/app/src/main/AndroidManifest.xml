@@ -18,12 +18,12 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.BaseAndroid">
+        android:theme="@style/Theme.LittleMoments">
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.BaseAndroid">
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -52,6 +52,15 @@
             android:authorities="${applicationId}.androidx-startup"
             android:exported="false"
             tools:node="merge">
+            <!--
+                 ⚠️ Hilt와 WorkManager를 같이 사용할 때는 기본 초기화(WorkManagerInitializer)를 꺼야 합니다.
+                 그렇지 않으면 기본 Factory가 사용되어 의존성 주입이 안 된 Worker를 생성하려고 시도하다가 에러(NoSuchMethodException)가 납니다.
+            -->
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+
             <meta-data
                 android:name="com.a602.commonproject.sync.initializers.SyncInitializer"
                 android:value="androidx.startup"

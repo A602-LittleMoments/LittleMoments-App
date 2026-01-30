@@ -30,17 +30,20 @@ class Navigator(val state: NavigationState) {
      * 이전 화면으로 돌아가는 함수 (뒤로 가기)
      */
     fun goBack() {
-        when (state.currentKey) {
-            // 시작 화면에서는 더 이상 뒤로 갈 수 없음 (Activity에서 앱 종료 처리)
-            state.startKey -> error("시작 루트에서는 돌아갈 수 없습니다.")
-            // 현재 탭의 최상위 화면일때 (예: 설정 탭의 메인 화면)
-            state.currentTopLevelKey -> {
-                // goToTopLevel 로직 덕분에, 여기서 제거하면 무조건 Home(StartKey)만 남습니다.
-                state.topLevelStack.removeLastOrNull()
-            }
-
-            else -> state.currentSubstack.removeLastOrNull() // 일반화면이면 뒤로 가기
+        // 1. 현재 서브 스택(상세 화면)이 있다면 제거
+        if (state.currentSubstack.size > 1) {
+            state.currentSubstack.removeLastOrNull()
+            return
         }
+
+        // 2. 최상위 탭 스택이 있다면 제거
+        if (state.topLevelStack.size > 1) {
+            state.topLevelStack.removeLastOrNull()
+            return
+        }
+
+        // 3. 더 이상 돌아갈 곳이 없음 (Activity 종료)
+        error("Root reached")
     }
 
     /**
@@ -63,12 +66,22 @@ class Navigator(val state: NavigationState) {
         state.topLevelStack.apply {
             // 1. 기존의 쌓여 있던 탭 기록을 모두 지움
             clear()
-            // 2. 무조건 바닥에 '홈'을 깔기
+            // 2. 무조건 바닥에 '홈'(startKey)을 깔기
+            // 단, replaceRoot 등으로 startKey가 실제 화면이 아니게 된 경우(로그인 후)에는 로직 조정이 필요할 수 있으나,
+            // 기본 탭바 동작은 항상 '첫 번째 탭'을 기저에 둡니다.
             add(state.startKey)
-            // 3. 이동하려는 곳이 '홈'이 라니라면 그 위에 얹기
+            // 3. 이동하려는 곳이 '홈'이 아니라면 그 위에 얹기
             if (key != state.startKey)
                 add(key)
         }
+    }
+
+    /**
+     * 루트를 교체합니다. (예: 로그인 완료 후 Splash/Login 스택 제거하고 홈으로 설정)
+     */
+    fun replaceRoot(key: NavKey) {
+        state.topLevelStack.clear()
+        state.topLevelStack.add(key)
     }
 
     /**

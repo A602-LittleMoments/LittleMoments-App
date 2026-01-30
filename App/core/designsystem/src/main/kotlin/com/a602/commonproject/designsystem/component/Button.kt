@@ -206,6 +206,11 @@ fun CameraButton(
             contentColor = lightbackground,
             disabledContainerColor = main.copy(alpha = 0.35f),
             disabledContentColor = lightbackground.copy(alpha = 0.7f),
+        ),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 6.dp,   // 평소 떠 있는 높이 (FAB 기본값과 비슷)
+            pressedElevation = 12.dp,  // 눌렀을 때 더 깊이 들어가는 느낌
+            disabledElevation = 0.dp
         )
     ) {
         // 🔑 핵심: Box로 중앙 정렬을 강제

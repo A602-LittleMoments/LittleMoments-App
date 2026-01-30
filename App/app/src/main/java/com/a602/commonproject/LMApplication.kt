@@ -3,6 +3,7 @@ package com.a602.commonproject
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
 import com.a602.commonproject.sync.status.SyncManager
 import com.a602.commonproject.sync.status.SyncSubscriber
 import com.google.firebase.FirebaseApp
@@ -20,6 +21,8 @@ class LMApplication : Application(), Configuration.Provider {
     @Inject lateinit var syncManager: SyncManager
     @Inject lateinit var syncSubscriber: SyncSubscriber
 
+    @Inject lateinit var userPreferencesDataSource: UserPreferencesDataSource
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -34,6 +37,7 @@ class LMApplication : Application(), Configuration.Provider {
         syncManager.requestSync()
 
         CoroutineScope(Dispatchers.IO).launch {
+            userPreferencesDataSource.getOrCreateDeviceId()
             syncSubscriber.subscribe()
         }
     }
