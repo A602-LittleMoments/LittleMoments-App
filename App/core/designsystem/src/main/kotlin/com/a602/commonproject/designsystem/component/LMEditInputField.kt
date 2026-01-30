@@ -11,8 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.theme.*
 import androidx.compose.ui.tooling.preview.Preview
-
-
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,19 +29,21 @@ fun LMEditInputField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     singleLine: Boolean = true
+    isPassword: Boolean = false,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label, color = color4.copy(alpha = 0.6f), style = AppTypography.labelMedium) },
         placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f), style = AppTypography.titleMedium) },
-        // ✅ 사용자가 입력하는 글씨 스타일과 Placeholder 스타일을 통일하여 크기 변화를 방지
         textStyle = AppTypography.titleMedium.copy(color = color4),
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         singleLine = singleLine,
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         trailingIcon = {
             if (icon != null) {
                 Icon(imageVector = icon, contentDescription = null, tint = color4.copy(alpha = 0.4f))
@@ -51,7 +54,8 @@ fun LMEditInputField(
             unfocusedContainerColor = lightbackground,
             focusedBorderColor = main,
             unfocusedBorderColor = lightblue
-        )
+        ),
+        enabled = enabled
     )
 }
 

@@ -1,25 +1,21 @@
-/*
 package com.a602.commonproject.feature.memory
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.tooling.preview.Preview
 import com.a602.commonproject.designsystem.component.LMTopAppBar
-import com.a602.commonproject.designsystem.component.PolaroidMeta
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.coommonproject.ui.GalleryGridPolaroid
-import com.a602.coommonproject.ui.PolaroidData
+import com.a602.commonproject.model.data.SharedMedia
 
 @Composable
 fun MediaGridScreen(
-    mapped: List<Pair<String, PolaroidData>>,
     title: String,
+    medias: List<SharedMedia>,
     onBackClick: () -> Unit,
-    onMediaClick: (String) -> Unit,
+    onMediaClick: (mediaId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -30,65 +26,49 @@ fun MediaGridScreen(
             )
         }
     ) { innerPadding ->
-        // TopAppBar 높이만큼 자동으로 패딩됨
-        MediaGridContent(
-            mapped = mapped,
-            onMediaClick = onMediaClick,
-            modifier = Modifier.padding(innerPadding)
+        GalleryGridPolaroid(
+            medias = medias,
+            modifier = modifier.padding(innerPadding),
+            onClick = { clicked ->
+                onMediaClick(clicked.id)
+            }
         )
     }
 }
 
-@Composable
-private fun MediaGridContent(
-    mapped: List<Pair<String, PolaroidData>>,
-    onMediaClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    GalleryGridPolaroid(
-        polaroids = mapped.map { it.second },
-        modifier = modifier,
-        onClick = { clicked ->
-            mapped.firstOrNull { it.second == clicked }
-                ?.first
-                ?.let(onMediaClick)
-        }
-    )
-}
+/* -------- Preview -------- */
 
-private fun previewBitmap(color: Int) =
-    Bitmap.createBitmap(600, 800, Bitmap.Config.ARGB_8888).apply {
-        eraseColor(color)
-    }.asImageBitmap()
+private fun fakeMediaList(): List<SharedMedia> {
+    return List(6) { i ->
+        SharedMedia(
+            id = i.toString(),
+            type = SharedMedia.MediaType.PHOTO,
+            localUri = null,
+            remoteUrl = "https://picsum.photos/600/80$i",
+            thumbnailUrl = null,
+            subLocalUri = null,
+            subRemoteUrl = "https://picsum.photos/300/40$i",
+            subThumbnailUrl = null,
+            cameraFacing = "DUAL",
+            caption = "프리뷰",
+            dateTaken = System.currentTimeMillis(),
+            orientation = 0,
+            uploaderName = "엄마",
+            syncStatus = SharedMedia.SyncStatus.SYNCED
+        )
+    }
+}
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
-fun MediaGridPreview() {
-    val mapped = remember {
-        listOf(
-            "m1" to PolaroidData(
-                rearImage = previewBitmap(0xFFE6E6E6.toInt()),
-                frontImage = previewBitmap(0xFFBDBDBD.toInt()),
-                meta = PolaroidMeta(date = "2026.01.20", role = "엄마", comment = "첫 산책 😊")
-            ),
-            "m2" to PolaroidData(
-                rearImage = previewBitmap(0xFFDDEEFF.toInt()),
-                frontImage = previewBitmap(0xFFAACCEE.toInt()),
-                meta = PolaroidMeta(date = "2026.01.21", role = "아빠", comment = "웃음")
-            ),
-            "m3" to PolaroidData(
-                rearImage = previewBitmap(0xFFFFE9D6.toInt()),
-                frontImage = previewBitmap(0xFFFFD2A6.toInt()),
-                meta = PolaroidMeta(date = "2026.01.22", role = "엄마", comment = "놀이")
-            ),
+private fun MediaGridPreview() {
+    LMTheme {
+        MediaGridScreen(
+            title = "추억 모음",
+            medias = fakeMediaList(),
+            onBackClick = {},
+            onMediaClick = {},
         )
     }
-
-    MediaGridScreen(
-        mapped = mapped,
-        title = "추억 사진 모음",
-        onBackClick = {},
-        onMediaClick = {},
-    )
 }
-*/
+

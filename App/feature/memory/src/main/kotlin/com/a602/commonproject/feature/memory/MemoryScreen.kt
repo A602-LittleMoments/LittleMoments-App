@@ -12,10 +12,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import com.a602.commonproject.model.data.Collection
 
 @Composable
 fun MemoryScreen(
-    items: List<TempKeywordDto>,
+    items: List<Collection>,
     onPlanetClick: (String) -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -81,15 +82,16 @@ private fun PlanetsScrollContent(
     }
 }
 
-@Preview(showBackground = true, name = "Memory - Planets")
+// device 우리가 설정한 Pixel 4 XL 값
+@Preview(showBackground = true, name = "Memory - Planets", device = "spec:width=411dp,height=891dp,dpi=440")
 @Composable
 private fun Preview_Memory_Planets() {
     val items = listOf(
-        TempKeywordDto("c1", "물건", "k1", "인형", 12),
-        TempKeywordDto("c2", "음식", "k2", "밥", 20),
-        TempKeywordDto("c3", "인물", "k3", "엄마", 30),
-        TempKeywordDto("c4", "기념", "k4", "생일", 5),
-        TempKeywordDto("c5", "여행", "k5", "바다", 50),
+        Collection("c1", "물건", "k1", "인형", 12),
+        Collection("c2", "음식", "k2", "밥", 20),
+        Collection("c3", "인물", "k3", "엄마", 30),
+        Collection("c4", "기념", "k4", "생일", 5),
+        Collection("c5", "여행", "k5", "바다", 50),
     )
 
     MemoryScreen(
