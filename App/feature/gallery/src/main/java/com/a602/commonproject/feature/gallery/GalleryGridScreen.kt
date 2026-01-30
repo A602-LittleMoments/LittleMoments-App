@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.FillWrapButton
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
@@ -29,7 +28,7 @@ fun GridRoute(
     onMediaClick: (SharedMedia) -> Unit,
 ) {
     val medias = emptyList<SharedMedia>()
-    GridGallery(
+    GridGalleryScreen(
         medias = medias,
         onCalendarClick = onCalendarClick,
         onMediaClick = onMediaClick,
@@ -38,7 +37,7 @@ fun GridRoute(
 
 // 격자 보기
 @Composable
-fun GridGallery(
+fun GridGalleryScreen(
     medias: List<SharedMedia>,
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
@@ -107,9 +106,9 @@ private fun fakeMediaList(): List<SharedMedia> {
 
 @Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
-fun GridGalleryPreview() {
+fun GridGalleryScreenPreview() {
     LMTheme {
-        GridGallery(
+        GridGalleryScreen(
             medias = fakeMediaList(),
             onCalendarClick = {},
             onMediaClick = {},

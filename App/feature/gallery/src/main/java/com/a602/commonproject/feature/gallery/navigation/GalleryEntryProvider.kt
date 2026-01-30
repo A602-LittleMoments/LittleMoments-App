@@ -1,30 +1,19 @@
 package com.a602.commonproject.feature.gallery.navigation
 
-import androidx.compose.runtime.LaunchedEffect
-
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.a602.commonproject.feature.gallery.CalendarScreen
 import com.a602.commonproject.navigation.Navigator
-import androidx.compose.runtime.remember
 import com.a602.commonproject.feature.gallery.CalendarRoute
 import com.a602.commonproject.feature.gallery.GalleryNavKey
 import com.a602.commonproject.feature.gallery.GridNavKey
-import com.a602.commonproject.feature.gallery.GridGallery
 import com.a602.commonproject.feature.gallery.GridRoute
 import com.a602.commonproject.feature.gallery.HighlightCalendarNavKey
 import com.a602.commonproject.feature.gallery.HighlightCalendarRoute
-import com.a602.commonproject.feature.gallery.HighlightCalendarScreen
 import com.a602.commonproject.feature.gallery.HighlightLoadingNavKey
 import com.a602.commonproject.feature.gallery.HighlightLoadingRoute
-import com.a602.commonproject.feature.gallery.PhotoDetail
 import com.a602.commonproject.feature.gallery.PhotoDetailNavKey
-import com.a602.commonproject.model.data.SharedMedia
-import com.a602.commonproject.feature.gallery.HighlightResultNavKey
-import com.a602.commonproject.feature.gallery.HighlightLoadingScreen
 import com.a602.commonproject.feature.gallery.MediaDetailRoute
 import com.a602.commonproject.feature.gallery.TempAlbumNavKey
-import com.a602.commonproject.feature.gallery.TempGridGallery
 import com.a602.commonproject.feature.gallery.TempGridGalleryRoute
 
 /**
@@ -32,7 +21,6 @@ import com.a602.commonproject.feature.gallery.TempGridGalleryRoute
  */
 fun EntryProviderScope<NavKey>.galleryEntries(
     navigator: Navigator,
-//    mediasProvider: () -> List<SharedMedia>,
 ) {
 
     entry<GalleryNavKey> {

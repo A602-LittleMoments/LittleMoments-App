@@ -23,13 +23,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation3.runtime.NavKey
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.a602.commonproject.designsystem.component.FillWrapButton
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.lightbackground
+import com.a602.commonproject.feature.gallery.veiwmodel.CalendarViewModel
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.model.data.SharedMedia.SyncStatus.SYNCED
 import java.time.Instant
@@ -79,17 +81,18 @@ fun mapToCalendarDays(
 
     return days
 }
-
 @Composable
 fun CalendarRoute(
     onDateClick: () -> Unit,
     onGridClick: () -> Unit,
     onTempAlbumClick: () -> Unit,
-    onHighLightClick: () -> Unit
-){
-     val medias = emptyList<SharedMedia>()
+    onHighLightClick: () -> Unit,
+    viewModel: CalendarViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     CalendarScreen(
-        medias = medias,
+        medias = uiState.medias,
         onDateClick = onDateClick,
         onGridClick = onGridClick,
         onTempAlbumClick = onTempAlbumClick,
@@ -97,6 +100,27 @@ fun CalendarRoute(
     )
 }
 
+//
+//@Composable
+//fun CalendarRoute(
+//    onDateClick: () -> Unit,
+//    onGridClick: () -> Unit,
+//    onTempAlbumClick: () -> Unit,
+//    onHighLightClick: () -> Unit,
+//    modifier: Modifier = Modifier,
+//    viewModel: CalendarViewModel = hiltViewModel(),
+//) {
+//    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+//
+//    CalendarScreen(
+//        medias = uiState.medias,
+//        onDateClick = onDateClick,
+//        onGridClick = onGridClick,
+//        onTempAlbumClick = onTempAlbumClick,
+//        onHighLightClick = onHighLightClick,
+//    )
+//}
+//
 
 @Composable
 fun CalendarScreen(

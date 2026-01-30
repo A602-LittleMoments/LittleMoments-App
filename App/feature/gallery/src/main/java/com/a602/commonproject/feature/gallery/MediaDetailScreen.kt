@@ -3,7 +3,6 @@ import Polaroid
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,29 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.a602.commonproject.designsystem.component.IconActionBar
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.model.data.SharedMedia
-@Composable
-fun PhotoDetail(
-    media: SharedMedia,
-    modifier: Modifier = Modifier,
-    title: String = "자세히 보기",
-    onBack: () -> Unit = {},
-    onDelete: () -> Unit = {},
-    onDownload: () -> Unit = {},
-    onEdit: () -> Unit = {},
-) {
-    MediaDetailScreen(
-        title = title,
-        media = media,
-        onBack = onBack,
-        onDelete = onDelete,
-        onDownload = onDownload,
-        onEdit = onEdit,
-    )
-}
 
 @Composable
 fun MediaDetailRoute(
@@ -46,10 +27,12 @@ fun MediaDetailRoute(
     onDownload: () -> Unit,
     onEdit: () -> Unit,
 ){
-    val title = " "
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val media = uiState.media ?: return@entry
+    val title = "상세보기"
     MediaDetailScreen(
         title = title,
-        media = TODO(),
+        media = media,
         onBack = onBack,
         onDelete = onDelete,
         onDownload = onDownload,
