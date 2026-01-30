@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import com.a602.commonproject.designsystem.icon.LMicons
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -69,7 +69,7 @@ fun ManageableMemberItem(
                     // 역할별 아이콘 매칭 (이미지 디자인 준수)
                     val (icon, tint) = when(role) {
                         "관리자" -> Icons.Default.EmojiEvents to color1
-                        "멤버" -> Icons.Default.Shield to main
+                        "멤버" -> LMicons.Shield to main
                         else -> Icons.Default.StarBorder to color4
                     }
 
@@ -81,10 +81,10 @@ fun ManageableMemberItem(
                 }
             }
 
-            // 💡 권한 변경 버튼 (현서님이 요청하신 파란 상자 스타일)
+            // 권한 변경 버튼 (현서님이 요청하신 파란 상자 스타일)
             if (!isOwner) {
                 Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = color3), // 0xFF6D625E
+                    colors = ButtonDefaults.buttonColors(containerColor = color3),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp),
                     onClick = onEditClick,
@@ -150,7 +150,7 @@ fun PermissionGuideSection() {
 
             // 각 권한별 행 배치
             PermissionRow(icon = Icons.Default.EmojiEvents, title = "관리자", desc = "모든 권한", color = color1)
-            PermissionRow(icon = Icons.Default.Shield, title = "멤버", desc = "편집 및 업로드 가능", color = main)
+            PermissionRow(icon = LMicons.Shield, title = "멤버", desc = "편집 및 업로드 가능", color = main)
             PermissionRow(icon = Icons.Default.StarBorder, title = "뷰어", desc = "보기만 가능", color = color4)
         }
     }
