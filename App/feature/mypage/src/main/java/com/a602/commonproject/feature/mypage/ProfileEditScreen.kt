@@ -69,10 +69,10 @@ fun ProfileEditContainer(
     ProfileEditScreen(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
-        onNicknameChanged = viewModel::onNicknameChanged,
-        onCurrentPasswordChanged = viewModel::onCurrentPasswordChanged,
-        onNewPasswordChanged = viewModel::onNewPasswordChanged,
-        onConfirmNewPasswordChanged = viewModel::onConfirmNewPasswordChanged,
+        onNicknameChanged = viewModel::onNicknameChanged,   // 닉네임 변경
+        onCurrentPasswordChanged = viewModel::onCurrentPasswordChanged, // 현재 비밀번호 확인
+        onNewPasswordChanged = viewModel::onNewPasswordChanged, // 새 비밀번호 작성
+        onConfirmNewPasswordChanged = viewModel::onConfirmNewPasswordChanged, // 새 비밀번호 확인
         onSaveClick = viewModel::saveProfile,
         onBackClick = { navigator.goBack() }
     )
@@ -120,17 +120,17 @@ fun ProfileEditScreen(
                     label = "현재 비밀번호",
                     value = uiState.currentPassword,
                     onValueChange = onCurrentPasswordChanged,
-                    icon = Icons.Outlined.Lock,
+                    icon = LMicons.Visibility,
                     isPassword = true
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                LMEditInputField(label = "새 비밀번호", value = uiState.newPassword, onValueChange = onNewPasswordChanged, icon = Icons.Outlined.Lock, isPassword = true)
+                LMEditInputField(label = "새 비밀번호", value = uiState.newPassword, onValueChange = onNewPasswordChanged, icon = LMicons.Visibility, isPassword = true)
                 Spacer(modifier = Modifier.height(16.dp))
                 LMEditInputField(
                     label = "새 비밀번호 확인",
                     value = uiState.confirmNewPassword,
                     onValueChange = onConfirmNewPasswordChanged,
-                    icon = Icons.Outlined.Lock,
+                    icon = LMicons.Visibility,
                     isPassword = true
                 )
 
