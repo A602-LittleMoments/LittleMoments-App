@@ -1,7 +1,5 @@
-/*
 package com.a602.commonproject.feature.gallery
 
-import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -31,46 +29,42 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.component.ConfirmDeleteDialog
 import com.a602.commonproject.designsystem.component.FillWrapButton
-import com.a602.commonproject.designsystem.component.PolaroidMeta
 import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.designsystem.theme.lightblue
-import com.a602.coommonproject.ui.GalleryGridPolaroid
-import com.a602.coommonproject.ui.PolaroidData
-import com.a602.coommonproject.ui.SelectableGalleryGrid
+import com.a602.commonproject.model.data.SharedMedia
 
-//임시 앨범
 @Composable
 fun TempGridGallery(
-    polaroids: List<PolaroidData>,
+    medias: List<SharedMedia>,
+    onMediaClick: (SharedMedia) -> Unit,
+    onDeleteSelected: (List<String>) -> Unit,
+    onSaveSelected: (List<String>) -> Unit,
+    onClearAll: () -> Unit,
     modifier: Modifier = Modifier,
-
-    ) {
+) {
     var isSelectMode by remember { mutableStateOf(false) }
-    val selectedItems = remember { mutableStateListOf<Int>() }
+    val selectedIds = remember { mutableStateListOf<String>() }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(background),
     ) {
-
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
         ) {
             Spacer(modifier = Modifier.height(56.dp))
+
             // 상단 설명 탭
             Box(
                 modifier = Modifier
@@ -78,31 +72,28 @@ fun TempGridGallery(
                     .background(lightblue)
                     .padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center
-
             ) {
                 Text(
-                    text = "임시 앨범의 사진은 매월 1일에 삭제 됩니다",
+                    text = "임시 앨범의 사진은 매월 30일에 삭제 됩니다",
                     style = MaterialTheme.typography.bodyLarge,
                     color = color3,
                     textAlign = TextAlign.Center,
-
-                    )
+                )
             }
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
             ) {
-                // 1. 상단 버튼 위치
+                //
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 16.dp, horizontal = 10.dp),
                 ) {
                     FillWrapButton(
-                        onClick = { */
-/* 전체 비우기 로직 *//*
- },
+                        onClick = onClearAll,
                         text = "전체비우기",
                         modifier = Modifier.align(Alignment.CenterStart),
                     )
@@ -110,40 +101,37 @@ fun TempGridGallery(
                     FillWrapButton(
                         onClick = {
                             isSelectMode = !isSelectMode
-                            if (!isSelectMode) selectedItems.clear()
+                            if (!isSelectMode) selectedIds.clear()
                         },
                         text = if (isSelectMode) "취소" else "선택",
                         modifier = Modifier.align(Alignment.CenterEnd),
                     )
                 }
 
-                // 2. 그리드 영역 (상태에 따라 스위칭)
+                // 그리드 영역
                 Box(modifier = Modifier.weight(1f)) {
-                    if (isSelectMode) {
-                        // 선택 모드일 때
-                        SelectableGalleryGrid(
-                            polaroids = polaroids,
-                            isSelectMode = true,
-                            selectedIds = selectedItems.toList(),
-                            onItemClick = { item ->
-                                val id = item.rearImage.hashCode()
-                                if (selectedItems.contains(id)) selectedItems.remove(id)
-                                else selectedItems.add(id)
-                            },
-                        )
-                    } else {
-
-                        GalleryGridPolaroid(
-                            polaroids = polaroids,
-                            onClick = { */
-/* 상세 화면 이동 등 *//*
- },
-                        )
-                    }
+                    TempImageGrid(
+                        medias = medias,
+                        isSelectMode = isSelectMode,
+                        selectedIds = selectedIds.toList(),
+                        onClick = { media ->
+                            if (isSelectMode) {
+                                if (selectedIds.contains(media.id)) {
+                                    selectedIds.remove(media.id)
+                                } else {
+                                    selectedIds.add(media.id)
+                                }
+                            } else {
+                                onMediaClick(media)
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
 
+                // 하단 액션바
                 AnimatedVisibility(
-                    visible = isSelectMode && selectedItems.isNotEmpty(),
+                    visible = isSelectMode && selectedIds.isNotEmpty(),
                     enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                     exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
                 ) {
@@ -159,44 +147,45 @@ fun TempGridGallery(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            // 삭제 버튼
                             FooterActionItem(
                                 icon = LMicons.Delete,
                                 text = "삭제",
                                 color = color3,
-                                onClick = {
-                                    showDeleteDialog = true
-                                },
+                                onClick = { showDeleteDialog = true },
                             )
 
-                            // 저장 버튼
                             FooterActionItem(
                                 icon = LMicons.Download,
                                 text = "저장",
                                 color = color3,
-                                onClick = { */
-/* 저장 로직 *//*
- },
+                                onClick = {
+                                    onSaveSelected(selectedIds.toList())
+                                    selectedIds.clear()
+                                    isSelectMode = false
+                                },
                             )
                         }
                     }
                 }
-                if (showDeleteDialog) {
-                    ConfirmDeleteDialog(
-                        onConfirm = {
-                            selectedItems.clear()
-                            showDeleteDialog = false
-                            isSelectMode = false
-                        },
-                        onDismiss = {
-                            showDeleteDialog = false
-                        },
-                    )
-                }
             }
         }
     }
+
+    if (showDeleteDialog) {
+        ConfirmDeleteDialog(
+            onConfirm = {
+                onDeleteSelected(selectedIds.toList())
+                selectedIds.clear()
+                showDeleteDialog = false
+                isSelectMode = false
+            },
+            onDismiss = {
+                showDeleteDialog = false
+            },
+        )
+    }
 }
+
 @Composable
 fun FooterActionItem(
     icon: ImageVector,
@@ -219,44 +208,193 @@ fun FooterActionItem(
     }
 }
 
-
-private fun previewBitmap(
-    width: Int = 1080,
-    height: Int = 1440,
-    color: Int,
-): ImageBitmap {
-    val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-    bmp.eraseColor(color)
-    return bmp.asImageBitmap()
-}
-private val samplePolaroids = List(9) { i ->
-    PolaroidData(
-        rearImage = previewBitmap(color = 0xFF1B1B1F.toInt() + i * 0x00101010),
-        frontImage = previewBitmap(width = 200, height = 200, color = 0xFF9BB7D4.toInt() + i * 0x00080808),
-        meta = PolaroidMeta(
-            date = "2026.01.0${i + 1}",
-            role = "엄마",
-            comment = "오늘 사진",
-        ),
-    )
-}
-
-@Preview(showBackground = true, name = "임시 앨범 - 일반 상태")
+@Preview(showBackground = true, widthDp = 360, heightDp = 760, name = "TempGrid - Normal")
 @Composable
-fun TempGridGalleryNormalPreview() {
+private fun TempGridGalleryPreview_Normal() {
     MaterialTheme {
-            TempGridGallery(polaroids = samplePolaroids)
+        TempGridGallery(
+            medias = fakeTempMedias(30),
+            onMediaClick = {},
+            onDeleteSelected = {},
+            onSaveSelected = {},
+            onClearAll = {}
+        )
     }
 }
 
-@Preview(showBackground = true, name = "임시 앨범 - 선택 모드 활성화")
+@Preview(showBackground = true, widthDp = 360, heightDp = 760, name = "TempGrid - Select Mode (Footer Visible)")
 @Composable
-fun TempGridGallerySelectModePreview() {
+private fun TempGridGalleryPreview_SelectMode() {
     MaterialTheme {
-        Surface(color = Color(0xFFFDF7F2)) {
-            TempGridGallery(polaroids = samplePolaroids)
+        TempGridGalleryPreviewHarness(
+            initialSelectMode = true,
+            initialSelectedIds = listOf("1", "3", "7")
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 760, name = "TempGrid - Delete Dialog")
+@Composable
+private fun TempGridGalleryPreview_DeleteDialog() {
+    MaterialTheme {
+        TempGridGalleryPreviewHarness(
+            initialSelectMode = true,
+            initialSelectedIds = listOf("1", "3"),
+            initialShowDeleteDialog = true
+        )
+    }
+}
+
+/**
+ * ✅ 프리뷰 전용 Harness
+ * - TempGridGallery 내부 state를 밖으로 빼서 프리뷰에서 강제로 상태를 만들 수 있게 함
+ */
+@Composable
+private fun TempGridGalleryPreviewHarness(
+    initialSelectMode: Boolean,
+    initialSelectedIds: List<String>,
+    initialShowDeleteDialog: Boolean = false,
+) {
+    val medias = remember { fakeTempMedias(30) }
+
+    var isSelectMode by remember { mutableStateOf(initialSelectMode) }
+    val selectedIds = remember { mutableStateListOf<String>().apply { addAll(initialSelectedIds) } }
+    var showDeleteDialog by remember { mutableStateOf(initialShowDeleteDialog) }
+
+    // TempGridGallery 로직을 거의 그대로 복제(프리뷰에서만 사용)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(background),
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Spacer(modifier = Modifier.height(56.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(lightblue)
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "임시 앨범의 사진은 매월 30일에 삭제 됩니다",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = color3,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp, horizontal = 10.dp),
+                ) {
+                    FillWrapButton(
+                        onClick = { },
+                        text = "전체비우기",
+                        modifier = Modifier.align(Alignment.CenterStart),
+                    )
+
+                    FillWrapButton(
+                        onClick = {
+                            isSelectMode = !isSelectMode
+                            if (!isSelectMode) {
+                                selectedIds.clear()
+                                showDeleteDialog = false
+                            }
+                        },
+                        text = if (isSelectMode) "취소" else "선택",
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                    )
+                }
+
+                Box(modifier = Modifier.weight(1f)) {
+                    TempImageGrid(
+                        medias = medias,
+                        isSelectMode = isSelectMode,
+                        selectedIds = selectedIds.toList(),
+                        onClick = { media ->
+                            if (isSelectMode) {
+                                if (selectedIds.contains(media.id)) selectedIds.remove(media.id)
+                                else selectedIds.add(media.id)
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = isSelectMode && selectedIds.isNotEmpty(),
+                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+                ) {
+                    Surface(
+                        tonalElevation = 8.dp,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = lightbackground,
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp, horizontal = 40.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            FooterActionItem(
+                                icon = LMicons.Delete,
+                                text = "삭제",
+                                color = color3,
+                                onClick = { showDeleteDialog = true },
+                            )
+
+                            FooterActionItem(
+                                icon = LMicons.Download,
+                                text = "저장",
+                                color = color3,
+                                onClick = { /* preview no-op */ },
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
+
+    if (showDeleteDialog) {
+        ConfirmDeleteDialog(
+            onConfirm = {
+                selectedIds.clear()
+                showDeleteDialog = false
+                isSelectMode = false
+            },
+            onDismiss = { showDeleteDialog = false },
+        )
+    }
 }
 
-*/
+/** 프리뷰용 더미 데이터 */
+private fun fakeTempMedias(count: Int): List<SharedMedia> =
+    List(count) { i ->
+        SharedMedia(
+            id = i.toString(),
+            type = SharedMedia.MediaType.PHOTO,
+            localUri = null,
+            remoteUrl = "https://picsum.photos/600/80${i}",
+            thumbnailUrl = null,
+            subLocalUri = null,
+            subRemoteUrl = null,
+            subThumbnailUrl = null,
+            cameraFacing = "DUAL",
+            caption = "임시 앨범 사진 ${i + 1}",
+            dateTaken = System.currentTimeMillis(),
+            orientation = 0,
+            uploaderName = "엄마",
+            syncStatus = SharedMedia.SyncStatus.SYNCED
+        )
+    }
