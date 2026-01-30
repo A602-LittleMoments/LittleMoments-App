@@ -11,8 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.theme.*
 import androidx.compose.ui.tooling.preview.Preview
-
-
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 
 @Composable
 fun LMEditInputField(
@@ -20,18 +21,21 @@ fun LMEditInputField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String = "",
-    icon: androidx.compose.ui.graphics.vector.ImageVector? = null
+    icon: ImageVector? = null,
+    isPassword: Boolean = false,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = {Text(label, color = color4.copy(alpha = 0.6f), style = AppTypography.labelMedium) },
+        label = { Text(label, color = color4.copy(alpha = 0.6f), style = AppTypography.labelMedium) },
         placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f)) },
-        // ✅ [수정] 사용자가 입력하는 글씨 스타일을 titleMedium으로 지정
         textStyle = AppTypography.titleMedium.copy(color = color4),
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         singleLine = true,
+        // 2. 이 설정이 들어가야 비밀번호가 가려집니다!
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         trailingIcon = {
             if (icon != null) {
                 Icon(imageVector = icon, contentDescription = null, tint = color4.copy(alpha = 0.4f))
@@ -42,7 +46,8 @@ fun LMEditInputField(
             unfocusedContainerColor = lightbackground,
             focusedBorderColor = main,
             unfocusedBorderColor = lightblue
-        )
+        ),
+        enabled = enabled
     )
 }
 

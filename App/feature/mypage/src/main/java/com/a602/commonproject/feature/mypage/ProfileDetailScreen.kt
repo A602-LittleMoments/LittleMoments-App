@@ -1,3 +1,4 @@
+/*
 package com.a602.commonproject.feature.mypage
 
 import androidx.compose.foundation.BorderStroke
@@ -19,13 +20,15 @@ import com.a602.commonproject.designsystem.theme.*
 // User 데이터가 어떤 모양인지 알려주기 위해 데이터 모델을 가져옵니다.
 import com.a602.commonproject.model.data.User
 
+*/
 /**
  * '내 정보 확인' 화면 전체를 담당하는 메인 컴포저블입니다.
  * 이 화면은 데이터를 보여주기만 하고, 직접 수정하지는 않습니다.
  *
  * @param user 화면에 표시할 사용자의 정보. 밖(ViewModel 등)에서 전달받습니다.
  * @param onEditClick "수정하기" 버튼을 눌렀을 때 실행될 화면 이동 함수입니다.
- */
+ *//*
+
 @Composable
 fun ProfileDetailScreen(
     user: User,
@@ -89,13 +92,15 @@ fun ProfileDetailScreen(
     }
 }
 
+*/
 /**
  * "라벨: 값" 형태의 정보 필드 한 줄을 그리는 재사용 가능한 컴포저블입니다.
  *
  * @param label 정보의 종류 (예: "nickname", "email").
  * @param value 실제 표시될 정보의 값.
  * @param icon 정보 오른쪽에 표시될 아이콘.
- */
+ *//*
+
 @Composable
 fun InfoDisplayField(label: String, value: String, icon: ImageVector) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -153,3 +158,4 @@ fun ProfileDetailPreview() {
         )
     }
 }
+*/

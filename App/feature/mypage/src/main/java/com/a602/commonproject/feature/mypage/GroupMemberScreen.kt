@@ -1,48 +1,106 @@
 package com.a602.commonproject.feature.mypage
 
-// Jetpack Compose UI 컴포넌트들을 사용하기 위한 기본 import
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-
-// UI 요소들의 정렬 및 수정을 위한 import
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-
-// 미리보기(@Preview) 기능을 사용하기 위한 import
 import androidx.compose.ui.tooling.preview.Preview
-
-// 다른 모듈(designsystem)에 미리 만들어둔 공용 컴포넌트를 가져옵니다.
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.a602.commonproject.designsystem.component.GroupCodeDialog
+import com.a602.commonproject.designsystem.component.GroupRoleChangeDialog
 import com.a602.commonproject.designsystem.component.LMTopAppBar
-// 다른 모듈(designsystem)에 정의된 앱의 공식 색상 및 테마를 가져옵니다.
-import com.a602.commonproject.designsystem.theme.*
-// 다른 모듈(model)에 정의된 데이터 구조(클래스)를 가져옵니다.
-import com.a602.commonproject.model.data.*
+import com.a602.commonproject.designsystem.theme.AppTypography
+import com.a602.commonproject.designsystem.theme.LMTheme
+import com.a602.commonproject.designsystem.theme.background
+import com.a602.commonproject.designsystem.theme.color1
+import com.a602.commonproject.designsystem.theme.color2
+import com.a602.commonproject.designsystem.theme.color3
+import com.a602.commonproject.designsystem.theme.gray1
+import com.a602.commonproject.designsystem.theme.lightblue
+import com.a602.commonproject.designsystem.theme.main
+import com.a602.commonproject.feature.mypage.viewmodel.GroupMemberViewModel
+import com.a602.commonproject.model.data.GroupMember
+import com.a602.commonproject.model.data.GroupRole
+import com.a602.commonproject.navigation.Navigator
 
-/**
- * '그룹 구성원 관리' 화면 전체를 담당하는 메인 컴포저블(화면)입니다.
- * @OptIn 어노테이션은 아직 실험적인 Material3 API를 사용하겠다는 의미입니다.
- */
 @Composable
-fun GroupManagementScreen(
+fun GroupManageContainer(
+    navigator: Navigator,
+    viewModel: GroupMemberViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    if (uiState.showInviteDialog) {
+        uiState.inviteCode?.let { invite ->
+            GroupCodeDialog(
+                initialCode = invite.codeMember,
+                initialSeconds = invite.expiredAt.toIntOrNull() ?: 180,
+                onRefreshClick = {
+                    viewModel.onAddMemberClicked()
+                },
+                onDismissRequest = viewModel::onInviteDialogDismissed
+            )
+        }
+    }
+
+    uiState.memberToEdit?.let { member ->
+        GroupRoleChangeDialog(
+            currentRole = member.role.name, // Pass the role name as a String
+            onConfirm = { isMemberSelected ->
+                // Convert the boolean result back to a GroupRole
+                val newRole = if (isMemberSelected) GroupRole.MEMBER else GroupRole.VIEWER
+                viewModel.updateMemberRole(member.userId, newRole)
+            },
+            // The Dialog has two ways to be dismissed
+            onCloseClick = viewModel::onRoleEditDialogDismissed,
+            onDismiss = viewModel::onRoleEditDialogDismissed
+        )
+    }
+
+    GroupMemberScreen(
+        members = uiState.members,
+        onBackClick = { navigator.goBack() },
+        onRoleEditClick = { memberId ->
+            uiState.members.find { it.userId == memberId }?.let {
+                viewModel.onRoleEditClicked(it)
+            }
+        },
+        onAddMemberClick = viewModel::onAddMemberClicked
+    )
+}
+
+@Composable
+fun GroupMemberScreen(
     // 이 화면을 그리기 위해 필요한 '그룹 멤버 목록' 데이터입니다.
     // List<GroupMember> 형태로, 밖(ViewModel이나 상위 컴포저블)에서 전달받습니다.
     members: List<GroupMember>,
-
-    // '뒤로가기' 버튼을 눌렀을 때 실행될 동작(함수)입니다. 기본값은 아무것도 하지 않습니다.
-    onBackClick: () -> Unit = {},
-    // 각 멤버의 '역할 수정' 버튼을 눌렀을 때 실행될 동작입니다.
-    // 어떤 멤버의 버튼을 눌렀는지 알 수 있도록 해당 멤버의 '이름(String)'을 전달
-    onRoleEditClick: (String) -> Unit = {},
-    // 추가 버튼
-    onAddMemberClick: () -> Unit = {}
+    onBackClick: () -> Unit,
+    onRoleEditClick: (String) -> Unit,
+    onAddMemberClick: () -> Unit
 ) {
     // Scaffold는 Material Design의 기본적인 화면 레이아웃(상단바, 본문, 하단 버튼 등)을 제공하는 틀입니다.
     Scaffold(
@@ -99,21 +157,15 @@ fun GroupManagementScreen(
             // 'items'는 LazyColumn 안에서 동적인 목록을 표시하는 데 사용됩니다.
             // 밖에서 전달받은 'members' 리스트의 각 항목('member')에 대해 아래 코드를 반복 실행합니다.
             items(members) { member ->
-                // 멤버의 닉네임이 바뀔 때마다 새로운 랜덤 색상을 기억해두기 위해 remember를 사용합니다.
-                val memberColor = remember(member.nickname) { getRandomColor() }
-
                 // 관리 가능한 멤버 한 명을 표시하는 UI 컴포넌트입니다. (별도 파일에 정의됨)
                 ManageableMemberItem(
                     // GroupMember 객체에서 'nickname' 속성값을 가져와 이름으로 전달합니다.
                     name = member.nickname,
                     // GroupMember 객체의 'role' 속성(enum)에서 '.name'으로 실제 이름("OWNER" 등)을 문자열로 가져옵니다.
                     role = member.role.name,
-                    // 위에서 생성한 랜덤 색상을 전달합니다.
-                    color = memberColor,
-                    // 사용자의 역할이 OWNER인지 비교(true/false)하여 방장 여부를 전달합니다.
+                    color = getColorForRole(member.role),
                     isOwner = (member.role == GroupRole.OWNER),
-                    // 수정 버튼 클릭 시 실행될 동작을 연결합니다. 어떤 멤버인지 알 수 있게 멤버의 닉네임을 넘겨줍니다.
-                    onEditClick = { onRoleEditClick(member.nickname) }
+                    onEditClick = { onRoleEditClick(member.userId) }
                 )
             }
 
@@ -136,9 +188,18 @@ fun GroupManagementScreen(
     }
 }
 
+private fun getColorForRole(role: GroupRole): Color {
+    return when (role) {
+        GroupRole.OWNER -> main
+        GroupRole.MEMBER -> color1
+        GroupRole.VIEWER -> color2
+        else -> gray1
+    }
+}
+
 @Preview(showBackground = true, name = "그룹 구성원 관리 메인", widthDp = 360, heightDp = 800)
 @Composable
-fun GroupManagementPreview() {
+fun GroupMemberScreenPreview() {
     LMTheme {
         // 💡 프리뷰에서 사용할 샘플 데이터를 직접 생성합니다.
         val sampleMembers = listOf(
@@ -147,9 +208,11 @@ fun GroupManagementPreview() {
             GroupMember(userId = "3", nickname = "언니", relation = "언니", role = GroupRole.VIEWER),
             GroupMember(userId = "4", nickname = "할머니", relation = "할머니", role = GroupRole.VIEWER)
         )
-        GroupManagementScreen(
+        GroupMemberScreen(
             members = sampleMembers,
-            onBackClick = { }
+            onBackClick = {},
+            onRoleEditClick = {},
+            onAddMemberClick = {}
         )
     }
 }

@@ -12,8 +12,10 @@ dependencies {
     // 💡 디자인 시스템 모듈 연결 (Color, Typography 등을 위해 필요)
     implementation(project(":core:designsystem"))
     implementation(project(":core:model"))
+    implementation(project(":core:data"))
 
     // 💡 Compose 필수 라이브러리 추가
     implementation(libs.androidx.core.ktx)
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0") // 버전은 프로젝트에 맞게 조절
 
 }
