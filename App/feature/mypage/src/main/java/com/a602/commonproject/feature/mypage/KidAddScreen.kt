@@ -10,21 +10,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.a602.commonproject.designsystem.component.ProfileHead
+import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.component.GenderToggle
 import com.a602.commonproject.designsystem.component.LMTopAppBar
-import com.a602.commonproject.designsystem.theme.AppTypography
-import com.a602.commonproject.designsystem.theme.NiaTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
-import com.a602.commonproject.designsystem.theme.color4
 import com.a602.commonproject.designsystem.theme.lightbackground
-import com.a602.commonproject.designsystem.theme.lightblue
 import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.model.data.Baby
 
+//import androidx.activity.compose.rememberLauncherForActivityResult
+//import androidx.activity.result.PickVisualMediaRequest
+//import androidx.activity.result.contract.ActivityResultContracts
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
     onBackClick: () -> Unit = {},
@@ -36,7 +36,7 @@ fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
     var selectedGender by remember { mutableStateOf<Gender?>(null) }
 
-    // 사진 선택기 (주석 해제해서 사용하세요!)
+//     사진 선택기 (주석 해제해서 사용하세요!)
 //    val pickerLauncher = rememberLauncherForActivityResult(
 //        contract = ActivityResultContracts.PickVisualMedia()
 //    ) { uri -> selectedUri = uri }
@@ -60,18 +60,21 @@ fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
             Spacer(modifier = Modifier.height(20.dp))
 
             // 2. 우주복 사진 선택기 (클릭 시 갤러리 열기)
-            ProfileHead(
+            ProfileFullAstronaut(
                 remoteImageUrl = null,
-                selectedImageUri = null,
+                selectedImageUri = null, // selectedUri 연결
                 onClick = {
 //                    pickerLauncher.launch(
 //                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
 //                    )
                 },
-                size = 140.dp,
+                // ✅ [수정] 아래 파라미터들을 추가하여 크기를 조절합니다.
+                headSize = 140.dp,
+                bodyWidth = 150.dp,
+                bodyOffsetY = 100.dp
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(0.dp))
 
             // 3. 실제 입력이 가능한 필드로 변경
             KidEditInputField(
@@ -136,7 +139,7 @@ fun KidAddScreen( // 이름을 Add(추가)로 변경합니다.
 @Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 fun KidAddScreenPreview() { // 💡 프리뷰 이름 수정
-    NiaTheme {
+    LMTheme {
         KidAddScreen(
             onBackClick = {},
             onSaveClick = {}

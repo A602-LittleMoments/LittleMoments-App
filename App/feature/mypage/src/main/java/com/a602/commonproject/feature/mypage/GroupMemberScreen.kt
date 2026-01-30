@@ -30,7 +30,6 @@ import com.a602.commonproject.model.data.*
  * '그룹 구성원 관리' 화면 전체를 담당하는 메인 컴포저블(화면)입니다.
  * @OptIn 어노테이션은 아직 실험적인 Material3 API를 사용하겠다는 의미입니다.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupManagementScreen(
     // 이 화면을 그리기 위해 필요한 '그룹 멤버 목록' 데이터입니다.
@@ -39,10 +38,11 @@ fun GroupManagementScreen(
 
     // '뒤로가기' 버튼을 눌렀을 때 실행될 동작(함수)입니다. 기본값은 아무것도 하지 않습니다.
     onBackClick: () -> Unit = {},
-
     // 각 멤버의 '역할 수정' 버튼을 눌렀을 때 실행될 동작입니다.
     // 어떤 멤버의 버튼을 눌렀는지 알 수 있도록 해당 멤버의 '이름(String)'을 전달
-    onRoleEditClick: (String) -> Unit = {}
+    onRoleEditClick: (String) -> Unit = {},
+    // 추가 버튼
+    onAddMemberClick: () -> Unit = {}
 ) {
     // Scaffold는 Material Design의 기본적인 화면 레이아웃(상단바, 본문, 하단 버튼 등)을 제공하는 틀입니다.
     Scaffold(
@@ -119,7 +119,8 @@ fun GroupManagementScreen(
 
             item {
                 Button(
-                    onClick = { /* TODO: 나중에 실제 초대 로직을 여기에 구현해야 합니다. */ },
+                    // 💡 onClick 부분을 전달받은 onAddMemberClick으로 바꿉니다.
+                    onClick = onAddMemberClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -138,7 +139,7 @@ fun GroupManagementScreen(
 @Preview(showBackground = true, name = "그룹 구성원 관리 메인", widthDp = 360, heightDp = 800)
 @Composable
 fun GroupManagementPreview() {
-    NiaTheme {
+    LMTheme {
         // 💡 프리뷰에서 사용할 샘플 데이터를 직접 생성합니다.
         val sampleMembers = listOf(
             GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),

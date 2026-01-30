@@ -26,9 +26,11 @@ import androidx.compose.ui.graphics.Color
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.color4
 
@@ -83,21 +85,23 @@ fun LMCard(
             ) {
                 Text(
                     text = title,
-                    style = LMCardDefaults.titleTextStyle(),
+                    style = MaterialTheme.typography.labelLarge,
                     color = LMCardDefaults.titleColor(),
+                    textAlign = TextAlign.Start
                 )
 
                 Text(
                     text = description,
-                    style = LMCardDefaults.descriptionTextStyle(),
-                    color = LMCardDefaults.descriptionColor()
+                    style = MaterialTheme.typography.labelMedium,
+                    color = LMCardDefaults.descriptionColor(),
+                    textAlign = TextAlign.Start
                 )
 
                 Spacer(modifier = Modifier.size(4.dp))
 
                 Text(
                     text = time,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = LMCardDefaults.timeColor()
                 )
             }
@@ -168,7 +172,7 @@ object LMCardDefaults {
 @Preview(showBackground = true)
 @Composable
 fun LMCardPreview() {
-    MaterialTheme {
+    LMTheme {
         Column(
             modifier = Modifier
                 .background(background)

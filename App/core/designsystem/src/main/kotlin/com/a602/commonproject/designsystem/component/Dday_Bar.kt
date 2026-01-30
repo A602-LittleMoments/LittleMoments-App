@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.a602.commonproject.designsystem.theme.NiaTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.color1
 import com.a602.commonproject.designsystem.theme.gray2
 import kotlin.math.pow
@@ -146,7 +146,7 @@ fun dayCountToProgress100Cycle(dayCount: Int): Float {
 @Composable
 fun DdayBarWithLabelPreview_Showcase() {
     Surface(color = Color(0xFFF8F2E3)) { // 캡쳐 배경 톤 비슷하게
-        NiaTheme {
+        LMTheme {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -14,7 +14,7 @@ import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.designsystem.theme.lightbackground
 import androidx.compose.ui.tooling.preview.Preview
 import com.a602.commonproject.designsystem.icon.LMicons
-import com.a602.commonproject.designsystem.theme.NiaTheme
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
 
@@ -285,7 +285,7 @@ fun SaveButton(
 @Preview(showBackground = true, widthDp = 411)
 @Composable
 fun ButtonShowcasePreview() {
-    NiaTheme {
+    LMTheme {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

@@ -52,6 +52,7 @@ import androidx.compose.runtime.Composable
 //)
 
 // 💡 Color.kt와 Type.kt에 있는 변수들을 그대로 가져와서 조립만 합니다.
+/*
 private val LightColorScheme = lightColorScheme(
     primary = main,                // Color.kt의 main 참조
     onPrimary = lightbackground,
@@ -64,9 +65,37 @@ private val LightColorScheme = lightColorScheme(
     error = errorRed,
     outline = gray1,
 )
+*/
+
+
+private val LightColorScheme = lightColorScheme(
+    primary = main,                   // 주요 버튼 및 핵심 브랜드 색상 (파란색)
+    onPrimary = lightbackground,      // 파란 버튼 위의 텍스트/아이콘 색상
+    primaryContainer = lightblue,     // 연한 파란색 배경 (선택된 항목 등)
+    onPrimaryContainer = color6,      // 연한 파란색 컨테이너 위의 짙은 파란색 텍스트
+
+    secondary = color1,               // 포인트 색상 (노란색 별이나 강조 요소)
+    onSecondary = color5,             // 노란색 배경 위의 짙은 텍스트
+    secondaryContainer = color2,      // 보조 노란색 (연한 노랑)
+
+    tertiary = color3,                // 강조 텍스트나 보조 UI (갈색 계열)
+    onTertiary = lightbackground,
+
+    background = background,          // 앱의 전체 기본 배경 (아이보리)
+    onBackground = color5,            // 기본 배경 위의 메인 텍스트 (짙은 네이비)
+
+    surface = lightbackground,        // 카드, 다이얼로그 등 들어올려진 UI 요소
+    onSurface = color5,               // 표면 위의 텍스트
+
+    error = errorRed,                 // 에러 상태
+    onError = lightbackground,
+
+    outline = gray1,                  // 경계선이나 구분선
+    outlineVariant = gray2            // 좀 더 짙은 구분선
+)
 
 @Composable
-fun NiaTheme(
+fun LMTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(

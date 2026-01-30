@@ -1,6 +1,5 @@
 package com.a602.commonproject.feature.mypage
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.outlined.Person
@@ -12,16 +11,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.component.GenderToggle
-import com.a602.commonproject.designsystem.component.ProfileHead
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.theme.*
 import androidx.compose.ui.tooling.preview.Preview
+import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 
 import com.a602.commonproject.model.data.*
 
+//import androidx.activity.compose.rememberLauncherForActivityResult
+//import androidx.activity.result.PickVisualMediaRequest
+//import androidx.activity.result.contract.ActivityResultContracts
+import android.net.Uri // Uri 타입을 사용하기 위해 필요합니다.
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun KidEditScreen(
     baby: Baby,
@@ -36,6 +39,16 @@ fun KidEditScreen(
     // (모델에 따라 Gender.MALE 또는 Gender.Male 형식을 확인하세요)
     var selectedGender by remember { mutableStateOf<Baby.Gender?>(baby.gender) }
 
+    // ✅ 1. 현재 사진 상태 저장 (기존 이미지 url이 있다면 초기값으로 설정)
+//    var selectedUri by remember { mutableStateOf<Uri?>(baby.imageUrl?.let { Uri.parse(it) }) }
+//
+//    // ✅ 2. 갤러리에서 사진을 골라오는 도구(Picker) 설정
+//    val pickerLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.PickVisualMedia()
+//    ) { uri ->
+//        // 사진을 고르면 selectedUri 변수에 저장합니다.
+//        if (uri != null) { selectedUri = uri }
+//    }
     Scaffold(
         containerColor = background,
         topBar = {
@@ -51,12 +64,19 @@ fun KidEditScreen(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            ProfileHead(
-                remoteImageUrl = null,
-                selectedImageUri = null,
-                onClick = { },
-                size = 150.dp,
-                borderWidth = 160.dp,
+            // 2. 우주복 사진 선택기 (클릭 시 갤러리 열기)
+            ProfileFullAstronaut(
+                remoteImageUrl = baby.imageUrl, // 기존 서버 이미지가 있다면 표시
+                selectedImageUri = null, // 💡 새로 고른 사진이 있으면 이 값이 우선 적용되어 화면에 보입니다!(selectedUri)
+                onClick = {
+//                    pickerLauncher.launch(
+//                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+//                    )
+                },
+                // ✅ [수정] 아래 파라미터들을 추가하여 크기를 조절합니다.
+                headSize = 140.dp,
+                bodyWidth = 150.dp,
+                bodyOffsetY = 100.dp
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -104,7 +124,8 @@ fun KidEditScreen(
                     val updated = baby.copy(
                         babyName = name,
                         birthDate = birthDate,
-                        gender = selectedGender ?: baby.gender // 선택 안 했으면 기존 성별 유지
+                        gender = selectedGender ?: baby.gender, // 선택 안 했으면 기존 성별 유지
+//                        imageUrl = selectedUri?.toString() // ✅ 4. 바뀐 사진 경로도 함께 저장
                     )
                     onSaveClick(updated)
                 },
@@ -123,7 +144,7 @@ fun KidEditScreen(
 @Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 fun KidEditScreenPreview() {
-    NiaTheme {
+    LMTheme {
         KidEditScreen(
             baby = Baby(
                 babyId = "sampleId",

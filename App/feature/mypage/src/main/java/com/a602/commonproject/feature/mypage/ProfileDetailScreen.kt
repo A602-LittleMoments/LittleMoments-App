@@ -26,7 +26,6 @@ import com.a602.commonproject.model.data.User
  * @param user 화면에 표시할 사용자의 정보. 밖(ViewModel 등)에서 전달받습니다.
  * @param onEditClick "수정하기" 버튼을 눌렀을 때 실행될 화면 이동 함수입니다.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileDetailScreen(
     user: User,
@@ -147,7 +146,7 @@ fun InfoDisplayField(label: String, value: String, icon: ImageVector) {
 @Preview(showBackground = true, name = "내 정보 확인 미리보기")
 @Composable
 fun ProfileDetailPreview() {
-    NiaTheme {
+    LMTheme {
         ProfileDetailScreen(
             user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
             onEditClick = {}

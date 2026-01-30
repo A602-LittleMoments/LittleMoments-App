@@ -18,7 +18,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.FillWrapButton
+<<<<<<< HEAD
 import com.a602.commonproject.designsystem.theme.NiaTheme
+=======
+import com.a602.commonproject.designsystem.theme.LMTheme
+>>>>>>> 63f49f37c97fc85ebab79f60b57a0421f56f55b7
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.coommonproject.ui.GalleryGridPolaroid
@@ -99,7 +103,7 @@ private fun fakeMediaList(): List<SharedMedia> {
 @Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun GridGalleryPreview() {
-    NiaTheme {
+    LMTheme {
         GridGallery(
             medias  = fakeMediaList(),
             onCalendarClick = {},
