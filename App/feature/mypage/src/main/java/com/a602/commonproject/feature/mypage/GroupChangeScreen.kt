@@ -48,6 +48,7 @@ import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.gray1
 import com.a602.commonproject.designsystem.theme.lightblue
 import com.a602.commonproject.designsystem.theme.main
+import com.a602.commonproject.designsystem.theme.purple1
 import com.a602.commonproject.feature.mypage.viewmodel.GroupChangeViewModel
 import com.a602.commonproject.model.data.GroupMember
 import com.a602.commonproject.model.data.GroupRole
@@ -209,7 +210,7 @@ private fun getColorForRole(role: GroupRole): Color {
     return when (role) {
         GroupRole.OWNER -> main
         GroupRole.MEMBER -> color1
-        GroupRole.VIEWER -> color2
+        GroupRole.VIEWER -> purple1
         else -> gray1
     }
 }
