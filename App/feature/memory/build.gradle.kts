@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(project(":core:ui"))
     implementation(project(":core:model"))
+    implementation(project(":core:data"))
 
     // 💡 Compose 필수 라이브러리 추가
     implementation(libs.androidx.core.ktx)
