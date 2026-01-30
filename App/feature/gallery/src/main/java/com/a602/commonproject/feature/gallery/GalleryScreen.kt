@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import coil.compose.AsyncImage
+import com.a602.commonproject.designsystem.component.FillWrapButton
 import com.a602.commonproject.designsystem.theme.NiaTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
@@ -83,7 +84,10 @@ fun mapToCalendarDays(
 fun CalendarScreen(
     medias: List<SharedMedia>,
     initialMonth: YearMonth = YearMonth.now(),
-    onDateClick: (LocalDate) -> Unit,
+    onDateClick: () -> Unit,
+    onGridClick: () -> Unit,
+    onTempAlbumClick: () -> Unit,
+    onHighLightClick: () -> Unit
 ) {
     var currentMonth by remember { mutableStateOf(initialMonth) }
 
@@ -104,33 +108,78 @@ fun CalendarScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-                    .background(
-                        lightbackground,
-                        shape = RoundedCornerShape(20.dp)
-                    ).padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // 월 이동 헤더]
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp,),
+                        contentAlignment = Alignment.CenterStart
                 ) {
-                    Text("<", Modifier.clickable { currentMonth = currentMonth.minusMonths(1) }, style = MaterialTheme.typography.headlineLarge)
-                    Text("${currentMonth.year}년 ${currentMonth.monthValue}월", style = MaterialTheme.typography.headlineLarge)
-                    Text(">", Modifier.clickable { currentMonth = currentMonth.plusMonths(1) }, style = MaterialTheme.typography.headlineLarge)
+                    FillWrapButton(
+                        text = "그리드 보기",
+                        onClick = onGridClick,
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp,horizontal = 16.dp)
+                        .background(
+                            lightbackground,
+                            shape = RoundedCornerShape(20.dp)
+                        ).padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    // 월 이동 헤더
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "<",
+                            Modifier.clickable { currentMonth = currentMonth.minusMonths(1) },
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                        Text(
+                            "${currentMonth.year}년 ${currentMonth.monthValue}월",
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                        Text(
+                            ">",
+                            Modifier.clickable { currentMonth = currentMonth.plusMonths(1) },
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                    }
 
-                CalendarPhotoView(days = days, onDateClick = onDateClick)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    CalendarPhotoView(days = days, onDateClick = { onDateClick() })
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp,),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    FillWrapButton(
+                        text = "임시앨범",
+                        onClick = onTempAlbumClick,
+                    )
+
+                    FillWrapButton(
+                        text = "하이라이트 생성",
+                        onClick = onHighLightClick,
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    )
+                }
             }
+            Spacer(modifier = Modifier.height(80.dp))
         }
-        Spacer(modifier = Modifier.height(80.dp))
     }
 }
-
 @Composable
 fun CalendarPhotoView(
     days: List<CalendarDay>,
@@ -247,7 +296,10 @@ fun CalendarScreenPreview() {
             CalendarScreen(
                 medias = sampleMedias,
                 initialMonth = YearMonth.now(),
-                onDateClick = {}
+                onDateClick = {},
+                onGridClick = {},
+                onTempAlbumClick={},
+                onHighLightClick=  {}
             )
         }
     }
