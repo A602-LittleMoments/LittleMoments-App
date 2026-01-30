@@ -6,6 +6,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.random.Random
 import com.a602.commonproject.designsystem.R as DsR
+import com.a602.commonproject.model.data.Collection
 
 private const val MAX_PLANETS = 20
 
@@ -19,7 +20,7 @@ private val categoryToPlanetPool: Map<String, List<Int>> = mapOf(
 )
 
 // 매칭 실패 시 기본
-private val defaultPlanetRes = DsR.drawable.music
+private val defaultPlanetRes = DsR.drawable.planet
 
 private fun stableIndex(id: String, mod: Int): Int {
     if (mod <= 0) return 0
@@ -49,7 +50,7 @@ private fun sizeFromCollectionSize(size: Int): Dp = when {
  * 바로 이전 lane과 같으면 금지
  */
 fun buildPlanetsUiLaneLayout(
-    items: List<TempKeywordDto>,
+    items: List<Collection>,
     viewportWidth: Dp,
     viewportHeight: Dp,
     bottomSafeArea: Dp = 96.dp,
