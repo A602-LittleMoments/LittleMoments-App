@@ -73,7 +73,7 @@ internal class WorkManagerSyncManager @Inject constructor(
         // 큐에 등록 (KEEP: 이미 예약돼 있으면 덮어쓰지 않고 유지함)
         workManager.enqueueUniquePeriodicWork(
             CLEANUP_WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP, // ✨ 중복 실행 방지 핵심
+            ExistingPeriodicWorkPolicy.REPLACE, // ✨ 중복 실행 방지 핵심
             cleanupRequest
         )
     }
@@ -86,4 +86,4 @@ internal class WorkManagerSyncManager @Inject constructor(
 
 // ✨ [NiA 확장 함수]
 // 리스트 중에 하나라도 'RUNNING(실행 중)' 상태인 게 있으면 true 반환
-private fun List<WorkInfo>.anyRunning() = any { it.state == WorkInfo.State.RUNNING }
+private fun List<WorkInfo>.anyRunning() = any { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED }

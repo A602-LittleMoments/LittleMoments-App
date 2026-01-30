@@ -15,13 +15,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.foundation.text.KeyboardOptions
+
 @Composable
 fun LMEditInputField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String = "",
-    icon: ImageVector? = null,
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    modifier: Modifier = Modifier,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    singleLine: Boolean = true
     isPassword: Boolean = false,
     enabled: Boolean = true
 ) {
@@ -29,12 +36,13 @@ fun LMEditInputField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label, color = color4.copy(alpha = 0.6f), style = AppTypography.labelMedium) },
-        placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f)) },
+        placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f), style = AppTypography.titleMedium) },
         textStyle = AppTypography.titleMedium.copy(color = color4),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        singleLine = true,
-        // 2. 이 설정이 들어가야 비밀번호가 가려집니다!
+        singleLine = singleLine,
+        visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions,
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         trailingIcon = {
             if (icon != null) {

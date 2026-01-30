@@ -7,6 +7,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.a602.commonproject.common.network.Dispatcher
 import com.a602.commonproject.common.network.LMDispatchers
+import com.a602.commonproject.data.repository.BabyRepository
 import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.data.repository.SlideshowRepository
 import com.a602.commonproject.data.repository.UserRepository
@@ -28,6 +29,7 @@ class FetchWorker @AssistedInject constructor(
     private val mediaRepository: SharedMediaRepository,
     private val slideshowRepository: SlideshowRepository, // ✨ 주입 추가
     private val userRepository: UserRepository,
+    private val babyRepository: BabyRepository,
     @Dispatcher(LMDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -55,7 +57,8 @@ class FetchWorker @AssistedInject constructor(
                 async {
                     // 슬라이드쇼 갱신 (Result<Unit> -> Boolean 변환)
                     slideshowRepository.refreshSlideshows().isSuccess
-                }
+                },
+                async { babyRepository.syncWithServer(groupId) }
             )
             // 두 작업이 모두 끝날 때까지 대기
             val results = jobs.awaitAll()

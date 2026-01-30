@@ -90,6 +90,20 @@ val AppTypography = Typography(
         lineHeight = 17.06.sp,
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Normal,
-    )
+    ),
 
+    // [입력창 실제 글씨 스타일]
+    titleMedium = TextStyle(
+        fontSize = 16.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Medium,
+        color = color3,
+    ),
+
+    titleSmall = TextStyle(
+        fontSize = 14.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Medium,
+        color = color3,
+    )
 )

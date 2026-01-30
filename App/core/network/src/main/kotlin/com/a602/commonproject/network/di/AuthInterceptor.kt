@@ -1,5 +1,6 @@
 package com.a602.commonproject.network.di
 
+import android.provider.Settings
 import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
 import javax.inject.Inject
 import kotlin.jvm.Throws
@@ -11,16 +12,22 @@ import okhttp3.Response
 import okio.IOException
 
 class AuthInterceptor @Inject constructor(
-    // ⚠️ TODO: 나중에 :core:datastore 모듈 만들면 TokenManager 주입 받아야 함
     // private val tokenManager: TokenManager
     private val userPreferences: UserPreferencesDataSource
+
 ) : Interceptor{
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         val requestBuilder = originalRequest.newBuilder()
 
-        // 1. "Auth: No" 마커 헤더가 있는지 확인
+        // 1. 공통 헤더 설정
+        requestBuilder.addHeader("X-OS-Type", "Android")
+        // Device ID가 DataStore에 저장되어 있다면 꺼내서 넣습니다.
+        val deviceId = runBlocking { userPreferences.getOrCreateDeviceId() }
+        requestBuilder.addHeader("X-Device-Id", deviceId) // 서버와 약속한 헤더 키값
+
+        // 2. "Auth: No" 마커 헤더가 있는지 확인
         // (회원가입, 로그인처럼 토큰이 필요 없는 요청인지 체크)
         val noAuthHeader = originalRequest.header("Auth")
 
