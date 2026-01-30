@@ -18,7 +18,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.designsystem.component.FillWrapButton
+<<<<<<< HEAD
+import com.a602.commonproject.designsystem.theme.NiaTheme
+=======
 import com.a602.commonproject.designsystem.theme.LMTheme
+>>>>>>> 63f49f37c97fc85ebab79f60b57a0421f56f55b7
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.coommonproject.ui.GalleryGridPolaroid
@@ -31,23 +35,23 @@ data object GalleryNavKey : NavKey
 // 격자 보기
 @Composable
 fun GridGallery(
-    polaroids: List<SharedMedia>,
+    medias : List<SharedMedia>,
     onCalendarClick: () -> Unit,
-    onPolaroidClick: (SharedMedia) -> Unit,
+    onMediaClick: (SharedMedia) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
-        Column(modifier = Modifier
+        Column(modifier = modifier
             .fillMaxSize()
             .background(background)
             .padding(horizontal = 16.dp)
 
         ){
-            Spacer(modifier = Modifier.height(56.dp))
+            Spacer(modifier = modifier.height(56.dp))
 
             // 1. 상단 헤더 영역
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxWidth()
                     .padding(vertical = 24.dp, horizontal = 10.dp,),
                 contentAlignment = Alignment.CenterStart
@@ -66,8 +70,8 @@ fun GridGallery(
 
             Box(modifier = Modifier.weight(1f)) {
                 GalleryGridPolaroid(
-                    medias = polaroids,
-                    onClick = onPolaroidClick
+                    medias = medias ,
+                    onClick = onMediaClick
                 )
             }
         }
@@ -101,9 +105,9 @@ private fun fakeMediaList(): List<SharedMedia> {
 fun GridGalleryPreview() {
     LMTheme {
         GridGallery(
-            polaroids = fakeMediaList(),
+            medias  = fakeMediaList(),
             onCalendarClick = {},
-            onPolaroidClick = {}
+            onMediaClick = {}
         )
     }
 }

@@ -19,9 +19,25 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation3.runtime.NavKey
+import androidx.compose.runtime.LaunchedEffect
 
-object HighlightLoadingNavKey : NavKey
+@Composable
+fun HighlightLoadingScreen(
+    startMillis: Long,
+    endMillis: Long,
+    requestCreateSlideshow: suspend (Long, Long) -> String, // POST -> slideshowId
+    onSuccess: (String) -> Unit,
+    onFailure: (Throwable) -> Unit,
+) {
+    LaunchedEffect(startMillis, endMillis) {
+        runCatching { requestCreateSlideshow(startMillis, endMillis) }
+            .onSuccess(onSuccess)
+            .onFailure(onFailure)
+    }
+
+    LoadingContent()
+}
+
 
 @Composable
 fun LoadingContent(
