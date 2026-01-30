@@ -1,21 +1,23 @@
-package com.a602.commonproject.feature.mypage
+package com.a602.commonproject.feature.mypage.navigation
 
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 // 1. 마이페이지 기능의 각 화면에 대한 '스마트 주소'들을 정의합니다.
 //    @Serializable 어노테이션은 이 주소들이 안전하게 전달될 수 있도록 보장합니다.
 
 @Serializable
-object MyPageKey
+object MyPageKey : NavKey
 
 @Serializable
-object ProfileEditKey
+object ProfileEditKey : NavKey
 
 @Serializable
-object KidEditKey
+data class KidEditKey(val babyId: String) : NavKey
+
 
 @Serializable
-object KidAddKey
+object KidAddKey : NavKey
 
 @Serializable
-object GroupManageKey
+object GroupManageKey : NavKey
