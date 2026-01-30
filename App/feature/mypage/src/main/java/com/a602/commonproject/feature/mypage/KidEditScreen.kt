@@ -1,54 +1,119 @@
 package com.a602.commonproject.feature.mypage
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-
-import androidx.compose.ui.unit.dp
-import com.a602.commonproject.designsystem.component.LMTopAppBar
-import com.a602.commonproject.designsystem.component.GenderToggle
-import com.a602.commonproject.designsystem.component.Gender
-import com.a602.commonproject.designsystem.theme.*
-import androidx.compose.ui.tooling.preview.Preview
-import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
-
-import com.a602.commonproject.model.data.*
-
+import android.net.Uri
 //import androidx.activity.compose.rememberLauncherForActivityResult
 //import androidx.activity.result.PickVisualMediaRequest
-//import androidx.activity.result.contract.ActivityResultContracts
-import android.net.Uri // Uri 타입을 사용하기 위해 필요합니다.
-
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.a602.commonproject.designsystem.component.Gender
+import com.a602.commonproject.designsystem.component.GenderToggle
+import com.a602.commonproject.designsystem.component.LMEditInputField
+import com.a602.commonproject.designsystem.component.LMTopAppBar
+import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
+import com.a602.commonproject.designsystem.theme.LMTheme
+import com.a602.commonproject.designsystem.theme.background
+import com.a602.commonproject.designsystem.theme.lightbackground
+import com.a602.commonproject.designsystem.theme.main
+import com.a602.commonproject.feature.mypage.viewmodel.KidEditUiState
+import com.a602.commonproject.feature.mypage.viewmodel.KidEditViewModel
+import com.a602.commonproject.model.data.Baby
+import com.a602.commonproject.navigation.Navigator
 
 
 @Composable
-fun KidEditScreen(
-    baby: Baby,
-    onBackClick: () -> Unit = {},
-    onSaveClick: (Baby) -> Unit = {},
+fun KidEditContainer(
+    navigator: Navigator,
+    viewModel: KidEditViewModel = viewModel()
 ) {
-    // 💡 1. 초기값을 SampleData(baby)에서 직접 가져오도록 연결합니다.
-    var name by remember { mutableStateOf(baby.babyName) }
-    var birthDate by remember { mutableStateOf(baby.birthDate) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // 💡 2. 성별도 baby에 저장된 값을 기본값으로 불러옵니다.
-    // (모델에 따라 Gender.MALE 또는 Gender.Male 형식을 확인하세요)
-    var selectedGender by remember { mutableStateOf<Baby.Gender?>(baby.gender) }
+    // 저장 성공 시 뒤로가기
+    LaunchedEffect(uiState.isSaveSuccess) {
+        if (uiState.isSaveSuccess) {
+            navigator.goBack()
+            viewModel.onSaveSuccessConsumed()
+        }
+    }
 
-    // ✅ 1. 현재 사진 상태 저장 (기존 이미지 url이 있다면 초기값으로 설정)
-//    var selectedUri by remember { mutableStateOf<Uri?>(baby.imageUrl?.let { Uri.parse(it) }) }
-//
-//    // ✅ 2. 갤러리에서 사진을 골라오는 도구(Picker) 설정
+    // 에러 메시지 표시
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
+    // 데이터 로딩 중 UI
+    if (uiState.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        KidEditScreen(
+            uiState = uiState,
+            snackbarHostState = snackbarHostState,
+            onNameChanged = viewModel::onNameChanged,
+            onBirthDateChanged = viewModel::onBirthDateChanged,
+            onGenderSelected = {
+                val modelGender = when (it) {
+                    Gender.Male -> Baby.Gender.MALE
+                    Gender.Female -> Baby.Gender.FEMALE
+                }
+                viewModel.onGenderSelected(modelGender)
+            },
+            onImageSelected = { uri ->
+                viewModel.onImageSelected(uri?.toString())
+            },
+            onSaveClick = viewModel::updateBaby,
+            onBackClick = { navigator.goBack() }
+        )
+    }
+}
+
+@Composable
+fun KidEditScreen(
+    uiState: KidEditUiState,
+    snackbarHostState: SnackbarHostState,
+    onNameChanged: (String) -> Unit,
+    onBirthDateChanged: (String) -> Unit,
+    onGenderSelected: (Gender) -> Unit,
+    onImageSelected: (Uri?) -> Unit,
+    onSaveClick: () -> Unit,
+    onBackClick: () -> Unit
+) {
 //    val pickerLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.PickVisualMedia()
-//    ) { uri ->
-//        // 사진을 고르면 selectedUri 변수에 저장합니다.
-//        if (uri != null) { selectedUri = uri }
-//    }
+//        contract = ActivityResultContracts.PickVisualMedia(),
+//        onResult = { uri -> onImageSelected(uri) }
+//    )
+
     Scaffold(
         containerColor = background,
         topBar = {
@@ -56,106 +121,101 @@ fun KidEditScreen(
                 title = "아이 정보 수정",
                 onNavigationClick = onBackClick
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding).padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(20.dp))
 
-            // 2. 우주복 사진 선택기 (클릭 시 갤러리 열기)
-            ProfileFullAstronaut(
-                remoteImageUrl = baby.imageUrl, // 기존 서버 이미지가 있다면 표시
-                selectedImageUri = null, // 💡 새로 고른 사진이 있으면 이 값이 우선 적용되어 화면에 보입니다!(selectedUri)
-                onClick = {
-//                    pickerLauncher.launch(
-//                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                    )
-                },
-                // ✅ [수정] 아래 파라미터들을 추가하여 크기를 조절합니다.
-                headSize = 140.dp,
-                bodyWidth = 150.dp,
-                bodyOffsetY = 100.dp
-            )
+                ProfileFullAstronaut(
+                    selectedImageUri = uiState.imageUri?.let { Uri.parse(it) },
+                    remoteImageUrl = uiState.imageUri,
+                    onClick = {
+//                        pickerLauncher.launch(
+//                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+//                        )
+                    },
+                    headSize = 140.dp,
+                    bodyWidth = 150.dp,
+                    bodyOffsetY = 100.dp
+                )
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            KidEditInputField(
-                label = "이름",
-                value = name,
-                onValueChange = { name = it }, // 💡 name 변수 사용
-                icon = androidx.compose.material.icons.Icons.Outlined.Person
-            )
+                LMEditInputField(
+                    label = "이름",
+                    value = uiState.name,
+                    onValueChange = onNameChanged,
+                    icon = Icons.Outlined.Person
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            KidEditInputField(
-                label = "생년월일",
-                value = birthDate,
-                onValueChange = { birthDate = it } // 💡 birthDate 변수 사용
-            )
+                LMEditInputField(
+                    label = "생년월일",
+                    value = uiState.birthDate,
+                    onValueChange = onBirthDateChanged,
+                    placeholder = "YYYY.MM.DD"
+                )
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // 성별 선택 창
-            GenderToggle(
-                // 💡 1. 우리 장부(Baby.Gender)를 버튼 양식(Gender)으로 바꿔서 보여줍니다.
-                selected = when(selectedGender) {
+                val selectedGender = when (uiState.gender) {
                     Baby.Gender.MALE -> Gender.Male
                     Baby.Gender.FEMALE -> Gender.Female
                     else -> null
-                },
-                // 💡 2. 버튼에서 선택된 양식(it)을 다시 우리 장부(Baby.Gender)로 바꿔서 저장합니다.
-                onSelectedChange = { it ->
-                    selectedGender = when(it) {
-                        Gender.Male -> Baby.Gender.MALE
-                        Gender.Female -> Baby.Gender.FEMALE
-                        else -> null
-                    }
                 }
-            )
+                GenderToggle(
+                    selected = selectedGender,
+                    onSelectedChange = { selected -> // 람다의 파라미터 이름을 'it'에서 'selected'로 변경
+                        // 👇 null이 아닐 때만 onGenderSelected를 호출하도록 수정
+                        if (selected != null) {
+                            onGenderSelected(selected)
+                        }
+                    }
+                )
 
-            Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(1f))
 
-            Button(
-                onClick = {
-                    // 💡 3. 변수 이름을 일치시키고(nameValue -> name), 성별(gender)도 포함합니다!
-                    val updated = baby.copy(
-                        babyName = name,
-                        birthDate = birthDate,
-                        gender = selectedGender ?: baby.gender, // 선택 안 했으면 기존 성별 유지
-//                        imageUrl = selectedUri?.toString() // ✅ 4. 바뀐 사진 경로도 함께 저장
-                    )
-                    onSaveClick(updated)
-                },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = main),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(text = "수정 완료", style = MaterialTheme.typography.labelLarge, color = lightbackground)
+                Button(
+                    onClick = onSaveClick,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = main),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(text = "수정 완료", style = MaterialTheme.typography.labelLarge, color = lightbackground)
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
         }
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Preview(showBackground = true, name = "아이 정보 수정 미리보기")
 @Composable
 fun KidEditScreenPreview() {
     LMTheme {
         KidEditScreen(
-            baby = Baby(
-                babyId = "sampleId",
-                babyName = "김이든",
-                birthDate = "2023-08-25",
-                gender = Baby.Gender.MALE,
-                imageUrl = null
-            ),
-            onBackClick = {},
-            onSaveClick = {}
+            uiState = KidEditUiState(name = "튼튼이", birthDate = "2024.05.20"),
+            snackbarHostState = remember { SnackbarHostState() },
+            onNameChanged = {},
+            onBirthDateChanged = {},
+            onGenderSelected = {},
+            onImageSelected = {},
+            onSaveClick = {},
+            onBackClick = {}
         )
     }
 }
-
