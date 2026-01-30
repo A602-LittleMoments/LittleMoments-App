@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.theme.*
@@ -38,13 +37,11 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
     } else {
         MypageScreen(
             user = uiState.user,
-            baby = uiState.baby,
+            babies = uiState.babies, // `babies` 리스트를 전달합니다.
             groupMembers = uiState.groupMembers,
             onNavigateToProfileEdit = { navigator.navigate(ProfileEditKey) },
-            onNavigateToKidEdit = {
-                uiState.baby?.let { baby ->
-                    navigator.navigate(KidEditKey(baby.babyId))
-                }
+            onNavigateToKidEdit = { babyId -> // babyId를 파라미터로 받습니다.
+                navigator.navigate(KidEditKey(babyId))
             },
             onNavigateToKidAdd = { navigator.navigate(KidAddKey) },
             onNavigateToGroupManagement = { navigator.navigate(GroupManageKey) }
@@ -66,17 +63,16 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
 @Composable
 fun MypageScreen(
     user: User?,
-    baby: Baby?,
+    babies: List<Baby>, // Baby? 에서 List<Baby>로 변경
     groupMembers: List<GroupMember>,
     onNavigateToProfileEdit: () -> Unit = {},
-    onNavigateToKidEdit: () -> Unit = {},
+    onNavigateToKidEdit: (String) -> Unit = {}, // babyId를 받도록 (String) -> Unit으로 변경
     onNavigateToKidAdd: () -> Unit = {},
     onNavigateToGroupManagement: () -> Unit = {}
 ) {
     // Scaffold는 화면의 기본 구조(상단바, 본문 등)를 잡아주는 유용한 틀입니다.
     Scaffold(
-        containerColor = background,
-        topBar = { LMTopAppBar(title = "마이페이지") }
+        containerColor = background
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -89,9 +85,12 @@ fun MypageScreen(
             if (user != null) {
                 item { ProfileInfoCard(name = user.nickname, nickname = user.nickname, email = user.email, onEditClick = onNavigateToProfileEdit) }
             }
-            if (baby != null) {
-                item { KidInfoCard(kidName = baby.babyName, birthDate = baby.birthDate, onEditClick = onNavigateToKidEdit, onAddClick = onNavigateToKidAdd) }
+
+            // `babies` 리스트를 순회하며 각 아이에 대한 카드를 만듭니다.
+            items(babies) { baby ->
+                KidInfoCard(kidName = baby.babyName, birthDate = baby.birthDate, onEditClick = { onNavigateToKidEdit(baby.babyId) }, onAddClick = onNavigateToKidAdd)
             }
+
             item { GroupSectionHeader(memberCount = groupMembers.size, onEditClick = onNavigateToGroupManagement) }
 
             items(groupMembers) { member ->
@@ -105,7 +104,7 @@ private fun getColorForRole(role: GroupRole): Color {
     return when (role) {
         GroupRole.OWNER -> main
         GroupRole.MEMBER -> color1
-        GroupRole.VIEWER -> color2
+        GroupRole.VIEWER -> purple1
         else -> gray1 // 이외
     }
 }
@@ -121,9 +120,14 @@ fun MyPageScreenPreview() {
             GroupMember("id1", "엄마", "엄마", GroupRole.OWNER),
             GroupMember("id2", "아빠", "아빠", GroupRole.MEMBER)
         )
+        // 여러 명의 아기를 테스트하기 위해 리스트를 전달합니다.
+        val sampleBabies = listOf(
+            Baby(babyId = "1", babyName = "첫째", birthDate = "2022-01-15", gender = Baby.Gender.MALE, imageUrl = null),
+            Baby(babyId = "2", babyName = "둘째", birthDate = "2024-03-20", gender = Baby.Gender.FEMALE, imageUrl = null)
+        )
         MypageScreen(
             user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
-            baby = Baby(babyId = "1", babyName = "Leo", birthDate = "2023-05-12", gender = Baby.Gender.MALE, imageUrl = null),
+            babies = sampleBabies,
             groupMembers = sampleMembers
         )
     }

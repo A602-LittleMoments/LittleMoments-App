@@ -155,7 +155,7 @@ fun KidAddScreen(
                 GenderToggle(
                     selected = selectedGender,
                     onSelectedChange = { selected -> // 람다의 파라미터 이름을 'it'에서 'selected'로 변경
-                        // 👇 null이 아닐 때만 onGenderSelected를 호출하도록 수정
+                        // 아기 정보가 있어야만 onGenderSelected를 호출하도록 수정
                         if (selected != null) {
                             onGenderSelected(selected)
                         }
