@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.color1
+import com.a602.commonproject.designsystem.theme.gray1
 import com.a602.commonproject.designsystem.theme.gray2
 import kotlin.math.pow
 
@@ -35,11 +36,10 @@ import kotlin.math.pow
 fun DdayBarWithLabel(
     dayCount: Int, // 예: 60 -> "D+60"
     modifier: Modifier = Modifier,
-    barHeight: Dp = 22.dp,
-    barWidthFraction: Float = 0.72f,   // 화면폭 기준
-    backgroundColor: Color = gray2,
+    barHeight: Dp = 20.dp,
+    barWidthFraction: Float = 0.45f,   // 화면폭 기준
+    backgroundColor: Color = gray1,
     fillColor: Color = color1,
-    spacing: Dp = 14.dp,
 ) {
     val progress = dayCountToProgress100Cycle(dayCount)
 
@@ -50,11 +50,11 @@ fun DdayBarWithLabel(
         // D+ 텍스트
         Text(
             text = "D+$dayCount",
-            style = MaterialTheme.typography.headlineLarge, // 너희 Type.kt 기준 큰 글씨
+            style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center
         )
 
-        Spacer(Modifier.height(spacing))
+        Spacer(modifier = Modifier.size(10.dp))
 
         // 진행바
         DdayProgressBar(

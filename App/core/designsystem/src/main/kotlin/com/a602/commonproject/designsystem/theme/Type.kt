@@ -137,7 +137,7 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
-        lineHeight = 14.sp,
+        lineHeight = 16.sp,
         letterSpacing = 0.sp,
         color = color3,
     ),
