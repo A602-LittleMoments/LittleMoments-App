@@ -1,6 +1,7 @@
 package com.a602.commonproject.designsystem.component
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -26,43 +27,28 @@ import com.a602.commonproject.designsystem.theme.color3
  */
 enum class ButtonSize(
     val height: Dp,
+    val widthFraction: Float,
+    val maxWidth: Dp,
     val horizontalPadding: Dp,
     val shape: RoundedCornerShape,
 ) {
-    // 로그인/추가
-    Full(height = 56.dp, horizontalPadding = 24.dp, shape = RoundedCornerShape(20.dp)),
-    // 그룹 참여/생성
-    Medium(height = 44.dp, horizontalPadding = 20.dp, shape = RoundedCornerShape(12.dp)),
-    // 캘린더 보기
-    Small(height = 36.dp, horizontalPadding = 16.dp, shape = RoundedCornerShape(18.dp)),
-    // 선택(동글)
-    Round(height = 44.dp, horizontalPadding = 18.dp, shape = RoundedCornerShape(50.dp)),
-    // 저장(3)
-    Counter(height = 44.dp, horizontalPadding = 20.dp, shape = RoundedCornerShape(22.dp))
+    // 추가 / 수정 완료
+    Full(48.dp, 0.8f, 340.dp, 24.dp, RoundedCornerShape(16.dp)),
+    // 모달 or 팝업에서 쓰는 버튼
+    Medium(48.dp, 0.8f, 288.dp,20.dp, RoundedCornerShape(16.dp)),
+    // 그룹 생성 or 참여
+    Small(44.dp, 0.6f, 192.dp, 16.dp, RoundedCornerShape(14.dp)),
+    // 로그인 (동글)
+    Round(44.dp, 0.8f, 340.dp, 18.dp, RoundedCornerShape(22.dp)),
 }
 
-/** 회원가입 쪽에서 쓰는 FilledButton */
-// size는 위에 설정해놓은 것들이고, 높이 조정 가능
-// 가로 길이 조정하려면 modifier로 조정 가능, 아래 예시
-// 꽉 차게
-//modifier = Modifier.fillMaxWidth()
-//size = ButtonSize.Full
-// 가로 크기 조정
-//FilledButton(
-//text = "확인",
-//onClick = {},
-//modifier = Modifier.width(200.dp)
-//)
-// 가로 크기 범위로 조정
-//FilledButton(
-//text = "완료",
-//onClick = {},
-//modifier = Modifier.widthIn(min = 160.dp, max = 240.dp)
-//)
+/* FilledButton
+ * ButtonSize.Full - 회원정보 수정, 추가, 그룹관리 등
+ * ButtonSize.Medium - 팝업, 모달
+ * ButtonSize.Small - 회원가입시 그룹 생성, 그룹 코드를 이용하여 참여
+ * ButtonSize Round - 로그인, 비밀번호 변경, 회원가입
+ * */
 
-
-// 로그인 (size small, 가로 길이는 적용해보고 사용)
-// 그룹참여, 추가 이런건 size Medium이나 Full 사용하면 될 것 같음
 @Composable
 fun FilledButton(
     text: String,
@@ -76,7 +62,10 @@ fun FilledButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.then(Modifier.height(size.height)),
+        modifier = modifier
+            .fillMaxWidth(size.widthFraction)    // 부모 (모달 포함) 폭 기준 비율
+            .widthIn(max = size.maxWidth)        // 너무 커지지 않게 상한
+            .height(size.height),               // 높이
         shape = size.shape,
         contentPadding = PaddingValues(horizontal = size.horizontalPadding),
         colors = ButtonDefaults.buttonColors(
@@ -87,6 +76,7 @@ fun FilledButton(
         ),
     ) {
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
@@ -98,7 +88,6 @@ fun FilledButton(
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,
-                color = lightbackground,
                 maxLines = 1, // 좁아질 때 줄바꿈 대신 ...로 표시
                 overflow = TextOverflow.Ellipsis
             )
@@ -113,7 +102,7 @@ fun FilledButton(
 
 // 화면들에서 쓰게 될 버튼
 // 글자 수 맞춰서 버튼 크기 (가로) 조정
-// FilledButton 보다 더 둥근 버튼
+// 선택, 전체 비우기 등
 @Composable
 fun FillWrapButton(
     text: String,
@@ -126,8 +115,8 @@ fun FillWrapButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(36.dp), // 캡쳐 기준 small 느낌 (원하면 32.dp로 더 줄이기)
-        shape = RoundedCornerShape(18.dp),
+        modifier = modifier.height(44.dp).defaultMinSize(minWidth = 80.dp),
+        shape = RoundedCornerShape(22.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = main,
@@ -157,36 +146,6 @@ fun FillWrapButton(
 }
 
 
-/** "선택" 처럼 살짝 떠 있는 느낌이 있는 버튼 */
-@Composable
-fun ElevatedRoundButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    ElevatedButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.height(ButtonSize.Round.height),
-        shape = ButtonSize.Round.shape,
-        contentPadding = PaddingValues(horizontal = ButtonSize.Round.horizontalPadding),
-        colors = ButtonDefaults.elevatedButtonColors(
-            containerColor = main,
-            contentColor = lightbackground,
-            disabledContainerColor = main.copy(alpha = 0.35f),
-            disabledContentColor = lightbackground.copy(alpha = 0.7f),
-        ),
-        elevation = ButtonDefaults.elevatedButtonElevation(
-            defaultElevation = 6.dp,
-            pressedElevation = 2.dp,
-            disabledElevation = 0.dp,
-        )
-    ) {
-        Text(text, style = MaterialTheme.typography.labelLarge, color = lightbackground)
-    }
-}
-
 /** "오늘의 추억 남기기 + 카메라 아이콘" */
 @Composable
 fun CameraButton(
@@ -198,9 +157,9 @@ fun CameraButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(44.dp).wrapContentWidth(),
+        modifier = modifier.height(44.dp).defaultMinSize(minWidth = 188.dp),
         shape = RoundedCornerShape(22.dp),
-        contentPadding = PaddingValues(horizontal = 40.dp),
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = main,
             contentColor = lightbackground,
@@ -215,10 +174,12 @@ fun CameraButton(
     ) {
         // 🔑 핵심: Box로 중앙 정렬을 강제
         Box(
+            modifier = Modifier.fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
                 Icon(
                     imageVector = LMicons.Camera,
@@ -232,14 +193,13 @@ fun CameraButton(
                 Text(
                     text = text,
                     style = MaterialTheme.typography.labelLarge,
-                    color = lightbackground
                 )
             }
         }
     }
 }
 
-// 사진 저장 버튼
+// 하이라이트(슬라이드쇼) 저장 버튼
 @Composable
 fun SaveButton(
     onClick: () -> Unit,
@@ -250,14 +210,14 @@ fun SaveButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(50.dp).fillMaxWidth(),
+        modifier = modifier.height(48.dp).fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
         contentPadding = PaddingValues(horizontal = 40.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = background,
+            containerColor = lightbackground,
             contentColor = color3,
-            disabledContainerColor = main.copy(alpha = 0.35f),
-            disabledContentColor = lightbackground.copy(alpha = 0.7f),
+            disabledContainerColor = lightbackground.copy(alpha = 0.35f),
+            disabledContentColor = color3.copy(alpha = 0.7f),
         )
     ) {
         Row(
@@ -300,53 +260,46 @@ fun ButtonShowcasePreview() {
 
             // --- FilledButton ---
             FilledButton(
-                text = "Full Button",
+                text = "추가",
                 onClick = {},
                 size = ButtonSize.Full,
-                modifier = Modifier.width(200.dp)
             )
 
             FilledButton(
-                text = "Medium Button",
+                text = "수정 완료",
+                onClick = {},
+                size = ButtonSize.Full,
+            )
+
+            FilledButton(
+                text = "생성하기",
                 onClick = {},
                 size = ButtonSize.Medium,
                 modifier = Modifier.width(200.dp)
             )
 
             FilledButton(
-                text = "Small Button",
+                text = "그룹 생성",
                 onClick = {},
                 size = ButtonSize.Small,
                 modifier = Modifier.width(200.dp)
             )
 
             FilledButton(
-                text = "Disabled Button",
+                text = "로그인",
                 onClick = {},
-                enabled = false
+                size = ButtonSize.Round,
             )
 
             // --- FillWrapButton ---
             FillWrapButton(
-                text = "짧은 텍스트",
-                onClick = {}
-            )
-
-            FillWrapButton(
-                text = "텍스트가 조금 긴 버튼",
-                onClick = {}
-            )
-
-            // --- ElevatedRoundButton ---
-            ElevatedRoundButton(
                 text = "선택",
                 onClick = {}
             )
 
-            ElevatedRoundButton(
-                text = "비활성 선택",
-                onClick = {},
-                enabled = false
+            FillWrapButton(
+                text = "전체 비우기",
+                onClick = {}
             )
 
             // --- CameraButton ---

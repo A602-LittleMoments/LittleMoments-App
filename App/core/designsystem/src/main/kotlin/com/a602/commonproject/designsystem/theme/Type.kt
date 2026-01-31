@@ -5,11 +5,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.compose.ui.text.style.LineHeightStyle.Alignment
-import androidx.compose.ui.text.style.LineHeightStyle.Trim
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.sp
 import com.a602.commonproject.designsystem.R // 패키지명에 맞는 R 클래스 확인
 
@@ -26,9 +21,10 @@ val SuiteFontFamily = FontFamily(
     Font(R.font.suite_bold, FontWeight.Bold)       // 700
 )
 /* 폰트 사용 규칙
-* 1. 기본 색상은 color3, 상황에 따라 색 변경이 필요하다면 색상 지정 필요
+* 1. 기본 색상은 color3, labelLarge만 lightbackground, 상황에 따라 색 변경이 필요하다면 색상 지정 필요
 * 2. 폰트 크기 display > headline > title > body > label 순으로 지정
 * 3. 각 폰트에서 Large = Bold, Medium = medium, Normal = regular로 굵기 지정
+* 4. 텍스트 정렬은 본인이 사용할 때 지정
 */
 
 // 통합 타이포그래피 세트
@@ -38,10 +34,8 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 24.sp,
-        lineHeight = 48.sp,
+        lineHeight = 30.sp,
         letterSpacing = (-0.25).sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
         color = color3
     ),
     // TopAppbar 사용
@@ -50,10 +44,8 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
-        lineHeight = 40.sp,
+        lineHeight = 26.sp,
         letterSpacing = 0.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
         color = color3,
     ),
     // Polaroid 사용중
@@ -61,24 +53,16 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 20.sp,
-        lineHeight = 40.sp,
+        lineHeight = 26.sp,
         letterSpacing = 0.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
         color = color3,
     ),
     headlineSmall = TextStyle(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 20.sp,
-        lineHeight = 40.sp,
+        lineHeight = 26.sp,
         letterSpacing = 0.sp,
-        lineHeightStyle = LineHeightStyle(
-            alignment = Alignment.Bottom,
-            trim = Trim.None,
-        ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
         color = color3,
     ),
     // MemoryMakeScreen, MemoryEmptyScreen, Mypage, HighLightLoadScreen, 등 사용중
@@ -86,14 +70,9 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp,
-        lineHeight = 36.sp,
+        lineHeight = 24.sp,
         letterSpacing = 0.sp,
-        lineHeightStyle = LineHeightStyle(
-            alignment = Alignment.Bottom,
-            trim = Trim.LastLineBottom,
-        ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+        color = color3
     ),
     // 캘린더, 회원가입 사용중
     // [입력창 실제 글씨 스타일]
@@ -101,10 +80,8 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 18.sp,
-        lineHeight = 36.sp,
+        lineHeight = 24.sp,
         letterSpacing = 0.1.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
         color = color3,
     ),
 
@@ -112,10 +89,8 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 18.sp,
-        lineHeight = 36.sp,
+        lineHeight = 24.sp,
         letterSpacing = 0.1.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
         color = color3,
     ),
     // 첫 로딩 페이지 글씨, ai 하이라이트 생성 로딩 화면
@@ -123,14 +98,9 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 16.sp,
-        lineHeight = 32.sp,
-        letterSpacing = 0.5.sp,
-        lineHeightStyle = LineHeightStyle(
-            alignment = Alignment.Center,
-            trim = Trim.None,
-        ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+        lineHeight = 26.sp,
+        letterSpacing = 0.sp,
+        color = color3,
     ),
 
     // 가장 많이 쓰는 텍스트 스타일(크기만 다르게 적용하면 됨)
@@ -138,35 +108,26 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.25.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+        lineHeight = 22.sp,
+        letterSpacing = 0.sp,
         color = color3,
     ),
     bodySmall = TextStyle(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.4.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+        lineHeight = 16.sp,
+        letterSpacing = 0.sp,
         color = color3,
     ),
+
     // [메인 버튼용] "로그인", "변경하기", "구글로 로그인", "카카오톡으로 로그인" 등
     labelLarge = TextStyle(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.1.sp,
-        lineHeightStyle = LineHeightStyle(
-            alignment = Alignment.Center,
-            trim = Trim.LastLineBottom,
-        ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
+        lineHeight = 16.sp,
+        letterSpacing = 0.sp,
         color = lightbackground,
     ),
 
@@ -176,15 +137,9 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp,
+        lineHeight = 14.sp,
+        letterSpacing = 0.sp,
         color = color3,
-        lineHeightStyle = LineHeightStyle(
-            alignment = Alignment.Center,
-            trim = Trim.LastLineBottom,
-        ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
     ),
 
     // 자동 로그인, 비밀번호 찾기 문구(색깔만 바꾸면 됨)
@@ -193,15 +148,9 @@ val AppTypography = Typography(
         fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 11.sp,
-        lineHeight = 22.sp,
+        lineHeight = 13.sp,
         letterSpacing = 0.sp,
         color = color3,
-        lineHeightStyle = LineHeightStyle(
-            alignment = Alignment.Center,
-            trim = Trim.LastLineBottom,
-        ),
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
     ),
 )
 
