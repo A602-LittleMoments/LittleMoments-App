@@ -211,7 +211,7 @@ private fun PolaroidPreviewOnly(
             ) {
                 Text(
                     text = "2026.01.29",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = color3 // 🔥 headlineMedium 색상 override 확인용
                 )
 
@@ -219,7 +219,7 @@ private fun PolaroidPreviewOnly(
 
                 Text(
                     text = "by 엄마",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = color3
                 )
             }
@@ -229,7 +229,7 @@ private fun PolaroidPreviewOnly(
             // 📝 caption
             Text(
                 text = "프리뷰용 캡션입니다. 폰트/컬러/정렬 확인!",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.labelLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
