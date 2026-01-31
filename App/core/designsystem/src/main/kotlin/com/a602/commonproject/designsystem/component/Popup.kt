@@ -42,7 +42,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import com.a602.commonproject.designsystem.R
@@ -81,7 +83,8 @@ fun ConfirmDeleteDialog(
                 text = "삭제된 항목은 복구할 수 없습니다.",
                 modifier = Modifier.fillMaxWidth(),
                 color = LMDialogDefaults.textColor(),
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
 
             )
@@ -92,7 +95,8 @@ fun ConfirmDeleteDialog(
                 Text(
                     "삭제",
                     color = LMDialogDefaults.confirmTextColor(),
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
                 )
             }
         },
@@ -101,7 +105,8 @@ fun ConfirmDeleteDialog(
                 Text(
                     "취소",
                     color = LMDialogDefaults.dismissTextColor(),
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -189,13 +194,13 @@ fun RoleItem(
         Column{
             Text(
                 text = title,
-                style = MaterialTheme.typography.headlineLarge,
-                color = LMGroupDialogDefaults.titleColor()
+                style = MaterialTheme.typography.titleLarge,
             )
+            Spacer(Modifier.height(4.dp))
             Text(
                 text = desc,
-                style = MaterialTheme.typography.labelMedium,
-                color = LMGroupDialogDefaults.descColor()
+                style = MaterialTheme.typography.labelLarge,
+                color = color4
             )
         }
     }

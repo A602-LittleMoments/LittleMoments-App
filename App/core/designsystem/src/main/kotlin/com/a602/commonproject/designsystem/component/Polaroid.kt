@@ -93,14 +93,12 @@ fun Polaroid(
             ) {
                 Text(
                     text = dateText,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = color3
+                    style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "by ${media.uploaderName ?: ""}",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = color3
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
 
@@ -110,7 +108,8 @@ fun Polaroid(
                     text = caption,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.labelLarge,
+                    color = color3
                 )
             }
         }

@@ -62,6 +62,7 @@ fun MediaDetailScreen(
 
                 // 액션바
                 IconActionBar(
+                    modifier = Modifier.fillMaxWidth(),
                     onDelete = onDelete,
                     onDownload = onDownload,
                     onEdit = onEdit,
