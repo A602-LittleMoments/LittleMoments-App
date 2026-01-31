@@ -27,6 +27,7 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.Image
+import androidx.compose.ui.text.font.FontWeight
 
 
 @Composable
@@ -93,14 +94,12 @@ fun Polaroid(
             ) {
                 Text(
                     text = dateText,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = color3
+                    style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "by ${media.uploaderName ?: ""}",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = color3
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
 
@@ -110,7 +109,8 @@ fun Polaroid(
                     text = caption,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.labelLarge,
+                    color = color3
                 )
             }
         }
@@ -212,7 +212,7 @@ private fun PolaroidPreviewOnly(
             ) {
                 Text(
                     text = "2026.01.29",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = color3 // 🔥 headlineMedium 색상 override 확인용
                 )
 
@@ -220,7 +220,7 @@ private fun PolaroidPreviewOnly(
 
                 Text(
                     text = "by 엄마",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = color3
                 )
             }
@@ -230,7 +230,8 @@ private fun PolaroidPreviewOnly(
             // 📝 caption
             Text(
                 text = "프리뷰용 캡션입니다. 폰트/컬러/정렬 확인!",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

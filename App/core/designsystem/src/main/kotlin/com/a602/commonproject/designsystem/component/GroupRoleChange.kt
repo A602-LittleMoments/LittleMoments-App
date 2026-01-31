@@ -22,7 +22,6 @@ import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.designsystem.icon.LMicons
 import androidx.compose.ui.tooling.preview.Preview
 
-
 @Composable
 fun GroupRoleChangeDialog(
     currentRole: String, // "MEMBER" 또는 "VIEWER"
@@ -73,13 +72,14 @@ fun GroupRoleChangeDialog(
                     Spacer(modifier = Modifier.size(48.dp)) // 왼쪽 여백
                     Text(
                         text = "권한 변경",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = LMGroupDialogDefaults.titleColor(),
+                        style = MaterialTheme.typography.headlineLarge,
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center
                     )
                     IconButton(onClick = onCloseClick) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "닫기")
+                        Icon(imageVector = Icons.Default.Close,
+                            contentDescription = "닫기",
+                            tint = color3)
                     }
                 }
 
@@ -117,22 +117,21 @@ fun GroupRoleChangeDialog(
 
                 Spacer(Modifier.height(24.dp))
 
-                Button(
+                FilledButton(
+                    text = "변경하기",
                     onClick = { onConfirm(isMemberSelected) },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = LMGroupDialogDefaults.confirmButtonColor()
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text("변경하기", style = AppTypography.labelLarge)
-                }
+                    modifier = Modifier.fillMaxWidth(),
+                    size = ButtonSize.Medium
+                )
             }
         }
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
+
+
+
+@Preview(showBackground = true, widthDp = 411, heightDp = 640)
 @Composable
 fun GroupRoleChangeDialogPreview() {
     LMTheme {

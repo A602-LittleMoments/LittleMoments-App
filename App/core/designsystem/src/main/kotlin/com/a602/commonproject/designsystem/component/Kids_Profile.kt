@@ -56,7 +56,7 @@ fun ProfileHead(
     modifier: Modifier = Modifier,
 
     // --- 외형 설정 ---
-    size: Dp = 180.dp,               // 얼굴 크기
+    size: Dp = 154.dp,               // 얼굴 크기
     borderWidth: Dp = 10.dp,          // 테두리 두께
     borderColor: Color = color5,      // 테두리 색
     placeholderColor: Color = gray2,  // 이미지 없을 때 배경색
@@ -172,10 +172,10 @@ fun ProfileFullAstronaut(
     modifier: Modifier = Modifier,
 
     // --- 얼굴/몸 크기 설정 ---
-    headSize: Dp = 180.dp,            // 얼굴 크기
+    headSize: Dp = 154.dp,            // 얼굴 크기
     bodyResId: Int = R.drawable.astronaut_body_2,
-    bodyWidth: Dp = 240.dp,           // 우주복 이미지 크기
-    bodyOffsetY: Dp = 130.dp,         // 얼굴 기준 Y 오프셋
+    bodyWidth: Dp = 90.dp,           // 우주복 이미지 크기
+    bodyOffsetY: Dp = 134.dp,         // 얼굴 기준 Y 오프셋
 
     // --- 상호작용 제어 ---
     clickableEnabled: Boolean = false,

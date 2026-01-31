@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,7 +50,8 @@ fun LMCard(
     ElevatedCard(
         onClick = onClick,
         modifier = modifier
-            .fillMaxWidth()
+            .fillMaxWidth(0.9f)
+            .widthIn(min= 280.dp, max = 350.dp)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.elevatedCardColors(
@@ -86,9 +89,12 @@ fun LMCard(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
                     color = LMCardDefaults.titleColor(),
                     textAlign = TextAlign.Start
                 )
+
+                Spacer(modifier = Modifier.size(4.dp))
 
                 Text(
                     text = description,
@@ -169,7 +175,7 @@ object LMCardDefaults {
 
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 411)
 @Composable
 fun LMCardPreview() {
     LMTheme {
