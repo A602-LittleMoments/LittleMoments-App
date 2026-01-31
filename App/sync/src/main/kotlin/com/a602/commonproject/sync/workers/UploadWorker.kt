@@ -35,8 +35,6 @@ class UploadWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         try {
             // 시스템입장에서 포그라운드에서 도는 것 (화면 기준으로는 백그라우느드 작업)
-            setForeground(getForegroundInfo())
-
             // 1. 전달받은 groupId 꺼내기
             val groupId = userRepository.getCurrentGroupId()
 
