@@ -31,13 +31,42 @@ import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.lightbackground
-import com.a602.commonproject.feature.gallery.veiwmodel.CalendarViewModel
+import com.a602.commonproject.feature.gallery.viewmodel.CalendarViewModel
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.model.data.SharedMedia.SyncStatus.SYNCED
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+
+@Composable
+fun CalendarRoute(
+    onDateClick: () -> Unit,
+    onGridClick: () -> Unit,
+    onTempAlbumClick: () -> Unit,
+    onHighLightClick: () -> Unit,
+    viewModel: CalendarViewModel = hiltViewModel()
+) {
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    when {
+        uiState.isLoading -> Text("불러오는 중…")
+        uiState.error != null -> Text(uiState.error!!)
+        else -> CalendarScreen(
+            medias = uiState.medias,
+            onDateClick = onDateClick,
+            onGridClick = onGridClick,
+            onTempAlbumClick = onTempAlbumClick,
+            onHighLightClick = onHighLightClick,
+        )
+    }
+}
+
+
 
 data class CalendarDay(
     val date: LocalDate?,
@@ -78,49 +107,14 @@ fun mapToCalendarDays(
             )
         )
     }
+    // 뒤 빈칸
+    while (days.size % 7 != 0) {
+        days.add(CalendarDay(date = null))
+    }
 
     return days
 }
-@Composable
-fun CalendarRoute(
-    onDateClick: () -> Unit,
-    onGridClick: () -> Unit,
-    onTempAlbumClick: () -> Unit,
-    onHighLightClick: () -> Unit,
-    viewModel: CalendarViewModel = hiltViewModel()
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    CalendarScreen(
-        medias = uiState.medias,
-        onDateClick = onDateClick,
-        onGridClick = onGridClick,
-        onTempAlbumClick = onTempAlbumClick,
-        onHighLightClick = onHighLightClick,
-    )
-}
-
-//
-//@Composable
-//fun CalendarRoute(
-//    onDateClick: () -> Unit,
-//    onGridClick: () -> Unit,
-//    onTempAlbumClick: () -> Unit,
-//    onHighLightClick: () -> Unit,
-//    modifier: Modifier = Modifier,
-//    viewModel: CalendarViewModel = hiltViewModel(),
-//) {
-//    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-//
-//    CalendarScreen(
-//        medias = uiState.medias,
-//        onDateClick = onDateClick,
-//        onGridClick = onGridClick,
-//        onTempAlbumClick = onTempAlbumClick,
-//        onHighLightClick = onHighLightClick,
-//    )
-//}
-//
 
 @Composable
 fun CalendarScreen(

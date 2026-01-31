@@ -11,13 +11,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.component.FillWrapButton
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
+import com.a602.commonproject.feature.gallery.viewmodel.GridGalleryViewmodel
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.coommonproject.ui.GalleryGridPolaroid
 
@@ -26,10 +30,13 @@ import com.a602.coommonproject.ui.GalleryGridPolaroid
 fun GridRoute(
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
-) {
-    val medias = emptyList<SharedMedia>()
+    viewModel: GridGalleryViewmodel = hiltViewModel(),
+
+    ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     GridGalleryScreen(
-        medias = medias,
+        medias = uiState.medias,
         onCalendarClick = onCalendarClick,
         onMediaClick = onMediaClick,
     )

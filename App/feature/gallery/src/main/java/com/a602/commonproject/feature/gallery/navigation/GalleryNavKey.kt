@@ -21,7 +21,7 @@ data object GridNavKey : NavKey
 // 사진 상세보기
 
 @Serializable
-data class PhotoDetailNavKey(
+data class MediaDetailNavKey(
     val mediaId: String
 ) : NavKey
 
