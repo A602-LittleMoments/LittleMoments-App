@@ -27,6 +27,7 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.Image
+import androidx.compose.ui.text.font.FontWeight
 
 
 @Composable
@@ -229,7 +230,8 @@ private fun PolaroidPreviewOnly(
             // 📝 caption
             Text(
                 text = "프리뷰용 캡션입니다. 폰트/컬러/정렬 확인!",
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
