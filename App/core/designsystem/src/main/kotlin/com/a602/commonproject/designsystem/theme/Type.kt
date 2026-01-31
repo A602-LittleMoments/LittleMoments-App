@@ -13,71 +13,65 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.sp
 import com.a602.commonproject.designsystem.R // 패키지명에 맞는 R 클래스 확인
 
-// 1. 폰트 폴더에 넣은 파일들(suite 글꼴)을 하나의 패밀리로 묶기
-val NewFontFamily = FontFamily(
-    Font(R.font.light, FontWeight.Normal),
-    Font(R.font.regular, FontWeight.Medium),
-    Font(R.font.bold, FontWeight.Bold)
-)
+// 다른 임시 폰트
+//val NewFontFamily = FontFamily(
+//    Font(R.font.lineseed_thin, FontWeight.Normal),
+//    Font(R.font.lineseed_regular, FontWeight.Medium),
+//    Font(R.font.lineseed_bold, FontWeight.Bold)
+//)
 
+val SuiteFontFamily = FontFamily(
+    Font(R.font.suite_regular, FontWeight.Normal), // 400
+    Font(R.font.suite_medium, FontWeight.Medium),   // 500
+    Font(R.font.suite_bold, FontWeight.Bold)       // 700
+)
+/* 폰트 사용 규칙
+* 1. 기본 색상은 color3, 상황에 따라 색 변경이 필요하다면 색상 지정 필요
+* 2. 폰트 크기 display > headline > title > body > label 순으로 지정
+* 3. 각 폰트에서 Large = Bold, Medium = medium, Normal = regular로 굵기 지정
+*/
 
 // 통합 타이포그래피 세트
 val AppTypography = Typography(
+    // 화면 로딩 중인데 크게 보여줘야할 때 사용
     displayLarge = TextStyle(
-        fontFamily = NewFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 57.sp,
-        lineHeight = 64.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 24.sp,
+        lineHeight = 48.sp,
         letterSpacing = (-0.25).sp,
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
-        color = color3,
+        color = color3
     ),
-    displayMedium = TextStyle(
-        fontFamily = NewFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 45.sp,
-        lineHeight = 52.sp,
-        letterSpacing = 0.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
-        color = color3,
-    ),
-    displaySmall = TextStyle(
-        fontFamily = NewFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 36.sp,
-        lineHeight = 44.sp,
-        letterSpacing = 0.sp,
-        textDirection = TextDirection.Ltr,
-        textAlign = TextAlign.Left,
-        color = color3,
-    ),
+    // TopAppbar 사용
+    // Dday bar, Popup, Tab, GalleryScreen 사용중
     headlineLarge = TextStyle(
-        fontFamily = NewFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 32.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
         lineHeight = 40.sp,
         letterSpacing = 0.sp,
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
         color = color3,
     ),
+    // Polaroid 사용중
     headlineMedium = TextStyle(
-        fontFamily = NewFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 20.sp,
+        lineHeight = 40.sp,
         letterSpacing = 0.sp,
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
         color = color3,
     ),
     headlineSmall = TextStyle(
-        fontFamily = NewFontFamily,
+        fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
+        fontSize = 20.sp,
+        lineHeight = 40.sp,
         letterSpacing = 0.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = Alignment.Bottom,
@@ -87,11 +81,12 @@ val AppTypography = Typography(
         textAlign = TextAlign.Left,
         color = color3,
     ),
+    // MemoryMakeScreen, MemoryEmptyScreen, Mypage, HighLightLoadScreen, 등 사용중
     titleLarge = TextStyle(
-        fontFamily = NewFontFamily,
+        fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
+        fontSize = 18.sp,
+        lineHeight = 36.sp,
         letterSpacing = 0.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = Alignment.Bottom,
@@ -100,12 +95,13 @@ val AppTypography = Typography(
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
     ),
+    // 캘린더, 회원가입 사용중
     // [입력창 실제 글씨 스타일]
     titleMedium = TextStyle(
-        fontFamily = NewFontFamily,
-        fontWeight = FontWeight.Bold,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Medium,
         fontSize = 18.sp,
-        lineHeight = 24.sp,
+        lineHeight = 36.sp,
         letterSpacing = 0.1.sp,
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
@@ -113,10 +109,10 @@ val AppTypography = Typography(
     ),
 
     titleSmall = TextStyle(
-        fontFamily = NewFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 18.sp,
+        lineHeight = 36.sp,
         letterSpacing = 0.1.sp,
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
@@ -124,10 +120,10 @@ val AppTypography = Typography(
     ),
     // 첫 로딩 페이지 글씨, ai 하이라이트 생성 로딩 화면
     bodyLarge = TextStyle(
-        fontFamily = NewFontFamily,
-        fontWeight = FontWeight.Normal,
+        fontFamily = SuiteFontFamily,
+        fontWeight = FontWeight.Bold,
         fontSize = 16.sp,
-        lineHeight = 24.sp,
+        lineHeight = 32.sp,
         letterSpacing = 0.5.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = Alignment.Center,
@@ -139,20 +135,20 @@ val AppTypography = Typography(
 
     // 가장 많이 쓰는 텍스트 스타일(크기만 다르게 적용하면 됨)
     bodyMedium = TextStyle(
-        fontFamily = NewFontFamily,
+        fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        lineHeight = 20.sp,
+        lineHeight = 28.sp,
         letterSpacing = 0.25.sp,
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
         color = color3,
     ),
     bodySmall = TextStyle(
-        fontFamily = NewFontFamily,
+        fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
-        lineHeight = 16.sp,
+        lineHeight = 24.sp,
         letterSpacing = 0.4.sp,
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
@@ -160,10 +156,10 @@ val AppTypography = Typography(
     ),
     // [메인 버튼용] "로그인", "변경하기", "구글로 로그인", "카카오톡으로 로그인" 등
     labelLarge = TextStyle(
-        fontFamily = NewFontFamily,
+        fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
-        lineHeight = 20.sp,
+        lineHeight = 28.sp,
         letterSpacing = 0.1.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = Alignment.Center,
@@ -177,28 +173,29 @@ val AppTypography = Typography(
     // [입력창 글씨] "이름", "이메일", "현재 비밀번호"
     // "아직 아이랑 나랑 회원이 아니신가요? 회원가입"
     labelMedium = TextStyle(
-        fontFamily = NewFontFamily,
+        fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp,
+        color = color3,
         lineHeightStyle = LineHeightStyle(
             alignment = Alignment.Center,
             trim = Trim.LastLineBottom,
         ),
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
-        color = color3,
     ),
 
     // 자동 로그인, 비밀번호 찾기 문구(색깔만 바꾸면 됨)
     // [에러 문구] "비밀번호가 일치하지 않습니다.", "영문/숫자 조합..." (빨간색 + lineHeight = 17.06.sp 지우기)
     labelSmall = TextStyle(
-        fontFamily = NewFontFamily,
+        fontFamily = SuiteFontFamily,
         fontWeight = FontWeight.Medium,
-        fontSize = 10.sp,
-        lineHeight = 14.sp,
+        fontSize = 11.sp,
+        lineHeight = 22.sp,
         letterSpacing = 0.sp,
+        color = color3,
         lineHeightStyle = LineHeightStyle(
             alignment = Alignment.Center,
             trim = Trim.LastLineBottom,
@@ -206,8 +203,6 @@ val AppTypography = Typography(
         textDirection = TextDirection.Ltr,
         textAlign = TextAlign.Left,
     ),
-
-
 )
 
 
