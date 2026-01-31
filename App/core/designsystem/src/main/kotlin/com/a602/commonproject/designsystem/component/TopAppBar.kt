@@ -34,7 +34,7 @@ fun LMTopAppBar(
                     title = {
                         Text(
                             text = title,
-                style = MaterialTheme.typography.headlineLarge
+                            style = MaterialTheme.typography.headlineLarge
             )
         },
         navigationIcon = {
