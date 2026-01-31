@@ -86,16 +86,16 @@ private val LightColorScheme = lightColorScheme(
     onTertiary = lightbackground,
 
     background = background,          // 앱의 전체 기본 배경 (아이보리)
-    onBackground = color5,            // 기본 배경 위의 메인 텍스트 (짙은 네이비)
+    onBackground = color3,            // 기본 배경 위의 메인 텍스트 (짙은 네이비)
 
     surface = lightbackground,        // 카드, 다이얼로그 등 들어올려진 UI 요소
-    onSurface = color5,               // 표면 위의 텍스트
+    onSurface = color3,               // 표면 위의 텍스트
 
     error = errorRed,                 // 에러 상태
     onError = lightbackground,
 
-    outline = gray1,                  // 경계선이나 구분선
-    outlineVariant = gray2            // 좀 더 짙은 구분선
+    outline = shadow,                  // 경계선이나 구분선
+    outlineVariant = gray2,           // 좀 더 옅은 구분선
 )
 
 @Composable
