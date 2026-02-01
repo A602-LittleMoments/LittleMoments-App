@@ -39,20 +39,23 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.window.Dialog
+import com.a602.commonproject.designsystem.component.LMEditInputField
 import com.a602.commonproject.model.data.GroupRole
 
 // 공용 함수로 분리
 public fun getColorForRole(role: GroupRole): Color {
     return when (role) {
         GroupRole.OWNER -> main
-        GroupRole.MEMBER -> color1
-        GroupRole.VIEWER -> purple1
+        GroupRole.MEMBER -> purple1
+        GroupRole.VIEWER -> purple5
         else -> gray1
     }
 }
@@ -84,7 +87,7 @@ public fun ManageableMemberItem(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = name, style = AppTypography.bodyMedium)
+                        Text(text = name, style = MaterialTheme.typography.bodyMedium)
                         Spacer(modifier = Modifier.width(6.dp))
                         Surface(
                             color = gray1,
@@ -93,7 +96,7 @@ public fun ManageableMemberItem(
                             Text(
                                 text = groupName,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                style = AppTypography.labelSmall,
+                                style = MaterialTheme.typography.labelSmall,
                                 color = color4
                             )
                         }
@@ -109,20 +112,8 @@ public fun ManageableMemberItem(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = role, color = tint, style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                        Text(text = role, color = tint, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                     }
-                }
-            }
-
-            // 권한 변경 버튼 (현서님이 요청하신 파란 상자 스타일)
-            if (!isOwner) {
-                Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = color3),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp),
-                    onClick = onEditClick,
-                ) {
-                    Text(text = "권한 변경", fontSize = 11.sp, color = lightbackground)
                 }
             }
         }
@@ -134,7 +125,7 @@ public fun ManageableMemberItem(
 fun GroupSummaryCard(
     groupName: String,
     description: String,
-    onEditClick: (() -> Unit)? = null
+    onEditClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -164,20 +155,17 @@ fun GroupSummaryCard(
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Text(text = groupName, style = AppTypography.bodyMedium)
-                    Text(text = description, style = AppTypography.labelSmall, color = color4)
+                    Text(text = groupName, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = description, style = MaterialTheme.typography.labelSmall, color = color4)
                 }
             }
-            if (onEditClick != null) {
-                IconButton(onClick = onEditClick) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "그룹 이름 수정", tint = color3)
-                }
+            IconButton(onClick = onEditClick) {
+                Icon(imageVector = LMicons.Edit, contentDescription = "그룹 이름 수정", tint = color3)
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupNameEditDialog(
     currentName: String,
@@ -186,28 +174,45 @@ fun GroupNameEditDialog(
 ) {
     var newName by remember { mutableStateOf(currentName) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("그룹 이름 변경") },
-        text = {
-            OutlinedTextField(
-                value = newName,
-                onValueChange = { newName = it },
-                label = { Text("새 그룹 이름") },
-                singleLine = true
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(newName) }) {
-                Text("확인")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("취소")
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = lightbackground),
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "그룹 이름 변경",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = color3
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                LMEditInputField(
+                    value = newName,
+                    onValueChange = { newName = it },
+                    label = "새 그룹 이름",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("취소")
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = { onConfirm(newName) }) {
+                        Text("확인")
+                    }
+                }
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -215,21 +220,19 @@ fun PermissionGuideSection() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = lightbackground),
-        border = androidx.compose.foundation.BorderStroke(1.dp, lightblue)
+        colors = CardDefaults.cardColors(containerColor = lightbackground)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = "권한 안내",
-                style = AppTypography.headlineSmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = color3
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 각 권한별 행 배치
-            PermissionRow(icon = Icons.Default.EmojiEvents, title = "관리자", desc = "모든 권한", role = GroupRole.OWNER)
-            PermissionRow(icon = LMicons.Shield, title = "멤버", desc = "편집 및 업로드 가능", role = GroupRole.MEMBER)
-            PermissionRow(icon = Icons.Default.StarBorder, title = "뷰어", desc = "보기만 가능", role = GroupRole.VIEWER)
+            PermissionRow(icon = Icons.Default.EmojiEvents, title = "OWNER", desc = " - 모든 권한", role = GroupRole.OWNER)
+            PermissionRow(icon = LMicons.Shield, title = "MEMBER", desc = " - 편집 및 업로드 가능", role = GroupRole.MEMBER)
+            PermissionRow(icon = Icons.Default.StarBorder, title = "VIEWER", desc = " - 보기만 가능", role = GroupRole.VIEWER)
         }
     }
 }
@@ -244,7 +247,7 @@ fun PermissionRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: 
     ) {
         Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = title, style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Bold), color = color)
-        Text(text = " - $desc", style = AppTypography.labelSmall, color = color4)
+        Text(text = title, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = color)
+        Text(text = desc, style = MaterialTheme.typography.labelSmall, color = color4)
     }
 }
