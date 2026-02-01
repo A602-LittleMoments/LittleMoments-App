@@ -153,12 +153,15 @@ fun CalendarScreen(
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .offset(y = (-40).dp)
+            ) {
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 10.dp),
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     FillWrapButton(
@@ -171,7 +174,7 @@ fun CalendarScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 16.dp)
+                        .padding(vertical = 6.dp, horizontal = 16.dp)
                         .background(lightbackground, shape = RoundedCornerShape(20.dp))
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -224,8 +227,6 @@ fun CalendarScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
@@ -241,7 +242,7 @@ fun CalendarPhotoView(
 
     Column {
         DayOfWeekHeader()
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
 
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
@@ -253,7 +254,7 @@ fun CalendarPhotoView(
 
             val missing = (6 - rows).coerceAtLeast(0)
             val offsetY = (missing * oneRowHeight) / 2
-
+            // 날짜영역
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
