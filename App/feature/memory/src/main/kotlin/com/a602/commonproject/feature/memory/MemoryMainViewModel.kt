@@ -52,7 +52,7 @@ class MemoryMainViewModel @AssistedInject constructor(
                         _uiState.value = MemoryMainUiState.Empty
                     } else {
                         _uiState.value = MemoryMainUiState.Make(list)
-                        delay(5_000)
+                        delay(2_000)
                         _uiState.value = MemoryMainUiState.Main(list)
                     }
                 }

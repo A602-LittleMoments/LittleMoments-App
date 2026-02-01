@@ -15,10 +15,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import com.a602.commonproject.designsystem.theme.LMTheme
 
 @Composable
 fun MemoryMakeScreen(
-    totalMillis: Int = 5_000,
+    totalMillis: Int = 2_000,
 ) {
     val progress = remember { Animatable(0f) }
 
@@ -42,23 +43,23 @@ fun MemoryMakeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
-                .offset(y = 40.dp),
+                .offset(y = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(180.dp))
 
             Image(
-                painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.rocket),
+                painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.rocket2),
                 contentDescription = null,
-                modifier = Modifier.size(170.dp),
+                modifier = Modifier.size(150.dp),
                 contentScale = ContentScale.Fit
             )
 
-            Spacer(Modifier.height(22.dp))
+            Spacer(Modifier.height(30.dp))
 
             Text(
                 text = "AI가 새로운 행성을 생성했어요",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.height(8.dp))
@@ -73,7 +74,7 @@ fun MemoryMakeScreen(
             LinearProgressIndicator(
                 progress = { progress.value },
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(0.8f)
                     .height(10.dp),
             )
 
@@ -104,9 +105,11 @@ private fun Dot(scale: Float) {
     ) {}
 }
 
-@Preview(showBackground = true, name = "Memory - Loading")
+@Preview(showBackground = true, name = "Memory - Loading", widthDp = 411)
 @Composable
 private fun Preview_Memory_Loading() {
-    MemoryMakeScreen(totalMillis = 5_000)
+    LMTheme {
+        MemoryMakeScreen(totalMillis = 2_000)
+    }
 }
 
