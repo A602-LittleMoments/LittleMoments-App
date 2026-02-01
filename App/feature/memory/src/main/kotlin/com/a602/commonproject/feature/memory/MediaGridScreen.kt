@@ -1,5 +1,7 @@
 package com.a602.commonproject.feature.memory
 
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -28,7 +30,9 @@ fun MediaGridScreen(
     ) { innerPadding ->
         GalleryGridPolaroid(
             medias = medias,
-            modifier = modifier.padding(innerPadding),
+            modifier = modifier.padding(
+                top = innerPadding.calculateTopPadding(),
+            ),
             onClick = { clicked ->
                 onMediaClick(clicked.id)
             }

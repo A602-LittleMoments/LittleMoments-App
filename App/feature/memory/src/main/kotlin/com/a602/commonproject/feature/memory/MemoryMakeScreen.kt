@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -19,16 +20,20 @@ import com.a602.commonproject.designsystem.theme.LMTheme
 
 @Composable
 fun MemoryMakeScreen(
-    totalMillis: Int = 2_000,
+    totalMillis: Int = 1_000,
 ) {
     val progress = remember { Animatable(0f) }
+    var started by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(totalMillis) {
-        progress.snapTo(0f)
-        progress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = totalMillis, easing = LinearEasing)
-        )
+        if (!started) {
+            started = true
+            progress.snapTo(0f)
+            progress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = totalMillis, easing = LinearEasing)
+            )
+        }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -109,7 +114,7 @@ private fun Dot(scale: Float) {
 @Composable
 private fun Preview_Memory_Loading() {
     LMTheme {
-        MemoryMakeScreen(totalMillis = 2_000)
+        MemoryMakeScreen(totalMillis = 1_000)
     }
 }
 

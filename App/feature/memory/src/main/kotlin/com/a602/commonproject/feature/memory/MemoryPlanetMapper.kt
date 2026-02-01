@@ -38,10 +38,10 @@ private fun pickStablePlanetRes(categoryValue: String, keywordId: String): Int {
 
 // collectionSize 기반 크기
 private fun sizeFromCollectionSize(size: Int): Dp = when {
-    size >= 50 -> 150.dp
-    size >= 30 -> 130.dp
-    size >= 15 -> 110.dp
-    else -> 100.dp
+    size >= 200 -> 120.dp
+    size >= 100 -> 100.dp
+    size >= 50 -> 80.dp
+    else -> 80.dp
 }
 
 /**
