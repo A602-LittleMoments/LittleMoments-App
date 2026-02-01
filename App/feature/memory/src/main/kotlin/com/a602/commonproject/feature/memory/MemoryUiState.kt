@@ -15,6 +15,7 @@ data class KeywordPlanetUi(
     val xRatio: Float, // 0.0f(왼쪽) ~ 1.0f(오른쪽)
     val y: Dp,
     val size: Dp,
+    val label: String, // 행성 밑에 표시할 키워드
 )
 
 data class PlanetLayoutResult(

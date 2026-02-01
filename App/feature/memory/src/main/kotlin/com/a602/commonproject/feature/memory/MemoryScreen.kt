@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -12,23 +14,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.model.data.Collection
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import com.a602.commonproject.designsystem.theme.main
 
+private val LMTopBarHeight = 56.dp
 @Composable
 fun MemoryScreen(
     items: List<Collection>,
     onPlanetClick: (String) -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val layout = remember(items, maxWidth, maxHeight) {
+        val layout = remember(items, maxWidth, maxHeight
+        ) {
             buildPlanetsUiLaneLayout(
                 items = items,
                 viewportWidth = maxWidth,
                 viewportHeight = maxHeight,
-                bottomSafeArea = 96.dp,
-            )
+                bottomSafeArea = 80.dp,
+                )
         }
-
         PlanetsScrollContent(
             planets = layout.planets,
             canvasHeight = layout.canvasHeight,
@@ -56,7 +66,7 @@ private fun PlanetsScrollContent(
                 .height(canvasHeight)
         ) {
             Image(
-                painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.many_planet),
+                painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.memory_background2),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
@@ -65,17 +75,36 @@ private fun PlanetsScrollContent(
             BoxWithConstraints(Modifier.fillMaxSize()) {
                 val maxW = maxWidth
                 planets.forEach { p ->
-                    val x = (maxW * p.xRatio).coerceIn(0.dp, maxW - p.size)
+                    val x = ((maxW * p.xRatio) - (p.size / 2)).coerceIn(0.dp, maxW - p.size)
 
-                    Image(
-                        painter = painterResource(id = p.planetResId),
-                        contentDescription = null,
+                    Column (
                         modifier = Modifier
                             .offset(x = x, y = p.y)
-                            .size(p.size)
+                            .width(p.size)
                             .clickable { onPlanetClick(p.keywordId) },
-                        contentScale = ContentScale.Fit
-                    )
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(modifier = Modifier.size(p.size)) {
+                            Image(
+                                painter = painterResource(id = p.planetResId),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                        Spacer(Modifier.height(6.dp))
+
+                        Text(
+                            text = p.label,
+                            modifier = Modifier.fillMaxWidth(), // 텍스트 폭 제한
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+
+
                 }
             }
         }
@@ -93,9 +122,11 @@ private fun Preview_Memory_Planets() {
         Collection("c4", "기념", "k4", "생일", 5),
         Collection("c5", "여행", "k5", "바다", 50),
     )
+    LMTheme {
+        MemoryScreen(
+            items = items,
+            onPlanetClick = {}
+        )
+    }
 
-    MemoryScreen(
-        items = items,
-        onPlanetClick = {}
-    )
 }
