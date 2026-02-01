@@ -74,10 +74,10 @@ data class MediaResponse(
     val mediaType: String,
 
     val storageUrl: String,
-    val thumbUrl: String,
+    val thumbUrl: String?,
 
-    val subStorageUrl: String,
-    val subThumbUrl: String,
+    val subStorageUrl: String?,
+    val subThumbUrl: String?,
 
     val takenAt: String,
     val cameraFacing: String,
@@ -107,7 +107,7 @@ data class MediaDetailResponse(
     val uploadedBy: UserResponse, // auth 패키지의 User 재사용
     val mediaType: String,
     val storageUrl: String,
-    val thumbUrl: String,
+    val thumbUrl: String?,
     val takenAt: String,
     val cameraFacing: String?,
     val orientation: Int,

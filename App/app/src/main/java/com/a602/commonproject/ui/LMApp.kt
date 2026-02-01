@@ -1,13 +1,16 @@
 package com.a602.commonproject.ui.theme
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold // 표준 Scaffold 사용
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.NavDisplay
@@ -25,6 +28,7 @@ import com.a602.commonproject.navigation.TOP_LEVEL_NAV_ITEMS
 import com.a602.commonproject.navigation.toEntries
 import com.a602.commonproject.ui.rememberLMAppState
 import com.a602.commonproject.designsystem.component.CameraButton
+import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.feature.gallery.GalleryNavKey
 import com.a602.commonproject.feature.gallery.navigation.galleryEntries
 import com.a602.commonproject.feature.memory.navigation.MemoryNavKey
@@ -37,6 +41,7 @@ fun LMApp() {
     // 1. NavigationSuiteScaffold 대신 표준 Scaffold 사용
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = Color.Transparent,
         floatingActionButtonPosition = FabPosition.Center,
         bottomBar = {
             // 2. ✨ 사용자님이 만든 LMNavigationBar 적용
@@ -63,7 +68,8 @@ fun LMApp() {
         },
         floatingActionButton = {
             // ✨ 홈, 앨범, 추억 탭에서만 FAB 표시
-            val currentKey = appState.navigationState.currentTopLevelKey
+            // [Fix] currentTopLevelKey 대신 currentKey를 사용하여, 현재 '화면'이 탑 레벨일 때만 버튼이 나오도록 수정
+            val currentKey = appState.navigationState.currentKey
             val isTopLevelTab = currentKey == HomeNavKey || currentKey == GalleryNavKey || currentKey == MemoryNavKey
 
             if (isTopLevelTab) {

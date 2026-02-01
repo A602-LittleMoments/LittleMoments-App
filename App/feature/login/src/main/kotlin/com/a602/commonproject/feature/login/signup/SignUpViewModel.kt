@@ -17,6 +17,8 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import com.a602.commonproject.model.data.AuthState
+import kotlinx.coroutines.flow.first
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
@@ -27,6 +29,11 @@ class SignUpViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SignUpUiState())
     val uiState = _uiState.asStateFlow()
+
+    init {
+        // "3번은 하지 말고" -> init 블록 로직 제거
+    }
+
 
     // =================================================================
     // 1️⃣ User Info Step
@@ -78,9 +85,7 @@ class SignUpViewModel @Inject constructor(
                     fcmToken = token,
                 ).onFailure { throw Exception("회원가입 실패: ${it.message}") }
 
-                // 2. 로그인 요청 (가입 후 바로 토큰을 받아오기 위함)
-                userRepository.login(currentState.email, currentState.password, token)
-                    .onFailure { throw Exception("자동 로그인 실패: ${it.message}") }
+
 
                 // 3. 그룹 가입 여부 확인
                 // 그룹이 없으면 showGroupDialog = true가 되어 다이얼로그가 뜸
@@ -208,6 +213,24 @@ class SignUpViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            userRepository.logout()
+        }
+    }
+
+    fun checkLoggedInAndGroupStatus() {
+        viewModelScope.launch {
+            val authState = userRepository.authState.first()
+            if (authState is AuthState.LoggedIn) {
+                val groupId = userRepository.getCurrentGroupId()
+                if (groupId.isNullOrBlank()) {
+                    _uiState.update { it.copy(showGroupDialog = true) }
+                }
+            }
+        }
     }
 }
 

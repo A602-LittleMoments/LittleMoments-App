@@ -26,9 +26,12 @@ data class MemoryDetailUiState(
 
 @HiltViewModel(assistedFactory = MemoryDetailViewModel.Factory::class)
 class MemoryDetailViewModel @AssistedInject constructor(
+    // 서버 연결할 때 주석 해제
+//    private val collectionRepository: CollectionRepository,
     @Assisted val key: MemoryDetailKey,
 ) : ViewModel() {
 
+    // 서버 연결하면 주석 처리 or 삭제
     private val collectionRepository =
         MemoryRepoProvider.collectionRepository
 

@@ -70,7 +70,7 @@ internal interface RetrofitAuthApi {
     @Headers("Auth: No")
     @POST("auth/refresh")
     suspend fun refreshToken(
-        @Header("Authorization") refreshToken: String
+        @Body refreshToken: String
     ): TokenResponse
 
     // *** 서버에서 추가 필요

@@ -24,9 +24,12 @@ data class MemoryGridUiState(
 
 @HiltViewModel(assistedFactory = MemoryGridViewModel.Factory::class)
 class MemoryGridViewModel @AssistedInject constructor(
+    // 서버 연결하면 주석 해제
+//    private val collectionRepository: CollectionRepository,
     @Assisted val key: MemoryGridKey,
 ) : ViewModel() {
 
+    // 서버 연결하면 주석 처리 or 삭제
     private val collectionRepository =
         MemoryRepoProvider.collectionRepository
 
