@@ -16,6 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import com.a602.commonproject.designsystem.component.ButtonSize
 import com.a602.commonproject.designsystem.component.FilledButton
 import com.a602.commonproject.designsystem.component.Gender
@@ -42,6 +45,16 @@ fun AddBabyContent(
 
     val context = LocalContext.current
 
+    // Photo Picker Launcher
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                selectedUri = uri
+            }
+        }
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,8 +68,10 @@ fun AddBabyContent(
             remoteImageUrl = null,
             selectedImageUri = selectedUri,
             onClick = {
-                // TODO: Image Picker Linkage
-                // For now, placeholder or implement simple picker if needed
+                // Photo Picker 실행: 이미지 파일만 선택하도록 설정
+                photoPickerLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
             },
             headSize = 140.dp,
             bodyWidth = 150.dp,

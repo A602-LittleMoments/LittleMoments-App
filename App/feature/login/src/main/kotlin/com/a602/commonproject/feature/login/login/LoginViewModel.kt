@@ -44,8 +44,13 @@ class LoginViewModel @Inject constructor(
             // 로그인 시도 (이메일, 비밀번호, FCM 토큰 전송)
             userRepository.login(email, password, fcmToken)
                 .onSuccess {
-                    syncManager.requestSync()
-                    _uiState.update { LoginUiState.Success }
+                    val groupId = userRepository.getCurrentGroupId()
+                    if (groupId.isNullOrBlank()) {
+                        _uiState.update { LoginUiState.NeedGroupSetup }
+                    } else {
+                        syncManager.requestSync()
+                        _uiState.update { LoginUiState.Success }
+                    }
                 }
                 .onFailure { e ->
                     _uiState.update { LoginUiState.Error(e.message ?: "로그인에 실패했습니다.") }
@@ -82,5 +87,6 @@ sealed interface LoginUiState {
     data object Idle : LoginUiState
     data object Loading : LoginUiState
     data object Success : LoginUiState
+    data object NeedGroupSetup : LoginUiState
     data class Error(val message: String) : LoginUiState
 }
