@@ -23,10 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.a602.commonproject.designsystem.component.FillWrapButton
+import com.a602.commonproject.designsystem.component.LMTopAppBar
+import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
@@ -73,12 +76,17 @@ data class CalendarDay(
     val representativeThumbUrl: String? = null
 )
 
+private fun weekRowCount(yearMonth: YearMonth): Int {
+    val firstDayOfMonth = yearMonth.atDay(1)
+    val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
+    val totalCells = firstDayOfWeek + yearMonth.lengthOfMonth()
+    return (totalCells + 6) / 7
+}
+
 fun mapToCalendarDays(
     yearMonth: YearMonth,
     medias: List<SharedMedia>
 ): List<CalendarDay> {
-
-    // 날짜별 그룹핑
     val grouped = medias.groupBy {
         Instant.ofEpochMilli(it.dateTaken)
             .atZone(ZoneId.systemDefault())
@@ -91,30 +99,24 @@ fun mapToCalendarDays(
     val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
 
     // 앞 빈칸
-    repeat(firstDayOfWeek) {
-        days.add(CalendarDay(date = null))
-    }
+    repeat(firstDayOfWeek) { days.add(CalendarDay(null)) }
 
     // 실제 날짜
     for (day in 1..yearMonth.lengthOfMonth()) {
         val date = yearMonth.atDay(day)
         val representative = grouped[date]?.firstOrNull()
-
-        days.add(
-            CalendarDay(
-                date = date,
-                representativeThumbUrl = representative?.thumbnailUrl
-            )
-        )
+        days.add(CalendarDay(date, representative?.thumbnailUrl))
     }
-    // 뒤 빈칸
-    while (days.size % 7 != 0) {
-        days.add(CalendarDay(date = null))
+
+    // 그 달이 필요한 "주(행)" 만큼까지만 채우기 (35 or 42)
+    val rows = weekRowCount(yearMonth)
+    val targetSize = rows * 7
+    while (days.size < targetSize) {
+        days.add(CalendarDay(null))
     }
 
     return days
 }
-
 
 @Composable
 fun CalendarScreen(
@@ -123,33 +125,41 @@ fun CalendarScreen(
     onDateClick: () -> Unit,
     onGridClick: () -> Unit,
     onTempAlbumClick: () -> Unit,
-    onHighLightClick: () -> Unit
+    onHighLightClick: () -> Unit,
+    onBackClick: () -> Unit = {}
 ) {
     var currentMonth by remember { mutableStateOf(initialMonth) }
+
+    val rows: Int = remember(currentMonth) { weekRowCount(currentMonth) }
 
     val days = remember(currentMonth, medias) {
         mapToCalendarDays(currentMonth, medias)
     }
+
     Column(
         modifier = Modifier
             .background(background)
             .fillMaxSize()
     ) {
-        Spacer(modifier = Modifier.height(56.dp))
+        LMTopAppBar(
+            title = "캘린더",
+            navigationIcon = LMicons.Back,
+            onNavigationClick = onBackClick,
+        )
 
         Box(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 10.dp,),
-                        contentAlignment = Alignment.CenterStart
+                        .padding(horizontal = 10.dp),
+                    contentAlignment = Alignment.CenterStart
                 ) {
                     FillWrapButton(
                         text = "그리드 보기",
@@ -161,14 +171,11 @@ fun CalendarScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp,horizontal = 16.dp)
-                        .background(
-                            lightbackground,
-                            shape = RoundedCornerShape(20.dp)
-                        ).padding(16.dp),
+                        .padding(vertical = 12.dp, horizontal = 16.dp)
+                        .background(lightbackground, shape = RoundedCornerShape(20.dp))
+                        .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    // 월 이동 헤더
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -192,12 +199,17 @@ fun CalendarScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    CalendarPhotoView(days = days, onDateClick = { onDateClick() })
+                    CalendarPhotoView(
+                        days = days,
+                        rows = rows,
+                        onDateClick = { onDateClick() }
+                    )
                 }
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 10.dp,),
+                        .padding(horizontal = 10.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     FillWrapButton(
@@ -212,33 +224,57 @@ fun CalendarScreen(
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
+
 @Composable
 fun CalendarPhotoView(
     days: List<CalendarDay>,
+    rows: Int, // 5 or 6
     onDateClick: (LocalDate) -> Unit
 ) {
+    val vSpace = 12.dp
+    val hSpace = 8.dp
+
     Column {
         DayOfWeekHeader()
-
         Spacer(modifier = Modifier.height(8.dp))
 
-        LazyVerticalGrid(
-            modifier = Modifier.fillMaxWidth(),
-            columns = GridCells.Fixed(7),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(days) { day ->
-                CalendarDayItem(
-                    day = day,
-                    onClick = {
-                        day.date?.let { onDateClick(it) }
+
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+
+            val cellSize = (maxWidth - hSpace * 6) / 7
+            val oneRowHeight = cellSize + vSpace
+            val fixedGridHeight = cellSize * 6 + vSpace * 5
+
+
+            val missing = (6 - rows).coerceAtLeast(0)
+            val offsetY = (missing * oneRowHeight) / 2
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(fixedGridHeight)
+            ) {
+                LazyVerticalGrid(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(y = offsetY),
+                    columns = GridCells.Fixed(7),
+                    verticalArrangement = Arrangement.spacedBy(vSpace),
+                    horizontalArrangement = Arrangement.spacedBy(hSpace),
+                    userScrollEnabled = false
+                ) {
+                    items(days) { day ->
+                        CalendarDayItem(
+                            day = day,
+                            onClick = { day.date?.let { onDateClick(it) } }
+                        )
                     }
-                )
+                }
             }
         }
     }

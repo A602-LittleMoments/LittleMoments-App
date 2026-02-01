@@ -106,7 +106,6 @@ fun CommentEditScreen(
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(uiState.media?.id) {
-        // media가 준비된 순간 포커스
         if (uiState.media != null) focusRequester.requestFocus()
     }
 
@@ -120,7 +119,6 @@ fun CommentEditScreen(
                 actionIcon = LMicons.Download,
                 actionIconContentDescription = "저장",
                 onActionClick = {
-                    // 로딩/에러/저장중이면 막기
                     if (uiState.isLoading) return@LMTopAppBar
                     if (uiState.error != null) return@LMTopAppBar
                     if (uiState.media == null) return@LMTopAppBar
@@ -148,7 +146,6 @@ fun CommentEditScreen(
                 }
 
                 else -> {
-                    // ✅ 정상 화면
                     Column(
                         modifier = Modifier
                             .fillMaxSize()

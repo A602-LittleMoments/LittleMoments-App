@@ -49,14 +49,12 @@ class CalendarViewModel @Inject constructor(
                 val groupId = userRepository.getCurrentGroupId()
                 if (groupId.isNullOrBlank()) return@launch
 
-                // 서버에서 당겨서 DB 갱신 (이게 되어야 Flow가 바뀜)
                 val ok = repository.syncWithServer(groupId)
                 if (!ok) {
-                    // uiState는 stream 기반이라 직접 set은 안 되지만,
-                    // 에러를 보여주고 싶으면 별도 errorFlow를 추가하는 게 정석
+
                 }
             } catch (e: Exception) {
-                // 동일하게 errorFlow가 필요
+                // errorFlow가 필요
             }
         }
     }

@@ -20,35 +20,41 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.R
+import com.a602.commonproject.feature.gallery.viewmodel.HighlightLoadingViewModel
 
 
 @Composable
-fun HighlightLoadingRoute(){
-    HighlightLoadingScreen(
-        startMillis = TODO(),
-        endMillis = TODO(),
-        requestCreateSlideshow = TODO(),
-        onSuccess = TODO(),
-        onFailure = TODO()
-    )
+fun HighlightLoadingRoute(
+    startMillis: Long,
+    endMillis: Long,
+    onSuccess: (String) -> Unit,
+    onFailure: (Throwable) -> Unit,
+    viewModel: HighlightLoadingViewModel = hiltViewModel()
+){
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(startMillis, endMillis) {
+        viewModel.createSlideshow(
+            startMillis = startMillis,
+            endMillis = endMillis,
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
+    }
+
+    HighlightLoadingScreen()
 }
+
 
 @Composable
 fun HighlightLoadingScreen(
-    startMillis: Long,
-    endMillis: Long,
-    requestCreateSlideshow: suspend (Long, Long) -> String, // POST -> slideshowId
-    onSuccess: (String) -> Unit,
-    onFailure: (Throwable) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    LaunchedEffect(startMillis, endMillis) {
-        runCatching { requestCreateSlideshow(startMillis, endMillis) }
-            .onSuccess(onSuccess)
-            .onFailure(onFailure)
-    }
-
-    LoadingContent()
+    LoadingContent(modifier = modifier)
 }
 
 

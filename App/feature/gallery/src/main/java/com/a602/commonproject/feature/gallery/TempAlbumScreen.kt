@@ -42,6 +42,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.component.ConfirmDeleteDialog
 import com.a602.commonproject.designsystem.component.FillWrapButton
+import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
@@ -91,6 +92,9 @@ fun TempGridGalleryRoute(
                 }
             }
         },
+        onBackClick = {
+//            ToDo: 뒤로 가기구현 해햐함!!!!!!!!!!!!!!!!
+        },
         snackbarHostState = snackbarHostState,
     )
 }
@@ -102,6 +106,7 @@ fun TempGridGallery(
     onDeleteSelected: (List<String>) -> Unit,
     onSaveSelected: (List<String>) -> Unit,
     onClearAll: () -> Unit,
+    onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
 ) {
@@ -115,7 +120,11 @@ fun TempGridGallery(
             .background(background),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.height(56.dp))
+            LMTopAppBar(
+                title = "입시 앨범",
+                navigationIcon = LMicons.Back,
+                onNavigationClick = onBackClick,
+            )
 
             // 상단 설명 탭
             Box(
@@ -162,7 +171,7 @@ fun TempGridGallery(
                     }
                 }
 
-                // ✅ Empty / Grid 분기
+                // Empty / Grid 분기
                 if (medias.isEmpty()) {
                     TempAlbumEmptyState(
                         modifier = Modifier
@@ -324,6 +333,7 @@ fun TempGridGalleryPreview_Empty() {
             onDeleteSelected = {},
             onSaveSelected = {},
             onClearAll = {},
+            onBackClick =  {},
             snackbarHostState = snackbarHostState,
         )
     }
@@ -349,6 +359,7 @@ fun TempGridGalleryPreview_WithMedias() {
             onDeleteSelected = {},
             onSaveSelected = {},
             onClearAll = {},
+            onBackClick = {},
             snackbarHostState = snackbarHostState,
         )
     }

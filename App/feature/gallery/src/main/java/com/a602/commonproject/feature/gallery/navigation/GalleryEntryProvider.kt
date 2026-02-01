@@ -13,6 +13,7 @@ import com.a602.commonproject.feature.gallery.HighlightCalendarNavKey
 import com.a602.commonproject.feature.gallery.HighlightCalendarRoute
 import com.a602.commonproject.feature.gallery.HighlightLoadingNavKey
 import com.a602.commonproject.feature.gallery.HighlightLoadingRoute
+import com.a602.commonproject.feature.gallery.HighlightResultNavKey
 import com.a602.commonproject.feature.gallery.MediaDetailNavKey
 import com.a602.commonproject.feature.gallery.MediaDetailRoute
 import com.a602.commonproject.feature.gallery.TempAlbumNavKey
@@ -70,36 +71,37 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     }
 
 
-//    // 6. 하이라이트 캘린더 (날짜 선택)
-//    entry<HighlightCalendarNavKey> {
-//        HighlightCalendarRoute(
-//            onDateRangeSelected = { start, end ->
-//                navigator.navigate(HighlightLoadingNavKey(start, end))
-//            },
-//            onBack = navigator::goBack
-//        )
-//    }
-//    // 7. 하이라이트 로딩
-//    entry<HighlightLoadingNavKey> { key ->
-//        HighlightLoadingRoute(
-//            startMillis = key.startMillis,
-//            endMillis = key.endMillis,
-//            onSuccess = { slideshowId ->
-//                navigator.navigate(HighlightResultNavKey(slideshowId))
-//            },
-//            onFailure = { error ->
-//                // TODO: 에러 처리
-//                navigator.goBack()
-//            }
-//        )
-//    }
+    // 6. 하이라이트 캘린더 (날짜 선택)
+    entry<HighlightCalendarNavKey> {
+        HighlightCalendarRoute(
+            onDateRangeSelected = { start, end ->
+                navigator.navigate(HighlightLoadingNavKey(start, end))
+            },
+            onBack = navigator::goBack
+        )
+    }
 
-//    // 8. 하이라이트 결과 화면 (TODO)
-//    entry<HighlightResultNavKey> { key ->
-//        // TODO: HighlightResultScreen 구현 필요
-//        // HighlightResultRoute(
-//        //     highlightId = key.highlightId,
-//        //     onBack = navigator::goBack
-//        // )
-//    }
+    // 7. 하이라이트 로딩
+    entry<HighlightLoadingNavKey> { key ->
+        HighlightLoadingRoute(
+            startMillis = key.startMillis,
+            endMillis = key.endMillis,
+            onSuccess = { slideshowId ->
+                navigator.navigate(HighlightResultNavKey(slideshowId))
+            },
+            onFailure = { error ->
+                // TODO: 에러 처리
+                navigator.goBack()
+            }
+        )
+    }
+
+    // 8. 하이라이트 결과 화면 (TODO)
+    entry<HighlightResultNavKey> { key ->
+        // TODO: HighlightResultScreen 구현 필요
+        // HighlightResultRoute(
+        //     highlightId = key.highlightId,
+        //     onBack = navigator::goBack
+        // )
+    }
 }

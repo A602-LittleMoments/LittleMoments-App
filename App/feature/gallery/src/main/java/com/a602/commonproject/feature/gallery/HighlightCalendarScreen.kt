@@ -27,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,10 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.component.ButtonSize
 import com.a602.commonproject.designsystem.component.FilledButton
 import com.a602.commonproject.designsystem.theme.lightblue
 import com.a602.commonproject.designsystem.theme.main
+import com.a602.commonproject.feature.gallery.viewmodel.HighlightCalendarViewModel
 import java.time.Instant
 import java.time.ZoneId
 import java.util.Calendar
@@ -56,11 +60,21 @@ fun Long?.toDay(): String {
 
 @Composable
 fun HighlightCalendarRoute(
-
+    onDateRangeSelected: (Long, Long) -> Unit,
+    onBack: () -> Unit,
+    viewModel: HighlightCalendarViewModel = hiltViewModel()
 ){
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     HighlightCalendarScreen(
-        onDateRangeSelected = TODO(),
-        onBack = TODO()
+        onDateRangeSelected = { start, end ->
+            viewModel.selectDateRange(start, end)
+            onDateRangeSelected(start, end)
+        },
+        onBack = {
+            viewModel.clearSelection()
+            onBack()
+        }
     )
 }
 @Composable

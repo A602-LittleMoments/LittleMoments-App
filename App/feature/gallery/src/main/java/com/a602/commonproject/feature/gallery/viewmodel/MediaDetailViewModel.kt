@@ -52,7 +52,6 @@ class MediaDetailViewModel @Inject constructor(
             mediaIdFlow,
             actionState
         ) { medias, mediaId, action ->
-            // mediaId 없으면 로딩 유지
             if (mediaId == null) {
                 return@combine action.copy(
                     mediaId = null,
@@ -69,7 +68,7 @@ class MediaDetailViewModel @Inject constructor(
                     mediaId = mediaId,
                     media = media,
                     isLoading = false,
-                    // error는 액션에서 유지하되, 정상 로드되면 지워도 됨
+                    // error
                     errorMessage = null
                 )
 
@@ -130,7 +129,7 @@ class MediaDetailViewModel @Inject constructor(
         actionState.update { it.copy(deleteSuccess = false) }
     }
 
-    /** ✅ 다운로드 */
+
     fun downloadCurrent() {
         val media = uiState.value.media ?: run {
             actionState.update { it.copy(errorMessage = "다운로드할 사진이 없어요") }
