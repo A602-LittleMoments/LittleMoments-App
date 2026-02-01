@@ -1,5 +1,6 @@
 package com.a602.commonproject.database
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.a602.commonproject.database.dao.BabyDao
@@ -9,19 +10,23 @@ import com.a602.commonproject.database.model.BabyEntity
 import com.a602.commonproject.database.model.ShareMediaEntity
 import com.a602.commonproject.database.model.SlideshowEntity
 import com.a602.commonproject.database.model.TempMediaEntity
+import com.a602.commonproject.database.dao.NotificationDao
+import com.a602.commonproject.database.model.NotificationEntity
 
 @Database(
     entities = [
         TempMediaEntity::class,
         ShareMediaEntity::class,
         SlideshowEntity::class,
-        BabyEntity::class
+        BabyEntity::class,
+        NotificationEntity::class, // [New]
     ],
-    version = 1,
+    version = 2, // [Bump]
     exportSchema = true
 )
 internal abstract class LMDatabase : RoomDatabase(){
     abstract fun mediaDao() : MediaDao
     abstract fun babyDao() : BabyDao
     abstract fun slideshowDao() : SlideshowDao
+    abstract fun notificationDao() : NotificationDao // [New]
 }

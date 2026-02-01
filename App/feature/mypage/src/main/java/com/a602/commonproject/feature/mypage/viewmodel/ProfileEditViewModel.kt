@@ -20,9 +20,15 @@ data class ProfileEditUiState(
     val initialNickname: String = "",
     val nickname: String = "",
     val email: String = "",
+    val profileImageUrl: String? = null, // 현재 프로필 이미지 URL 저장
     val currentPassword: String = "",
     val newPassword: String = "",
     val confirmNewPassword: String = "",
+    // 비밀번호 보이기/숨기기 상태
+    val isCurrentPasswordVisible: Boolean = false,
+    val isNewPasswordVisible: Boolean = false,
+    val isConfirmPasswordVisible: Boolean = false,
+
     val isLoading: Boolean = false,
     val isSaveSuccess: Boolean = false,
     val errorMessage: String? = null
@@ -37,14 +43,14 @@ class ProfileEditViewModel @Inject constructor(
     val uiState: StateFlow<ProfileEditUiState> = _uiState.asStateFlow()
 
     init {
-        // 뷰모델 생성 시, 현재 로그인된 사용자의 정보로 초기 상태를 설정합니다.
         viewModelScope.launch {
-            val authState = userRepository.authState.first() // 현재 상태를 한 번만 가져옵니다.
+            val authState = userRepository.authState.first()
             if (authState is AuthState.LoggedIn) {
                 _uiState.value = ProfileEditUiState(
                     initialNickname = authState.user.nickname,
                     nickname = authState.user.nickname,
-                    email = authState.user.email
+                    email = authState.user.email,
+                    profileImageUrl = authState.user.profileImageUrl // 초기 프로필 이미지 URL 설정
                 )
             }
         }
@@ -68,54 +74,71 @@ class ProfileEditViewModel @Inject constructor(
         _uiState.update { it.copy(confirmNewPassword = password) }
     }
 
-    /**
-     * 프로필 변경사항을 저장하는 메인 로직입니다.
-     */
+    fun onToggleCurrentPasswordVisibility() {
+        _uiState.update { it.copy(isCurrentPasswordVisible = !it.isCurrentPasswordVisible) }
+    }
+
+    fun onToggleNewPasswordVisibility() {
+        _uiState.update { it.copy(isNewPasswordVisible = !it.isNewPasswordVisible) }
+    }
+
+    fun onToggleConfirmPasswordVisibility() {
+        _uiState.update { it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) }
+    }
+
     fun saveProfile() {
         viewModelScope.launch {
+            val currentState = _uiState.value
+            val isNicknameChanged = currentState.nickname != currentState.initialNickname
+            val isPasswordChangeAttempted = currentState.newPassword.isNotEmpty()
+
+            if (!isNicknameChanged && !isPasswordChangeAttempted) {
+                _uiState.update { it.copy(errorMessage = "변경된 내용이 없습니다.") }
+                return@launch
+            }
+
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            val currentState = _uiState.value
             var isSuccess = true
 
-            // 1. 닉네임이 변경되었으면 프로필 업데이트 API를 호출합니다.
-            if (currentState.nickname != currentState.initialNickname) {
+            // 1. 닉네임 변경 처리 (이미지 URL과 함께 전송)
+            if (isNicknameChanged) {
                 val profileResult = userRepository.updateProfile(
                     nickname = currentState.nickname,
-                    profileImageUrl = null // 이미지 변경은 이 화면에서 다루지 않습니다.
+                    profileImageUrl = currentState.profileImageUrl // 기존 이미지 URL 사용
                 )
                 if (profileResult.isFailure) {
-                    _uiState.update { it.copy(errorMessage = "닉네임 변경에 실패했습니다.") }
-                    isSuccess = false
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "닉네임 변경에 실패했습니다.") }
+                    return@launch
                 }
             }
 
-            // 2. 새 비밀번호를 입력했으면 비밀번호 변경 API를 호출합니다.
-            if (currentState.newPassword.isNotEmpty() && isSuccess) {
+            // 2. 비밀번호 변경 처리
+            if (isPasswordChangeAttempted) {
                 if (currentState.newPassword != currentState.confirmNewPassword) {
-                    _uiState.update { it.copy(errorMessage = "새 비밀번호가 일치하지 않습니다.") }
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "새 비밀번호가 일치하지 않습니다.") }
+                    return@launch
+                }
+
+                val passwordResult = userRepository.changePassword(
+                    current = currentState.currentPassword,
+                    new = currentState.newPassword,
+                    confirm = currentState.confirmNewPassword
+                )
+                if (passwordResult.isFailure) {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.") }
                     isSuccess = false
-                } else {
-                    val passwordResult = userRepository.changePassword(
-                        current = currentState.currentPassword,
-                        new = currentState.newPassword,
-                        confirm = currentState.confirmNewPassword
-                    )
-                    if (passwordResult.isFailure) {
-                        _uiState.update { it.copy(errorMessage = "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.") }
-                        isSuccess = false
-                    }
                 }
             }
 
-            // 모든 작업의 최종 결과를 UI 상태에 반영합니다.
-            _uiState.update { it.copy(isLoading = false, isSaveSuccess = isSuccess) }
+            if(isSuccess) {
+                _uiState.update { it.copy(isLoading = false, isSaveSuccess = true) }
+            } else {
+                 _uiState.update { it.copy(isLoading = false) }
+            }
         }
     }
 
-    /**
-     * 화면 이동 후, 성공 상태를 다시 리셋하기 위한 함수입니다.
-     */
     fun onSaveSuccessConsumed() {
         _uiState.update { it.copy(isSaveSuccess = false) }
     }

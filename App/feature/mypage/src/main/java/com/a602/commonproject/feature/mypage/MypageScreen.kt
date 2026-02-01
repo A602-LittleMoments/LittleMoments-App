@@ -13,7 +13,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.theme.*
@@ -39,13 +38,11 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
     } else {
         MypageScreen(
             user = uiState.user,
-            baby = uiState.baby,
+            babies = uiState.babies, // `babies` 리스트를 전달합니다.
             groupMembers = uiState.groupMembers,
             onNavigateToProfileEdit = { navigator.navigate(ProfileEditKey) },
-            onNavigateToKidEdit = {
-                uiState.baby?.let { baby ->
-                    navigator.navigate(KidEditKey(baby.babyId))
-                }
+            onNavigateToKidEdit = { babyId -> // babyId를 파라미터로 받습니다.
+                navigator.navigate(KidEditKey(babyId))
             },
             onNavigateToKidAdd = { navigator.navigate(KidAddKey) },
             onNavigateToGroupManagement = { navigator.navigate(GroupManageKey) }
@@ -57,7 +54,7 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
  * 마이페이지의 메인 화면 UI를 구성하는 컴포저블 함수입니다.
  *
  * @param user 화면에 표시할 사용자의 정보 (User 데이터 클래스).
- * @param baby 화면에 표시할 아기의 정보 (Baby 데이터 클래스).
+ * @param babies 화면에 표시할 아기의 정보 (Baby 데이터 클래스).
  * @param groupMembers 화면에 표시할 그룹 멤버 목록.
  * @param onNavigateToProfileEdit '내 정보 수정' 버튼을 눌렀을 때 실행될 화면 이동 함수.
  * @param onNavigateToKidEdit '아이 정보 수정' 버튼을 눌렀을 때 실행될 화면 이동 함수.
@@ -67,17 +64,16 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
 @Composable
 fun MypageScreen(
     user: User?,
-    baby: Baby?,
+    babies: List<Baby>,
     groupMembers: List<GroupMember>,
-    onNavigateToProfileEdit: () -> Unit = {},
-    onNavigateToKidEdit: () -> Unit = {},
-    onNavigateToKidAdd: () -> Unit = {},
-    onNavigateToGroupManagement: () -> Unit = {}
+    onNavigateToProfileEdit: () -> Unit,
+    onNavigateToKidEdit: (String) -> Unit,
+    onNavigateToKidAdd: () -> Unit,
+    onNavigateToGroupManagement: () -> Unit
 ) {
     // Scaffold는 화면의 기본 구조(상단바, 본문 등)를 잡아주는 유용한 틀입니다.
     Scaffold(
         containerColor = background,
-        topBar = { LMTopAppBar(title = "마이페이지") }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -88,26 +84,23 @@ fun MypageScreen(
             contentPadding = PaddingValues(top = 40.dp, bottom = 40.dp) // 목록 전체의 위, 아래 여백을 줍니다.
         ) {
             if (user != null) {
-                item { ProfileInfoCard(name = user.nickname, nickname = user.nickname, email = user.email, onEditClick = onNavigateToProfileEdit) }
+                item { ProfileInfoCard(nickname = user.nickname, email = user.email, onEditClick = onNavigateToProfileEdit) }
             }
-            if (baby != null) {
-                item { KidInfoCard(kidName = baby.babyName, birthDate = baby.birthDate, onEditClick = onNavigateToKidEdit, onAddClick = onNavigateToKidAdd) }
+
+            item {
+                KidsInfoCard(
+                    babies = babies,
+                    onEditClick = onNavigateToKidEdit,
+                    onAddClick = onNavigateToKidAdd
+                )
             }
+
             item { GroupSectionHeader(memberCount = groupMembers.size, onEditClick = onNavigateToGroupManagement) }
 
             items(groupMembers) { member ->
                 MemberItem(name = member.nickname, role = member.role.name, color = getColorForRole(member.role))
             }
         }
-    }
-}
-
-private fun getColorForRole(role: GroupRole): Color {
-    return when (role) {
-        GroupRole.OWNER -> main
-        GroupRole.MEMBER -> color1
-        GroupRole.VIEWER -> color2
-        else -> gray1 // 이외
     }
 }
 
@@ -122,10 +115,19 @@ fun MyPageScreenPreview() {
             GroupMember("id1", "엄마", "엄마", GroupRole.OWNER),
             GroupMember("id2", "아빠", "아빠", GroupRole.MEMBER)
         )
+        // 여러 명의 아기를 테스트하기 위해 리스트를 전달합니다.
+        val sampleBabies = listOf(
+            Baby(babyId = "1", babyName = "첫째", birthDate = "2022-01-15", gender = Baby.Gender.MALE, imageUrl = null),
+            Baby(babyId = "2", babyName = "둘째", birthDate = "2024-03-20", gender = Baby.Gender.FEMALE, imageUrl = null)
+        )
         MypageScreen(
             user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
-            baby = Baby(babyId = "1", babyName = "Leo", birthDate = "2023-05-12", gender = Baby.Gender.MALE, imageUrl = null),
-            groupMembers = sampleMembers
+            babies = sampleBabies,
+            groupMembers = sampleMembers,
+            onNavigateToProfileEdit = {},
+            onNavigateToKidEdit = {},
+            onNavigateToKidAdd = {},
+            onNavigateToGroupManagement = {}
         )
     }
 }

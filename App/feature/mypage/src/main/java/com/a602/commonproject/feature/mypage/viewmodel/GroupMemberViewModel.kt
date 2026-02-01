@@ -3,6 +3,7 @@ package com.a602.commonproject.feature.mypage.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.a602.commonproject.data.repository.GroupRepository
+import com.a602.commonproject.model.data.Group
 import com.a602.commonproject.model.data.GroupMember
 import com.a602.commonproject.model.data.GroupRole
 import com.a602.commonproject.model.data.InviteCode
@@ -18,6 +19,7 @@ import javax.inject.Inject
  * 그룹 멤버 관리 화면에 필요한 모든 UI 상태를 담는 데이터 클래스입니다.
  */
 data class GroupMemberUiState(
+    val group: Group? = null, // 그룹 정보
     val members: List<GroupMember> = emptyList(),
     val inviteCode: InviteCode? = null,
     val isLoading: Boolean = true,
@@ -35,7 +37,20 @@ class GroupMemberViewModel @Inject constructor(
     val uiState: StateFlow<GroupMemberUiState> = _uiState.asStateFlow()
 
     init {
+        loadGroupInfo()
         loadMembers()
+    }
+
+    private fun loadGroupInfo() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val result = groupRepository.getMyGroup()
+            if (result.isSuccess) {
+                _uiState.update { it.copy(group = result.getOrThrow()) }
+            } else {
+                _uiState.update { it.copy(errorMessage = "그룹 정보를 불러오는데 실패했습니다.") }
+            }
+        }
     }
 
     /**

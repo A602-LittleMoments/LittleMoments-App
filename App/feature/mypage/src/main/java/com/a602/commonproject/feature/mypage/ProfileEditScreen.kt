@@ -1,6 +1,5 @@
 package com.a602.commonproject.feature.mypage
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,12 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -29,7 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.a602.commonproject.designsystem.component.LMEditInputField
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.icon.LMicons
@@ -39,6 +37,7 @@ import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color4
 import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.designsystem.theme.main
+import com.a602.commonproject.feature.mypage.viewmodel.ProfileEditUiState
 import com.a602.commonproject.feature.mypage.viewmodel.ProfileEditViewModel
 import com.a602.commonproject.navigation.Navigator
 
@@ -51,15 +50,13 @@ fun ProfileEditContainer(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 저장 성공 시 처리
     LaunchedEffect(uiState.isSaveSuccess) {
         if (uiState.isSaveSuccess) {
-            navigator.goBack() // 이전 화면으로 이동
-            viewModel.onSaveSuccessConsumed() // 성공 상태 리셋
+            navigator.goBack()
+            viewModel.onSaveSuccessConsumed()
         }
     }
 
-    // 에러 메시지 표시
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
@@ -73,6 +70,9 @@ fun ProfileEditContainer(
         onCurrentPasswordChanged = viewModel::onCurrentPasswordChanged,
         onNewPasswordChanged = viewModel::onNewPasswordChanged,
         onConfirmNewPasswordChanged = viewModel::onConfirmNewPasswordChanged,
+        onToggleCurrentPasswordVisibility = viewModel::onToggleCurrentPasswordVisibility,
+        onToggleNewPasswordVisibility = viewModel::onToggleNewPasswordVisibility,
+        onToggleConfirmPasswordVisibility = viewModel::onToggleConfirmPasswordVisibility,
         onSaveClick = viewModel::saveProfile,
         onBackClick = { navigator.goBack() }
     )
@@ -80,20 +80,21 @@ fun ProfileEditContainer(
 
 @Composable
 fun ProfileEditScreen(
-    uiState: com.a602.commonproject.feature.mypage.viewmodel.ProfileEditUiState,
+    uiState: ProfileEditUiState,
     snackbarHostState: SnackbarHostState,
     onNicknameChanged: (String) -> Unit,
     onCurrentPasswordChanged: (String) -> Unit,
     onNewPasswordChanged: (String) -> Unit,
     onConfirmNewPasswordChanged: (String) -> Unit,
+    onToggleCurrentPasswordVisibility: () -> Unit,
+    onToggleNewPasswordVisibility: () -> Unit,
+    onToggleConfirmPasswordVisibility: () -> Unit,
     onSaveClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
     Scaffold(
         containerColor = background,
-        topBar = {
-            LMTopAppBar(title = "내 정보 수정", onNavigationClick = onBackClick)
-        },
+        topBar = { LMTopAppBar(title = "내 정보 수정", onNavigationClick = onBackClick) },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
@@ -106,32 +107,61 @@ fun ProfileEditScreen(
             ) {
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // 기본 정보 입력
-                LMEditInputField(label = "닉네임", value = uiState.nickname, onValueChange = onNicknameChanged, icon = LMicons.Person)
+                // 기본 정보
+                LMEditInputField(
+                    label = "닉네임",
+                    value = uiState.nickname,
+                    onValueChange = onNicknameChanged,
+                    trailingIcon = { Icon(imageVector = LMicons.Person, contentDescription = "닉네임") }
+                )
                 Spacer(modifier = Modifier.height(16.dp))
-                LMEditInputField(label = "이메일", value = uiState.email, onValueChange = {}, icon = LMicons.Email, enabled = false)
+                LMEditInputField(
+                    label = "이메일",
+                    value = uiState.email,
+                    onValueChange = {},
+                    trailingIcon = { Icon(imageVector = LMicons.Email, contentDescription = "이메일") },
+                    enabled = false
+                )
 
                 Spacer(modifier = Modifier.height(32.dp))
                 Divider(color = color4.copy(alpha = 0.2f))
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 비밀번호 변경
+                // 비밀번호 변경 섹션
                 LMEditInputField(
                     label = "현재 비밀번호",
                     value = uiState.currentPassword,
                     onValueChange = onCurrentPasswordChanged,
-                    icon = Icons.Outlined.Lock,
-                    isPassword = true
+                    isPassword = !uiState.isCurrentPasswordVisible,
+                    trailingIcon = {
+                        IconButton(onClick = onToggleCurrentPasswordVisibility) {
+                            Icon(imageVector = if (uiState.isCurrentPasswordVisible) LMicons.VisibilityOff else LMicons.Visibility, contentDescription = "비밀번호 보기/숨기기")
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                LMEditInputField(label = "새 비밀번호", value = uiState.newPassword, onValueChange = onNewPasswordChanged, icon = Icons.Outlined.Lock, isPassword = true)
+                LMEditInputField(
+                    label = "새 비밀번호",
+                    value = uiState.newPassword,
+                    onValueChange = onNewPasswordChanged,
+                    isPassword = !uiState.isNewPasswordVisible,
+                    trailingIcon = {
+                        IconButton(onClick = onToggleNewPasswordVisibility) {
+                            Icon(imageVector = if (uiState.isNewPasswordVisible) LMicons.VisibilityOff else LMicons.Visibility, contentDescription = "비밀번호 보기/숨기기")
+                        }
+                    }
+                )
                 Spacer(modifier = Modifier.height(16.dp))
                 LMEditInputField(
                     label = "새 비밀번호 확인",
                     value = uiState.confirmNewPassword,
                     onValueChange = onConfirmNewPasswordChanged,
-                    icon = Icons.Outlined.Lock,
-                    isPassword = true
+                    isPassword = !uiState.isConfirmPasswordVisible,
+                    trailingIcon = {
+                        IconButton(onClick = onToggleConfirmPasswordVisibility) {
+                            Icon(imageVector = if (uiState.isConfirmPasswordVisible) LMicons.VisibilityOff else LMicons.Visibility, contentDescription = "비밀번호 보기/숨기기")
+                        }
+                    }
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -155,17 +185,21 @@ fun ProfileEditScreen(
     }
 }
 
-@Preview(showBackground = true, name = "내 정보 수정 미리보기")
+// Preview는 UI의 다양한 상태를 테스트하기 위해 여러 개를 만들 수 있습니다.
+@Preview(showBackground = true, name = "기본 상태")
 @Composable
-fun ProfileEditScreenPreview() {
+fun ProfileEditScreenDefaultPreview() {
     LMTheme {
         ProfileEditScreen(
-            uiState = com.a602.commonproject.feature.mypage.viewmodel.ProfileEditUiState(email = "lilly@example.com", nickname = "Lilly"),
+            uiState = ProfileEditUiState(email = "lilly@example.com", nickname = "Lilly"),
             snackbarHostState = remember { SnackbarHostState() },
             onNicknameChanged = {},
             onCurrentPasswordChanged = {},
             onNewPasswordChanged = {},
             onConfirmNewPasswordChanged = {},
+            onToggleCurrentPasswordVisibility = {},
+            onToggleNewPasswordVisibility = {},
+            onToggleConfirmPasswordVisibility = {},
             onSaveClick = {},
             onBackClick = {}
         )

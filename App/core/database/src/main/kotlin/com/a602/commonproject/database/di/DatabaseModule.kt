@@ -22,6 +22,7 @@ internal object DatabaseModule {
         context,
         LMDatabase::class.java,
         "lm-database"
-    ).build()
+    ).fallbackToDestructiveMigration(true)
+        .build()
 
 }

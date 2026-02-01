@@ -2,6 +2,7 @@ package com.a602.commonproject.feature.mypage.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.a602.commonproject.data.repository.BabyRepository
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 /**
@@ -60,21 +62,31 @@ class KidAddViewModel @Inject constructor(
 
     fun addBaby() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
             val currentState = _uiState.value
 
-            // 간단한 유효성 검사
             if (currentState.name.isBlank() || currentState.birthDate.isBlank()) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "아이 이름과 생년월일을 모두 입력해주세요.") }
+                _uiState.update { it.copy(errorMessage = "아이 이름과 생년월일을 모두 입력해주세요.") }
                 return@launch
             }
 
-            val imageFile = currentState.imageUri?.let { uriString ->
-                try {
-                    val uri = Uri.parse(uriString)
-                    uri.path?.let { File(it) }
-                } catch (e: Exception) {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            val imageFile: File? = currentState.imageUri?.let { uriString ->
+                if (uriString.startsWith("content://")) {
+                    try {
+                        val uri = Uri.parse(uriString)
+                        val tempFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
+                        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                            FileOutputStream(tempFile).use { outputStream ->
+                                inputStream.copyTo(outputStream)
+                            }
+                        }
+                        tempFile
+                    } catch (e: Exception) {
+                        Log.e("KidAddViewModel", "Failed to create temp file from URI", e)
+                        null
+                    }
+                } else {
                     null
                 }
             }
@@ -87,6 +99,8 @@ class KidAddViewModel @Inject constructor(
             )
 
             if (result.isSuccess) {
+                // 추가 성공 후, 서버와 동기화하여 최신 데이터를 반영합니다.
+                babyRepository.syncWithServer(groupId = "") // groupId는 Repository에서 처리합니다.
                 _uiState.update { it.copy(isLoading = false, isSaveSuccess = true) }
             } else {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "아이 추가에 실패했습니다.") }

@@ -32,6 +32,11 @@ fun SignUpRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // 진입 시 로그인 상태 & 그룹 상태 확인 (init 블록 대체)
+    LaunchedEffect(Unit) {
+        viewModel.checkLoggedInAndGroupStatus()
+    }
+
     // 다이얼로그가 안 떠있고 성공 상태면 네비게이션 이동 (홈으로)
     LaunchedEffect(uiState.isSuccess, uiState.showGroupDialog) {
         if (uiState.isSuccess && !uiState.showGroupDialog) {
@@ -49,7 +54,13 @@ fun SignUpRoute(
     SignUpScreen(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
-        onBackClick = onBackClick,
+        onBackClick = {
+            // 그룹 생성 단계(다이얼로그 표시 중)에서 뒤로 가거나 취소하면 로그아웃 처리
+            if (uiState.showGroupDialog) {
+                viewModel.logout()
+            }
+            onBackClick()
+        },
         onSignUpClick = viewModel::signUp,
         onCreateGroup = viewModel::createGroup,
         onJoinGroup = viewModel::joinGroup,
