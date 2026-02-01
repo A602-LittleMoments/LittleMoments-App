@@ -33,13 +33,13 @@ enum class ButtonSize(
     val shape: RoundedCornerShape,
 ) {
     // 추가 / 수정 완료
-    Full(48.dp, 0.8f, 340.dp, 24.dp, RoundedCornerShape(16.dp)),
+    Full(48.dp, 0.9f, 350.dp, 24.dp, RoundedCornerShape(16.dp)),
     // 모달 or 팝업에서 쓰는 버튼
-    Medium(48.dp, 0.8f, 288.dp,20.dp, RoundedCornerShape(16.dp)),
+    Medium(48.dp, 0.8f, 300.dp,20.dp, RoundedCornerShape(16.dp)),
     // 그룹 생성 or 참여
     Small(44.dp, 0.6f, 192.dp, 16.dp, RoundedCornerShape(14.dp)),
     // 로그인 (동글)
-    Round(44.dp, 0.8f, 340.dp, 18.dp, RoundedCornerShape(22.dp)),
+    Round(44.dp, 0.9f, 350.dp, 18.dp, RoundedCornerShape(22.dp)),
 }
 
 /* FilledButton

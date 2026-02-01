@@ -2,6 +2,7 @@ package com.a602.commonproject.designsystem.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -38,16 +39,18 @@ fun IconActionBar(
 
     Surface(
         modifier = modifier
-            .height(68.dp)
-            .widthIn(min = 320.dp, max = 360.dp) // 너무 짧아지지 않게
+            .height(48.dp)
+            .fillMaxWidth(0.9f)
+            .widthIn(min= 280.dp, max = 350.dp)
             .clip(shape),
         shape = shape,
         color = lightbackground,
-        tonalElevation = 2.dp,   // 살짝 톤
-        shadowElevation = 10.dp,  // 캡쳐처럼 떠있는 그림자
+//        tonalElevation = 2.dp,   // 살짝 톤
+//        shadowElevation = 10.dp,  // 캡쳐처럼 떠있는 그림자
     ) {
         Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 20.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -86,14 +89,14 @@ private fun ActionIconButton(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = color3 // 아이콘 색(캡쳐처럼 진한 색)
+            tint = color3
         )
     }
 }
 
 /* -------------------- Preview -------------------- */
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 140)
+@Preview(showBackground = true, widthDp = 411, heightDp = 140)
 @Composable
 fun IconActionBarPreview() {
     // 캡쳐 배경이 회색이라 비슷하게 보이게
