@@ -30,7 +30,8 @@ fun LMEditInputField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     singleLine: Boolean = true,
     isPassword: Boolean = false,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    readOnly: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
@@ -50,7 +51,8 @@ fun LMEditInputField(
             focusedBorderColor = main,
             unfocusedBorderColor = lightblue
         ),
-        enabled = enabled
+        enabled = enabled,
+        readOnly = readOnly
     )
 }
 
