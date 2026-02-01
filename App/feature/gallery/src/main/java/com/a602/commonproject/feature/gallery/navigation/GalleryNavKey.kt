@@ -37,19 +37,33 @@ data class CommentEditNavKey(
 @Serializable
 data object TempAlbumNavKey : NavKey
 
-
-// 하이라이트 생성
 @Serializable
-data object HighlightCalendarNavKey : NavKey
-//하이라이트 로딩
+object HighlightCalendarNavKey : NavKey
 @Serializable
 data class HighlightLoadingNavKey(
     val startMillis: Long,
     val endMillis: Long
 ) : NavKey
-
-// 하이라이트 완료
-@Serializable
-data class HighlightResultNavKey(
-    val highlightId: String
-) : NavKey
+//@Serializable
+//data class HighlightResultNavKey(
+//    val result: HighlightResult
+//) : NavKey
+//
+//
+//@Serializable
+//data class HighlightResult(
+//    val id: String,
+//    val title: String,
+//    val thumbnailUrl: String?,
+//    val remoteVideoUrl: String?,
+//    val localVideoPath: String?,
+//    val status: MakeStatus,
+//    val mediaCount: Int,
+//    val durationSec: Int,
+//    val createdAt: Long
+//) : NavKey {
+//
+//    enum class MakeStatus {
+//        QUEUED, PROCESSING, COMPLETED, FAILED, DOWNLOADED, UNKNOWN
+//    }
+//}

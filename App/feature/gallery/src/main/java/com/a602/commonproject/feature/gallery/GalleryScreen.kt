@@ -66,9 +66,6 @@ fun CalendarRoute(
     onHighLightClick: () -> Unit,
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.refresh()
-    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

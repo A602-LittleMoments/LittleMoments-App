@@ -57,6 +57,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun TempGridGalleryRoute(
     onMediaClick: (TempMedia) -> Unit,
+    onBackClick: () -> Unit,
     viewModel: TempAlbumViewModel = hiltViewModel()
 ){
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -93,7 +94,7 @@ fun TempGridGalleryRoute(
             }
         },
         onBackClick = {
-//            ToDo: 뒤로 가기구현 해햐함!!!!!!!!!!!!!!!!
+            onBackClick()
         },
         snackbarHostState = snackbarHostState,
     )

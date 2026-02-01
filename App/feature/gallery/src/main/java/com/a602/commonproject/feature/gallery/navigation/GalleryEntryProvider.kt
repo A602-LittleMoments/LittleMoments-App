@@ -12,8 +12,10 @@ import com.a602.commonproject.feature.gallery.GridRoute
 import com.a602.commonproject.feature.gallery.HighlightCalendarNavKey
 import com.a602.commonproject.feature.gallery.HighlightCalendarRoute
 import com.a602.commonproject.feature.gallery.HighlightLoadingNavKey
-import com.a602.commonproject.feature.gallery.HighlightLoadingRoute
-import com.a602.commonproject.feature.gallery.HighlightResultNavKey
+//import com.a602.commonproject.feature.gallery.HighlightLoadingRoute
+//import com.a602.commonproject.feature.gallery.HighlightResult
+//import com.a602.commonproject.feature.gallery.HighlightResultNavKey
+//import com.a602.commonproject.feature.gallery.HighlightResultScreen
 import com.a602.commonproject.feature.gallery.MediaDetailNavKey
 import com.a602.commonproject.feature.gallery.MediaDetailRoute
 import com.a602.commonproject.feature.gallery.TempAlbumNavKey
@@ -25,16 +27,17 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     // 1. 메인화면 - 캘린더 뷰
     entry<GalleryNavKey> {
         CalendarRoute(
-            onBack = { navigator.goBack() },
-            onDateClick = {navigator.navigate(GridNavKey)},
-            onGridClick= {navigator.navigate(GridNavKey)},
-            onTempAlbumClick={navigator.navigate(TempAlbumNavKey)},
-            onHighLightClick= {navigator.navigate(HighlightCalendarNavKey)}
+            onBack = navigator::goBack,
+            onDateClick = { navigator.navigate(GridNavKey) },
+            onGridClick = { navigator.navigate(GridNavKey) },
+            onTempAlbumClick = { navigator.navigate(TempAlbumNavKey) },
+            onHighLightClick = { navigator.navigate(HighlightCalendarNavKey) }
         )
     }
     // 2. 그리드 보기
     entry<GridNavKey> {
         GridRoute(
+            onBackClick = navigator::goBack,
             onCalendarClick = { navigator.navigate(GalleryNavKey) },
             onMediaClick = { media ->
                 navigator.navigate(MediaDetailNavKey(mediaId = media.id))
@@ -42,7 +45,7 @@ fun EntryProviderScope<NavKey>.galleryEntries(
         )
     }
 
- // 3. 사진 상세보기
+    // 3. 사진 상세보기
     entry<MediaDetailNavKey> { key ->
         MediaDetailRoute(
             mediaId = key.mediaId,
@@ -52,7 +55,7 @@ fun EntryProviderScope<NavKey>.galleryEntries(
         )
     }
 
-        // 4. 코멘트 수정
+    // 4. 코멘트 수정
     entry<CommentEditNavKey> { key ->
         CommentEditRoute(
             mediaId = key.mediaId,
@@ -66,7 +69,9 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             onMediaClick = { media ->
                 // TODO: 임시 앨범의 상세보기 화면 정의 필요
                 // 현재는 PhotoDetailNavKey 재사용
-            }
+            },
+            onBackClick = navigator::goBack
+
         )
     }
 
@@ -81,27 +86,31 @@ fun EntryProviderScope<NavKey>.galleryEntries(
         )
     }
 
-    // 7. 하이라이트 로딩
-    entry<HighlightLoadingNavKey> { key ->
-        HighlightLoadingRoute(
-            startMillis = key.startMillis,
-            endMillis = key.endMillis,
-            onSuccess = { slideshowId ->
-                navigator.navigate(HighlightResultNavKey(slideshowId))
-            },
-            onFailure = { error ->
-                // TODO: 에러 처리
-                navigator.goBack()
-            }
-        )
-    }
+//// 7. 하이라이트 로딩
+//    entry<HighlightLoadingNavKey> { key ->
+//        HighlightLoadingRoute(
+//            startMillis = key.startMillis,
+//            endMillis = key.endMillis,
+//            onSuccess = { HighlightResult ->
+//                navigator.navigate(
+//                    HighlightResultNavKey(HighlightResult)
+//                )
+//            },
+//            onFailure = { _ ->
+//                navigator.goBack()
+//            }
+//        )
+//    }
 
-    // 8. 하이라이트 결과 화면 (TODO)
-    entry<HighlightResultNavKey> { key ->
-        // TODO: HighlightResultScreen 구현 필요
-        // HighlightResultRoute(
-        //     highlightId = key.highlightId,
-        //     onBack = navigator::goBack
-        // )
-    }
+
+//// 8. 하이라이트 결과
+//    entry<HighlightResultNavKey> { key ->
+//        HighlightResultScreen(
+//            result = key.result,
+//            onBack = navigator::goBack,
+//            onSave = {
+//                // TODO: 다운로드 처리
+//            }
+//        )
+//    }
 }

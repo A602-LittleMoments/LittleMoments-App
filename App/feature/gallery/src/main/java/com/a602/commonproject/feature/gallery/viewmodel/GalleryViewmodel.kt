@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,8 +28,11 @@ class CalendarViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
+    private var hasAutoRefreshed = false
+
     val uiState: StateFlow<CalendarUiState> =
         repository.getSharedAlbumStream()
+            .distinctUntilChanged()
             .map { medias ->
                 CalendarUiState(
                     medias = medias,
@@ -42,22 +46,28 @@ class CalendarViewModel @Inject constructor(
                 initialValue = CalendarUiState(isLoading = true)
             )
 
-    fun refresh() {
+    init {
+        autoRefreshOnce()
+    }
+
+    private fun autoRefreshOnce() {
+        if (hasAutoRefreshed) return
+        hasAutoRefreshed = true
+        refresh(force = true)
+    }
+
+    fun refresh(force: Boolean = false) {
         viewModelScope.launch {
             try {
-                // groupId 필요
                 val groupId = userRepository.getCurrentGroupId()
                 if (groupId.isNullOrBlank()) return@launch
-
-                val ok = repository.syncWithServer(groupId)
-                if (!ok) {
-
-                }
-            } catch (e: Exception) {
-                // errorFlow가 필요
+                repository.syncWithServer(groupId)
+            } catch (_: Exception) {
+                // 필요하면 errorFlow로 처리
             }
         }
     }
 }
+
 
 

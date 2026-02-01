@@ -3,12 +3,11 @@ package com.a602.commonproject.feature.gallery
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.component.FillWrapButton
+import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.feature.gallery.viewmodel.GridGalleryViewmodel
@@ -28,6 +28,7 @@ import com.a602.coommonproject.ui.GalleryGridPolaroid
 
 @Composable
 fun GridRoute(
+    onBackClick: () -> Unit,
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
     viewModel: GridGalleryViewmodel = hiltViewModel(),
@@ -39,6 +40,7 @@ fun GridRoute(
         medias = uiState.medias,
         onCalendarClick = onCalendarClick,
         onMediaClick = onMediaClick,
+        onBackClick = onBackClick
     )
 }
 
@@ -47,47 +49,55 @@ fun GridRoute(
 fun GridGalleryScreen(
     medias: List<SharedMedia>,
     onCalendarClick: () -> Unit,
+    onBackClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(background)
-            .padding(horizontal = 16.dp),
-
-        ) {
-        Spacer(modifier = modifier.height(56.dp))
-
-        // 1. 상단 헤더 영역
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(vertical = 24.dp, horizontal = 10.dp),
-            contentAlignment = Alignment.CenterStart,
-        ) {
-            Text(
-                text = "Recent",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-
-            FillWrapButton(
-                text = "캘린더 보기",
-                onClick = onCalendarClick,
-                modifier = Modifier.align(Alignment.CenterEnd),
+    Scaffold(
+        topBar = {
+            LMTopAppBar(
+                title = "갤러리",
+                onNavigationClick = onBackClick,
             )
         }
+    ) { innerPadding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(background)
+                .padding(horizontal = 16.dp),
 
-        Box(modifier = Modifier.weight(1f)) {
-            GalleryGridPolaroid(
-                medias = medias,
-                onClick = onMediaClick,
-            )
+            ) {
+
+            // 1. 상단 헤더 영역
+            Box(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp, horizontal = 10.dp),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Text(
+                    text = "Recent",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+
+                FillWrapButton(
+                    text = "캘린더 보기",
+                    onClick = onCalendarClick,
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                )
+            }
+
+            Box(modifier = Modifier.weight(1f)) {
+                GalleryGridPolaroid(
+                    medias = medias,
+                    onClick = onMediaClick,
+                )
+            }
         }
     }
 }
-
 
 @Composable
 private fun fakeMediaList(): List<SharedMedia> {
@@ -119,6 +129,7 @@ fun GridGalleryScreenPreview() {
             medias = fakeMediaList(),
             onCalendarClick = {},
             onMediaClick = {},
+            onBackClick = {}
         )
     }
 }
