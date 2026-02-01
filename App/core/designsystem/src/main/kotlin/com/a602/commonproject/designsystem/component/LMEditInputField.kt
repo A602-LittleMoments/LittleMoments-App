@@ -1,8 +1,11 @@
 package com.a602.commonproject.designsystem.component
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -12,73 +15,84 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.a602.commonproject.designsystem.theme.AppTypography
-import com.a602.commonproject.designsystem.theme.LMTheme
-import com.a602.commonproject.designsystem.theme.color4
-import com.a602.commonproject.designsystem.theme.lightblue
-import com.a602.commonproject.designsystem.theme.lightbackground
-import com.a602.commonproject.designsystem.theme.main
+import com.a602.commonproject.designsystem.theme.*
 
 @Composable
 fun LMEditInputField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String = "",
-    trailingIcon: @Composable (() -> Unit)? = null, // 파라미터를 유연한 Composable 람다로 변경
     modifier: Modifier = Modifier,
+    placeholder: String = "",
+    trailingIcon: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     singleLine: Boolean = true,
     isPassword: Boolean = false,
     enabled: Boolean = true,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
+    isError: Boolean = false,
+    supportingText: String? = null
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label, color = color4.copy(alpha = 0.6f), style = AppTypography.labelMedium) },
-        placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f), style = AppTypography.titleMedium) },
-        textStyle = AppTypography.titleMedium.copy(color = color4),
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        singleLine = singleLine,
-        keyboardOptions = keyboardOptions,
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-        trailingIcon = trailingIcon, // 전달받은 trailingIcon을 그대로 사용
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = lightbackground,
-            unfocusedContainerColor = lightbackground,
-            focusedBorderColor = main,
-            unfocusedBorderColor = lightblue
-        ),
-        enabled = enabled,
-        readOnly = readOnly
-    )
+    Column(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label, color = color4.copy(alpha = 0.6f), style = MaterialTheme.typography.labelMedium) },
+            placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f), style = MaterialTheme.typography.titleMedium) },
+            textStyle = MaterialTheme.typography.titleMedium.copy(color = color4),
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = singleLine,
+            keyboardOptions = keyboardOptions,
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            trailingIcon = trailingIcon,
+            isError = isError, // isError 상태 연결
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = lightbackground,
+                unfocusedContainerColor = lightbackground,
+                focusedBorderColor = if (isError) errorRed else main,
+                unfocusedBorderColor = if (isError) errorRed else lightblue,
+                errorBorderColor = errorRed, // 에러 상태일 때의 테두리 색 명시
+                errorLabelColor = errorRed, // 에러 상태일 때의 라벨 색 명시
+                errorSupportingTextColor = errorRed // 에러 상태일 때의 보조 텍스트 색 명시
+            ),
+            enabled = enabled,
+            readOnly = readOnly
+        )
+        // 보조 텍스트가 있을 경우에만 표시
+        if (supportingText != null) {
+            Text(
+                text = supportingText,
+                color = if(isError) errorRed else color4.copy(alpha = 0.6f),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
 }
 
-// Preview 코드는 trailingIcon을 테스트하도록 수정하면 더 좋습니다.
-@Preview(showBackground = true, name = "글자가 입력된 상태")
+@Preview(showBackground = true, name = "기본 상태")
 @Composable
-fun LMEditInputFieldWithTextPreview() {
+fun LMEditInputFieldPreview() {
     LMTheme {
         LMEditInputField(
-            label = "생년월일",
-            value = "2024-01-30",
-            onValueChange = {},
-            placeholder = "YYYY-MM-DD"
+            label = "라벨",
+            value = "입력된 텍스트",
+            onValueChange = {}
         )
     }
 }
 
-@Preview(showBackground = true, name = "입력 전 상태 (Placeholder)")
+@Preview(showBackground = true, name = "에러 상태")
 @Composable
-fun LMEditInputFieldEmptyPreview() {
+fun LMEditInputFieldErorrPreview() {
     LMTheme {
         LMEditInputField(
-            label = "생년월일",
-            value = "", // 빈 값 전달
+            label = "라벨",
+            value = "잘못된 입력",
             onValueChange = {},
-            placeholder = "YYYY-MM-DD"
+            isError = true,
+            supportingText = "오류 메시지가 여기에 표시됩니다."
         )
     }
 }
