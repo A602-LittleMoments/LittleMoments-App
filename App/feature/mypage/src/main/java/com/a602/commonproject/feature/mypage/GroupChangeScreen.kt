@@ -34,7 +34,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.a602.commonproject.designsystem.component.GroupCodeDialog
 import com.a602.commonproject.designsystem.component.GroupRoleChangeDialog
 import com.a602.commonproject.designsystem.component.GroupRoleSelectDialog
@@ -43,7 +42,6 @@ import com.a602.commonproject.designsystem.theme.AppTypography
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color1
-import com.a602.commonproject.designsystem.theme.color2
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.gray1
 import com.a602.commonproject.designsystem.theme.lightblue
@@ -122,26 +120,6 @@ fun GroupChangeContainer(
     }
 }
 
-// --- 프리뷰 영역 ---
-
-@Preview(showBackground = true, name = "그룹 관리 화면 프리뷰")
-@Composable
-fun GroupManagementScreenPreview() {
-    LMTheme {
-        val sampleMembers = listOf(
-            GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
-            GroupMember(userId = "2", nickname = "아빠", relation = "아빠", role = GroupRole.MEMBER),
-            GroupMember(userId = "3", nickname = "언니", relation = "언니", role = GroupRole.VIEWER)
-        )
-        GroupManagementScreen(
-            members = sampleMembers,
-            onBackClick = {},
-            onRoleEditClick = {},
-            onAddMemberClick = {}
-        )
-    }
-}
-
 @Composable
 fun GroupManagementScreen(
     members: List<GroupMember>,
@@ -202,15 +180,29 @@ fun GroupManagementScreen(
                     Text(text = "새 구성원 추가하기", style = AppTypography.labelLarge)
                 }
             }
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                PermissionGuideSection()
+            }
         }
     }
 }
 
-private fun getColorForRole(role: GroupRole): Color {
-    return when (role) {
-        GroupRole.OWNER -> main
-        GroupRole.MEMBER -> color1
-        GroupRole.VIEWER -> purple1
-        else -> gray1
+
+@Preview(showBackground = true)
+@Composable
+fun GroupManagementScreenPreview() {
+    LMTheme {
+        val sampleMembers = listOf(
+            GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
+            GroupMember(userId = "2", nickname = "아빠", relation = "아빠", role = GroupRole.MEMBER),
+            GroupMember(userId = "3", nickname = "언니", relation = "언니", role = GroupRole.VIEWER)
+        )
+        GroupManagementScreen(
+            members = sampleMembers,
+            onBackClick = {},
+            onRoleEditClick = {},
+            onAddMemberClick = {}
+        )
     }
 }
