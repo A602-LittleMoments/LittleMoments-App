@@ -53,7 +53,7 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
  * 마이페이지의 메인 화면 UI를 구성하는 컴포저블 함수입니다.
  *
  * @param user 화면에 표시할 사용자의 정보 (User 데이터 클래스).
- * @param baby 화면에 표시할 아기의 정보 (Baby 데이터 클래스).
+ * @param babies 화면에 표시할 아기의 정보 (Baby 데이터 클래스).
  * @param groupMembers 화면에 표시할 그룹 멤버 목록.
  * @param onNavigateToProfileEdit '내 정보 수정' 버튼을 눌렀을 때 실행될 화면 이동 함수.
  * @param onNavigateToKidEdit '아이 정보 수정' 버튼을 눌렀을 때 실행될 화면 이동 함수.
@@ -63,16 +63,16 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
 @Composable
 fun MypageScreen(
     user: User?,
-    babies: List<Baby>, // Baby? 에서 List<Baby>로 변경
+    babies: List<Baby>,
     groupMembers: List<GroupMember>,
-    onNavigateToProfileEdit: () -> Unit = {},
-    onNavigateToKidEdit: (String) -> Unit = {}, // babyId를 받도록 (String) -> Unit으로 변경
-    onNavigateToKidAdd: () -> Unit = {},
-    onNavigateToGroupManagement: () -> Unit = {}
+    onNavigateToProfileEdit: () -> Unit,
+    onNavigateToKidEdit: (String) -> Unit,
+    onNavigateToKidAdd: () -> Unit,
+    onNavigateToGroupManagement: () -> Unit
 ) {
     // Scaffold는 화면의 기본 구조(상단바, 본문 등)를 잡아주는 유용한 틀입니다.
     Scaffold(
-        containerColor = background
+        containerColor = background,
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -83,12 +83,15 @@ fun MypageScreen(
             contentPadding = PaddingValues(top = 40.dp, bottom = 40.dp) // 목록 전체의 위, 아래 여백을 줍니다.
         ) {
             if (user != null) {
-                item { ProfileInfoCard(name = user.nickname, nickname = user.nickname, email = user.email, onEditClick = onNavigateToProfileEdit) }
+                item { ProfileInfoCard(nickname = user.nickname, email = user.email, onEditClick = onNavigateToProfileEdit) }
             }
 
-            // `babies` 리스트를 순회하며 각 아이에 대한 카드를 만듭니다.
-            items(babies) { baby ->
-                KidInfoCard(kidName = baby.babyName, birthDate = baby.birthDate, onEditClick = { onNavigateToKidEdit(baby.babyId) }, onAddClick = onNavigateToKidAdd)
+            item {
+                KidsInfoCard(
+                    babies = babies,
+                    onEditClick = onNavigateToKidEdit,
+                    onAddClick = onNavigateToKidAdd
+                )
             }
 
             item { GroupSectionHeader(memberCount = groupMembers.size, onEditClick = onNavigateToGroupManagement) }
@@ -97,15 +100,6 @@ fun MypageScreen(
                 MemberItem(name = member.nickname, role = member.role.name, color = getColorForRole(member.role))
             }
         }
-    }
-}
-
-private fun getColorForRole(role: GroupRole): Color {
-    return when (role) {
-        GroupRole.OWNER -> main
-        GroupRole.MEMBER -> color1
-        GroupRole.VIEWER -> purple1
-        else -> gray1 // 이외
     }
 }
 
@@ -128,7 +122,11 @@ fun MyPageScreenPreview() {
         MypageScreen(
             user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
             babies = sampleBabies,
-            groupMembers = sampleMembers
+            groupMembers = sampleMembers,
+            onNavigateToProfileEdit = {},
+            onNavigateToKidEdit = {},
+            onNavigateToKidAdd = {},
+            onNavigateToGroupManagement = {}
         )
     }
 }

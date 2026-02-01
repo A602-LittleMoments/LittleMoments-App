@@ -28,8 +28,8 @@ fun EntryProviderScope<NavKey>.myPageEntries(
     }
 
     // 4. 아이 정보 수정
-    entry<KidEditKey> {
-        KidEditContainer(navigator = navigator)
+    entry<KidEditKey> { key ->
+        KidEditContainer(navigator = navigator, key = key)
     }
 
     // 5. 그룹(가족) 관리

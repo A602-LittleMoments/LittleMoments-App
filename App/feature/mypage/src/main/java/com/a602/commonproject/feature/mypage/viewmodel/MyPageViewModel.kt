@@ -25,6 +25,7 @@ data class MyPageUiState(
     val user: User? = null, // 로그인한 사용자 정보
     val babies: List<Baby> = emptyList(), // 등록된 아기 정보 리스트(한 명만 나오는 문제 해결)
     val groupMembers: List<GroupMember> = emptyList(), // 그룹 구성원 리스트
+    val hasGroup: Boolean = false, // 그룹 존재 여부
     val isLoading: Boolean = true,
     val errorMessage: String? = null
 )
@@ -53,6 +54,7 @@ class MyPageViewModel @Inject constructor(
                         user = user,
                         babies = babyList, // 아기 목록 전체를 전달
                         groupMembers = groupMembers,
+                        hasGroup = groupMembers.isNotEmpty(), // 그룹 멤버가 있으면 true
                         isLoading = false
                     )
                 )
