@@ -13,10 +13,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.theme.*
+import com.a602.commonproject.feature.mypage.navigation.GroupCreateKey
+import com.a602.commonproject.feature.mypage.navigation.GroupJoinKey
 import com.a602.commonproject.feature.mypage.navigation.GroupManageKey
 import com.a602.commonproject.feature.mypage.navigation.KidAddKey
 import com.a602.commonproject.feature.mypage.navigation.KidEditKey
 import com.a602.commonproject.feature.mypage.navigation.ProfileEditKey
+import com.a602.commonproject.feature.mypage.viewmodel.MyPageUiState
 import com.a602.commonproject.feature.mypage.viewmodel.MyPageViewModel
 import com.a602.commonproject.model.data.Baby
 import com.a602.commonproject.model.data.Group
@@ -35,16 +38,13 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
         }
     } else {
         MypageScreen(
-            user = uiState.user,
-            babies = uiState.babies,
-            group = uiState.group, // 그룹 정보 전달
-            groupMembers = uiState.groupMembers,
+            uiState = uiState,
             onNavigateToProfileEdit = { navigator.navigate(ProfileEditKey) },
-            onNavigateToKidEdit = { babyId -> // babyId를 파라미터로 받습니다.
-                navigator.navigate(KidEditKey(babyId))
-            },
+            onNavigateToKidEdit = { babyId -> navigator.navigate(KidEditKey(babyId)) },
             onNavigateToKidAdd = { navigator.navigate(KidAddKey) },
-            onNavigateToGroupManagement = { navigator.navigate(GroupManageKey) }
+            onNavigateToGroupManagement = { navigator.navigate(GroupManageKey) },
+            onNavigateToGroupJoin = { navigator.navigate(GroupJoinKey) },
+            onNavigateToGroupCreate = { navigator.navigate(GroupCreateKey) } // 그룹 만들기 화면으로 이동
         )
     }
 }
@@ -62,14 +62,13 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
  */
 @Composable
 fun MypageScreen(
-    user: User?,
-    babies: List<Baby>,
-    group: Group?,
-    groupMembers: List<GroupMember>,
+    uiState: MyPageUiState,
     onNavigateToProfileEdit: () -> Unit,
     onNavigateToKidEdit: (String) -> Unit,
     onNavigateToKidAdd: () -> Unit,
-    onNavigateToGroupManagement: () -> Unit
+    onNavigateToGroupManagement: () -> Unit,
+    onNavigateToGroupJoin: () -> Unit,
+    onNavigateToGroupCreate: () -> Unit
 ) {
     // Scaffold는 화면의 기본 구조(상단바, 본문 등)를 잡아주는 유용한 틀입니다.
     Scaffold(
@@ -83,38 +82,44 @@ fun MypageScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp), // 각 항목 사이의 수직 간격을 16.dp로 줍니다.
             contentPadding = PaddingValues(top = 40.dp, bottom = 40.dp) // 목록 전체의 위, 아래 여백을 줍니다.
         ) {
-            if (user != null) {
-                item { ProfileInfoCard(nickname = user.nickname, email = user.email, onEditClick = onNavigateToProfileEdit) }
+            if (uiState.user != null) {
+                item { ProfileInfoCard(nickname = uiState.user.nickname, email = uiState.user.email, onEditClick = onNavigateToProfileEdit) }
             }
 
             item {
                 KidsInfoCard(
-                    babies = babies,
+                    babies = uiState.babies,
                     onEditClick = onNavigateToKidEdit,
                     onAddClick = onNavigateToKidAdd
                 )
             }
 
-            item { GroupSectionHeader(memberCount = groupMembers.size, onEditClick = onNavigateToGroupManagement) }
+            if (uiState.hasGroup) {
+                item { GroupSectionHeader(memberCount = uiState.groupMembers.size, onEditClick = onNavigateToGroupManagement) }
 
-            items(groupMembers) { member ->
-                MemberItem(
-                    name = member.nickname,
-                    groupName = group?.name ?: "내 그룹", // 그룹 이름 전달
-                    role = member.role.name,
-                    color = getColorForRole(member.role)
-                )
+                items(uiState.groupMembers) { member ->
+                    MemberItem(
+                        name = member.nickname,
+                        groupName = uiState.group?.name ?: "내 그룹",
+                        role = member.role.name,
+                        color = getColorForRole(member.role)
+                    )
+                }
+            } else {
+                item {
+                    NoGroupSection(
+                        onCreateClick = onNavigateToGroupCreate,
+                        onJoinClick = onNavigateToGroupJoin
+                    )
+                }
             }
         }
     }
 }
 
-/**
- * [정적 프리뷰]
- */
-@Preview(showBackground = true, name = "마이페이지 화면 단독 프리뷰")
+@Preview(showBackground = true, name = "마이페이지 (그룹 있음)")
 @Composable
-fun MyPageScreenPreview() {
+fun MyPageScreenWithGroupPreview() {
     LMTheme {
         val sampleGroup = Group(id = "1", name = "우리 가족 그룹", role = GroupRole.OWNER, relation = "엄마")
         val sampleMembers = listOf(
@@ -126,14 +131,38 @@ fun MyPageScreenPreview() {
             Baby(babyId = "2", babyName = "둘째", birthDate = "2024-03-20", gender = Baby.Gender.FEMALE, imageUrl = null)
         )
         MypageScreen(
-            user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
-            babies = sampleBabies,
-            group = sampleGroup, // 프리뷰용 그룹 정보
-            groupMembers = sampleMembers,
+            uiState = MyPageUiState(
+                user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
+                babies = sampleBabies, // 샘플 아이 데이터 연결
+                group = sampleGroup,
+                groupMembers = sampleMembers,
+                hasGroup = true
+            ),
             onNavigateToProfileEdit = {},
             onNavigateToKidEdit = {},
             onNavigateToKidAdd = {},
-            onNavigateToGroupManagement = {}
+            onNavigateToGroupManagement = {},
+            onNavigateToGroupJoin = {},
+            onNavigateToGroupCreate = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "마이페이지 (그룹 없음)")
+@Composable
+fun MyPageScreenWithoutGroupPreview() {
+    LMTheme {
+        MypageScreen(
+            uiState = MyPageUiState(
+                user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
+                hasGroup = false
+            ),
+            onNavigateToProfileEdit = {},
+            onNavigateToKidEdit = {},
+            onNavigateToKidAdd = {},
+            onNavigateToGroupManagement = {},
+            onNavigateToGroupJoin = {},
+            onNavigateToGroupCreate = {}
         )
     }
 }

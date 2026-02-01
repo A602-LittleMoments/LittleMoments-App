@@ -51,17 +51,22 @@ class MyPageViewModel @Inject constructor(
 
                 // 그룹 정보와 멤버 목록을 모두 가져옵니다.
                 val groupResult = groupRepository.getMyGroup()
-                val membersResult = groupRepository.getGroupMembers()
-
                 val group = groupResult.getOrNull()
-                val groupMembers = membersResult.getOrNull() ?: emptyList()
+
+                val members = if (group != null) {
+                    groupRepository.getGroupMembers().getOrNull() ?: emptyList()
+                } else {
+                    emptyList()
+                }
+                // 역할(OWNER, MEMBER, VIEWER) 순으로 정렬
+                val sortedMembers = members.sortedBy { it.role.ordinal }
 
                 emit(
                     MyPageUiState(
                         user = user,
                         babies = babyList,
                         group = group,
-                        groupMembers = groupMembers,
+                        groupMembers = sortedMembers, // 정렬된 리스트를 전달
                         hasGroup = group != null,
                         isLoading = false
                     )
