@@ -38,10 +38,10 @@ private fun pickStablePlanetRes(categoryValue: String, keywordId: String): Int {
 
 // collectionSize 기반 크기
 private fun sizeFromCollectionSize(size: Int): Dp = when {
-    size >= 50 -> 140.dp
-    size >= 30 -> 128.dp
-    size >= 15 -> 116.dp
-    else -> 104.dp
+    size >= 200 -> 120.dp
+    size >= 100 -> 100.dp
+    size >= 50 -> 80.dp
+    else -> 80.dp
 }
 
 /**
@@ -54,7 +54,7 @@ fun buildPlanetsUiLaneLayout(
     viewportWidth: Dp,
     viewportHeight: Dp,
     bottomSafeArea: Dp = 96.dp,
-    topSafeArea: Dp = 24.dp,
+    topSafeArea: Dp = 80.dp,
     sideSafeArea: Dp = 16.dp,
 ): PlanetLayoutResult {
 
@@ -86,6 +86,9 @@ fun buildPlanetsUiLaneLayout(
         val size = sizeFromCollectionSize(item.collectionSize)
         val planetRes = pickStablePlanetRes(item.categoryValue, item.keywordId)
 
+        // 키워드, 없으면 카테고리 이름
+        val label = item.keywordValue.takeIf{ it.isNotBlank() } ?: item.categoryValue
+
         // 고정 랜덤(자리 유지됨)
         val r = Random(item.keywordId.hashCode())
         var lane = r.nextInt(3)
@@ -105,12 +108,14 @@ fun buildPlanetsUiLaneLayout(
                 xRatio = xRatio,
                 y = y,
                 size = size,
+                label = label,
             ),
         )
 
         // 다음 y 간격(크기에 따라 조정)
-        val baseStep = 130.dp
-        val step = max(baseStep.value, (size.value * 0.9f)).dp
+        val baseStep = 92.dp
+        val labelHeight = 16.dp
+        val step = max(baseStep.value, (size.value * 0.9f)).dp + labelHeight
         currentY += step
     }
 

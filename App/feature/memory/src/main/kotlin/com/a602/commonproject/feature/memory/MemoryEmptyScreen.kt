@@ -11,6 +11,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import com.a602.commonproject.designsystem.theme.LMTheme
 
 @Composable
 fun MemoryEmptyScreen() {
@@ -24,21 +25,22 @@ fun MemoryEmptyScreen() {
 
         Column(
             modifier = Modifier
-                .align(Alignment.Center)
-                .offset(y = (-36).dp)
-                .padding(horizontal = 24.dp),
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .offset(y = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(180.dp))
             Image(
-                painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.moon),
+                painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.moon2),
                 contentDescription = null,
-                modifier = Modifier.size(120.dp),
+                modifier = Modifier.size(150.dp),
                 contentScale = ContentScale.Fit
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(30.dp))
             Text(
                 text = "AI가 추억을 모으고 있어요",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.height(8.dp))
@@ -51,11 +53,13 @@ fun MemoryEmptyScreen() {
     }
 }
 
-@Preview(showBackground = true, name = "Memory - Empty")
+@Preview(showBackground = true, name = "Memory - Empty", widthDp = 411)
 @Composable
 fun Preview_Memory_Empty() {
-    MaterialTheme {
-        MemoryEmptyScreen()
+    LMTheme {
+        MaterialTheme {
+            MemoryEmptyScreen()
+        }
     }
 }
 

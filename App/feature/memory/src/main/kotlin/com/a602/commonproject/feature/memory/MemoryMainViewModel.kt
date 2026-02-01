@@ -28,9 +28,12 @@ sealed interface MemoryMainUiState {
 
 @HiltViewModel(assistedFactory = MemoryMainViewModel.Factory::class)
 class MemoryMainViewModel @AssistedInject constructor(
+    // 서버 연결하면 주석 해제
+//    private val collectionRepository: CollectionRepository,
     @Assisted val key: MemoryNavKey,
 ) : ViewModel() {
 
+    // 서버 연결하면 주석 처리 or 삭제
     private val collectionRepository =
         MemoryRepoProvider.collectionRepository
 
@@ -52,7 +55,7 @@ class MemoryMainViewModel @AssistedInject constructor(
                         _uiState.value = MemoryMainUiState.Empty
                     } else {
                         _uiState.value = MemoryMainUiState.Make(list)
-                        delay(5_000)
+                        delay(1_000)
                         _uiState.value = MemoryMainUiState.Main(list)
                     }
                 }
