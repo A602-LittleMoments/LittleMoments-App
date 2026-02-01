@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(project(":core:model"))
     implementation(project(":core:data"))
+    implementation(project(":feature:login")) // 로그인 모듈 의존성 추가
 
     // 💡 Compose 필수 라이브러리 추가
     implementation(libs.androidx.core.ktx)

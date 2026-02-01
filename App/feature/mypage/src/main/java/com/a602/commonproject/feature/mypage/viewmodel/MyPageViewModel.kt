@@ -7,6 +7,7 @@ import com.a602.commonproject.data.repository.GroupRepository
 import com.a602.commonproject.data.repository.UserRepository
 import com.a602.commonproject.model.data.AuthState
 import com.a602.commonproject.model.data.Baby
+import com.a602.commonproject.model.data.Group
 import com.a602.commonproject.model.data.GroupMember
 import com.a602.commonproject.model.data.User
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,10 +23,11 @@ import javax.inject.Inject
 // 1. 화면에 필요한 모든 데이터를 담을 data class을 정의
 //    (로딩 상태, 오류 메시지 등 UI 상태 전체를 포함합니다.)
 data class MyPageUiState(
-    val user: User? = null, // 로그인한 사용자 정보
-    val babies: List<Baby> = emptyList(), // 등록된 아기 정보 리스트(한 명만 나오는 문제 해결)
-    val groupMembers: List<GroupMember> = emptyList(), // 그룹 구성원 리스트
-    val hasGroup: Boolean = false, // 그룹 존재 여부
+    val user: User? = null,
+    val babies: List<Baby> = emptyList(),
+    val group: Group? = null, // 그룹 정보
+    val groupMembers: List<GroupMember> = emptyList(),
+    val hasGroup: Boolean = false,
     val isLoading: Boolean = true,
     val errorMessage: String? = null
 )
@@ -39,22 +41,28 @@ class MyPageViewModel @Inject constructor(
 
     val uiState: StateFlow<MyPageUiState> =
         combine(
-            userRepository.authState, // 유저 데이터
-            babyRepository.getBabyStream() // 아기 데이터
+            userRepository.authState,
+            babyRepository.getBabyStream()
         ) { authState, babyList ->
             Pair(authState, babyList)
         }.flatMapLatest { (authState, babyList) ->
             flow {
                 val user = if (authState is AuthState.LoggedIn) authState.user else null
-                val groupMembersResult = groupRepository.getGroupMembers()
-                val groupMembers = groupMembersResult.getOrNull() ?: emptyList()
+
+                // 그룹 정보와 멤버 목록을 모두 가져옵니다.
+                val groupResult = groupRepository.getMyGroup()
+                val membersResult = groupRepository.getGroupMembers()
+
+                val group = groupResult.getOrNull()
+                val groupMembers = membersResult.getOrNull() ?: emptyList()
 
                 emit(
                     MyPageUiState(
                         user = user,
-                        babies = babyList, // 아기 목록 전체를 전달
+                        babies = babyList,
+                        group = group,
                         groupMembers = groupMembers,
-                        hasGroup = groupMembers.isNotEmpty(), // 그룹 멤버가 있으면 true
+                        hasGroup = group != null,
                         isLoading = false
                     )
                 )

@@ -8,12 +8,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.feature.mypage.navigation.GroupManageKey
 import com.a602.commonproject.feature.mypage.navigation.KidAddKey
@@ -21,6 +19,7 @@ import com.a602.commonproject.feature.mypage.navigation.KidEditKey
 import com.a602.commonproject.feature.mypage.navigation.ProfileEditKey
 import com.a602.commonproject.feature.mypage.viewmodel.MyPageViewModel
 import com.a602.commonproject.model.data.Baby
+import com.a602.commonproject.model.data.Group
 import com.a602.commonproject.model.data.GroupMember
 import com.a602.commonproject.model.data.GroupRole
 import com.a602.commonproject.model.data.User
@@ -37,7 +36,8 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
     } else {
         MypageScreen(
             user = uiState.user,
-            babies = uiState.babies, // `babies` 리스트를 전달합니다.
+            babies = uiState.babies,
+            group = uiState.group, // 그룹 정보 전달
             groupMembers = uiState.groupMembers,
             onNavigateToProfileEdit = { navigator.navigate(ProfileEditKey) },
             onNavigateToKidEdit = { babyId -> // babyId를 파라미터로 받습니다.
@@ -64,6 +64,7 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltV
 fun MypageScreen(
     user: User?,
     babies: List<Baby>,
+    group: Group?,
     groupMembers: List<GroupMember>,
     onNavigateToProfileEdit: () -> Unit,
     onNavigateToKidEdit: (String) -> Unit,
@@ -97,7 +98,12 @@ fun MypageScreen(
             item { GroupSectionHeader(memberCount = groupMembers.size, onEditClick = onNavigateToGroupManagement) }
 
             items(groupMembers) { member ->
-                MemberItem(name = member.nickname, role = member.role.name, color = getColorForRole(member.role))
+                MemberItem(
+                    name = member.nickname,
+                    groupName = group?.name ?: "내 그룹", // 그룹 이름 전달
+                    role = member.role.name,
+                    color = getColorForRole(member.role)
+                )
             }
         }
     }
@@ -110,11 +116,11 @@ fun MypageScreen(
 @Composable
 fun MyPageScreenPreview() {
     LMTheme {
+        val sampleGroup = Group(id = "1", name = "우리 가족 그룹", role = GroupRole.OWNER, relation = "엄마")
         val sampleMembers = listOf(
             GroupMember("id1", "엄마", "엄마", GroupRole.OWNER),
             GroupMember("id2", "아빠", "아빠", GroupRole.MEMBER)
         )
-        // 여러 명의 아기를 테스트하기 위해 리스트를 전달합니다.
         val sampleBabies = listOf(
             Baby(babyId = "1", babyName = "첫째", birthDate = "2022-01-15", gender = Baby.Gender.MALE, imageUrl = null),
             Baby(babyId = "2", babyName = "둘째", birthDate = "2024-03-20", gender = Baby.Gender.FEMALE, imageUrl = null)
@@ -122,6 +128,7 @@ fun MyPageScreenPreview() {
         MypageScreen(
             user = User(id = "1", email = "lilly@example.com", nickname = "Lilly"),
             babies = sampleBabies,
+            group = sampleGroup, // 프리뷰용 그룹 정보
             groupMembers = sampleMembers,
             onNavigateToProfileEdit = {},
             onNavigateToKidEdit = {},

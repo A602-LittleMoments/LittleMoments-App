@@ -25,6 +25,7 @@ import com.a602.commonproject.designsystem.component.LMFilledIconButton
 import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.designsystem.theme.AppTypography
 import com.a602.commonproject.model.data.Baby
+import com.a602.commonproject.model.data.GroupRole
 
 // 마이페이지 화면에서 사용하는 재사용 가능한 UI 컴포넌트들을 모아놓은 파일
 
@@ -36,7 +37,7 @@ import com.a602.commonproject.model.data.Baby
  * @param color 멤버를 대표하는 색상 (프로필 이미지 대신 사용).
  */
 @Composable
-fun MemberItem(name: String, role: String, color: Color) {
+fun MemberItem(name: String, groupName: String, role: String, color: Color) {
     // Card를 사용해 그림자 효과와 둥근 모서리를 적용합니다.
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -71,7 +72,7 @@ fun MemberItem(name: String, role: String, color: Color) {
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = "가족",
+                            text = groupName,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             style = AppTypography.labelSmall,
                             color = color4
@@ -79,25 +80,24 @@ fun MemberItem(name: String, role: String, color: Color) {
                     }
                 }
 
-                // 3. 멤버의 역할("관리자", "멤버" 등)에 따라 다른 아이콘과 색상을 표시하는 로직
-                val (icon, tint) = when(role) {
-                    "관리자" -> Icons.Default.EmojiEvents to color1 // 관리자는 왕관 아이콘과 노란색
-                    "멤버" -> Icons.Default.Shield to main       // 멤버는 방패 아이콘과 메인 색상
-                    else -> Icons.Default.StarBorder to color4   // 그 외는 별 아이콘과 회색
+                val icon = when (role) {
+                    GroupRole.OWNER.name -> Icons.Default.EmojiEvents
+                    GroupRole.MEMBER.name -> Icons.Default.Shield
+                    else -> Icons.Default.StarBorder
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = icon, // 위에서 결정된 아이콘
-                        contentDescription = null, // 장식용 아이콘이므로 설명은 null
-                        tint = tint, // 위에서 결정된 색상
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = color,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = role,
-                        color = tint,
-                        style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Bold) // 기본 스타일에 굵기만 추가
+                        color = color,
+                        style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Bold)
                     )
                 }
             }
