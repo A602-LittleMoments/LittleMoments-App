@@ -1,23 +1,36 @@
 package com.a602.commonproject.feature.mypage
 
 import android.net.Uri
-
-//import androidx.activity.compose.rememberLauncherForActivityResult
-//import androidx.activity.result.PickVisualMediaRequest
-//import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.component.GenderToggle
 import com.a602.commonproject.designsystem.component.LMEditInputField
@@ -88,10 +101,10 @@ fun KidAddScreen(
     onSaveClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
-//    val pickerLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.PickVisualMedia(),
-//        onResult = { uri -> onImageSelected(uri) }
-//    )
+    val pickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri -> onImageSelected(uri) }
+    )
 
     Scaffold(
         containerColor = background,
@@ -117,10 +130,12 @@ fun KidAddScreen(
                     selectedImageUri = uiState.imageUri?.let { Uri.parse(it) },
                     remoteImageUrl = null, // 추가 화면에서는 기존 이미지가 없으므로 null
                     onClick = {
-//                        pickerLauncher.launch(
-//                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                        )
+                        pickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
                     },
+                    clickableEnabled = true, // 클릭 활성화
+                    showEditBadge = true,    // 편집 배지 표시
                     headSize = 140.dp,
                     bodyWidth = 150.dp,
                     bodyOffsetY = 100.dp
@@ -133,7 +148,7 @@ fun KidAddScreen(
                     value = uiState.name,
                     onValueChange = onNameChanged,
                     placeholder = "아이 이름을 입력해주세요",
-                    icon = LMicons.Person
+                    trailingIcon = { Icon(imageVector = LMicons.Person, contentDescription = null) }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
