@@ -21,8 +21,6 @@ import com.a602.commonproject.feature.login.navigation.loginEntries
 import com.a602.commonproject.designsystem.component.LMNavigationBar
 import com.a602.commonproject.designsystem.component.LMNavigationBarItem
 import com.a602.commonproject.feature.home.navigation.HomeNavKey
-import com.a602.commonproject.feature.home.navigation.NotificationNavKey
-import com.a602.commonproject.feature.home.navigation.UploadNavKey
 import com.a602.commonproject.feature.home.navigation.homeEntries
 import com.a602.commonproject.navigation.TOP_LEVEL_NAV_ITEMS
 import com.a602.commonproject.navigation.toEntries
@@ -34,6 +32,8 @@ import com.a602.commonproject.feature.gallery.navigation.galleryEntries
 import com.a602.commonproject.feature.memory.navigation.MemoryNavKey
 import com.a602.commonproject.feature.memory.navigation.memoryEntries
 import com.a602.commonproject.feature.mypage.navigation.myPageEntries
+import com.a602.commonproject.feature.camera.navigation.CameraNavKey
+import com.a602.commonproject.feature.camera.navigation.cameraEntries
 
 @Composable
 fun LMApp() {
@@ -74,7 +74,7 @@ fun LMApp() {
 
             if (isTopLevelTab) {
                 CameraButton(
-                    onClick = { appState.navigator.navigate(UploadNavKey) },
+                    onClick = { appState.navigator.navigate(CameraNavKey) },
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
             }
@@ -98,6 +98,8 @@ fun LMApp() {
             memoryEntries(appState.navigator)
 
             myPageEntries(appState.navigator)
+
+            cameraEntries(appState.navigator)
         }
 
         val combinedEntryProvider: (NavKey) -> NavEntry<NavKey> = { key ->

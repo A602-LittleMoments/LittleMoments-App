@@ -8,6 +8,7 @@ fun TempMediaEntity.asExternalModel(): TempMedia {
     return TempMedia(
         id = tempId,
         localUri = localUri ?: "", // 로컬 경로가 없으면 빈 문자열 처리
+        subLocalUri = subLocalUri,
         takenAt = takenAt,
         expirationDate = expirationDate
     )

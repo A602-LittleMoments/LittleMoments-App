@@ -36,6 +36,7 @@ class OfflineFirstTempMediaRepository @Inject constructor(
     override suspend fun saveTempMedia(
         tempId: String,
         file: File,
+        subFile: File?,
         takenAt: Long,
         orientation: Int,
         cameraFacing: String,
@@ -47,7 +48,7 @@ class OfflineFirstTempMediaRepository @Inject constructor(
             val entity = TempMediaEntity(
                 tempId = tempId,
                 localUri = file.absolutePath, // 파일 절대 경로 저장
-                subLocalUri = null, // 썸네일 필요 시 추가 구현
+                subLocalUri = subFile?.absolutePath, // 썸네일/전면카메라 경로 저장
                 takenAt = takenAt,
                 cameraFacing = cameraFacing,
                 orientation = orientation,

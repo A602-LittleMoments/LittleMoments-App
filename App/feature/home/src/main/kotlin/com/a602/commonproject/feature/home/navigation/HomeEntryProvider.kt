@@ -7,12 +7,14 @@ import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.feature.home.HomeRoute
 import com.a602.commonproject.feature.home.NotificationScreen
 import com.a602.commonproject.navigation.Navigator
+import com.a602.commonproject.feature.camera.navigation.CameraNavKey
+
 
 fun EntryProviderScope<NavKey>.homeEntries(navigator: Navigator) {
     entry<HomeNavKey> {
         HomeRoute(
             onNotificationClick = { navigator.navigate(NotificationNavKey) },
-            onNavigateToUpload = { navigator.navigate(UploadNavKey) },
+            onNavigateToUpload = { navigator.navigate(CameraNavKey) },
 //            onNavigateToGallery = { navigator.navigate(GalleryNavKey) }
         )
     }
@@ -23,7 +25,5 @@ fun EntryProviderScope<NavKey>.homeEntries(navigator: Navigator) {
         )
     }
 
-    entry<UploadNavKey> {
-        Text("업로드 화면 (준비 중)")
-    }
+
 }
