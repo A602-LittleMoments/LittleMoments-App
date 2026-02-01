@@ -102,19 +102,19 @@ class CommentEditViewModel @Inject constructor(
         viewModelScope.launch {
             savingFlow.value = true
             errorFlow.value = null
-            try {
-                // TODO: repository.updateCaption(currentMediaId, currentCaption)
-                savingFlow.value = false
-                onSuccess()
-            } catch (e: Exception) {
-                savingFlow.value = false
-                val msg = e.message ?: "저장 실패"
-                errorFlow.value = msg
-                onError(msg)
-            }
+
+            val result = repository.updateCaption(currentMediaId, currentCaption)
+
+            savingFlow.value = false
+
+            result.onSuccess { onSuccess() }
+                .onFailure { e ->
+                    val msg = e.message ?: "저장 실패"
+                    errorFlow.value = msg
+                    onError(msg)
+                }
         }
     }
-
     fun clearError() {
         errorFlow.value = null
     }

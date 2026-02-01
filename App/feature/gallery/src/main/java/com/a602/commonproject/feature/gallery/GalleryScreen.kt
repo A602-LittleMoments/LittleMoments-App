@@ -2,7 +2,17 @@ package com.a602.commonproject.feature.gallery
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -11,7 +21,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +59,7 @@ import java.time.ZoneId
 
 @Composable
 fun CalendarRoute(
+    onBack: () -> Unit,
     onDateClick: () -> Unit,
     onGridClick: () -> Unit,
     onTempAlbumClick: () -> Unit,
@@ -61,6 +77,7 @@ fun CalendarRoute(
         uiState.error != null -> Text(uiState.error!!)
         else -> CalendarScreen(
             medias = uiState.medias,
+            onBack=onBack,
             onDateClick = onDateClick,
             onGridClick = onGridClick,
             onTempAlbumClick = onTempAlbumClick,
@@ -68,8 +85,6 @@ fun CalendarRoute(
         )
     }
 }
-
-
 
 data class CalendarDay(
     val date: LocalDate?,
@@ -105,7 +120,11 @@ fun mapToCalendarDays(
     for (day in 1..yearMonth.lengthOfMonth()) {
         val date = yearMonth.atDay(day)
         val representative = grouped[date]?.firstOrNull()
-        days.add(CalendarDay(date, representative?.thumbnailUrl))
+
+        // remoteUrl을 대표 이미지로 사용
+        val imageUrl = representative?.remoteUrl
+
+        days.add(CalendarDay(date, imageUrl))
     }
 
     // 그 달이 필요한 "주(행)" 만큼까지만 채우기 (35 or 42)
@@ -122,11 +141,11 @@ fun mapToCalendarDays(
 fun CalendarScreen(
     medias: List<SharedMedia>,
     initialMonth: YearMonth = YearMonth.now(),
+    onBack: () -> Unit,
     onDateClick: () -> Unit,
     onGridClick: () -> Unit,
     onTempAlbumClick: () -> Unit,
     onHighLightClick: () -> Unit,
-    onBackClick: () -> Unit = {}
 ) {
     var currentMonth by remember { mutableStateOf(initialMonth) }
 
@@ -144,7 +163,7 @@ fun CalendarScreen(
         LMTopAppBar(
             title = "캘린더",
             navigationIcon = LMicons.Back,
-            onNavigationClick = onBackClick,
+            onNavigationClick = onBack,
         )
 
         Box(
@@ -153,9 +172,10 @@ fun CalendarScreen(
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = (-40).dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(y = (-40).dp)
             ) {
 
                 Box(
@@ -179,7 +199,7 @@ fun CalendarScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Row(
+                    androidx.compose.foundation.layout.Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
@@ -244,17 +264,14 @@ fun CalendarPhotoView(
         DayOfWeekHeader()
         Spacer(modifier = Modifier.height(4.dp))
 
-
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-
             val cellSize = (maxWidth - hSpace * 6) / 7
             val oneRowHeight = cellSize + vSpace
             val fixedGridHeight = cellSize * 6 + vSpace * 5
 
-
             val missing = (6 - rows).coerceAtLeast(0)
             val offsetY = (missing * oneRowHeight) / 2
-            // 날짜영역
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -315,10 +332,8 @@ fun CalendarDayItem(
             .clickable(enabled = day.date != null, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-
         if (day.representativeThumbUrl != null) {
             if (isPreview) {
-                // 프리뷰용 원형
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -349,30 +364,31 @@ fun CalendarDayItem(
 @Preview(showBackground = true)
 @Composable
 fun CalendarScreenPreview() {
-
     val sampleMedias = listOf(
         SharedMedia(
             id = "1",
             type = SharedMedia.MediaType.PHOTO,
             localUri = null,
             caption = null,
-            remoteUrl = "https://via.placeholder.com/150",
-            thumbnailUrl = "https://via.placeholder.com/150",
+            remoteUrl = "https://via.placeholder.com/300", // ✅ remoteUrl 사용
+            thumbnailUrl = null, // ✅ 없어도 됨
             dateTaken = System.currentTimeMillis(),
             orientation = 0,
             uploaderName = "엄마",
             syncStatus = SYNCED
         )
     )
+
     LMTheme() {
         Surface {
             CalendarScreen(
                 medias = sampleMedias,
                 initialMonth = YearMonth.now(),
+                onBack = {},
                 onDateClick = {},
                 onGridClick = {},
-                onTempAlbumClick={},
-                onHighLightClick=  {}
+                onTempAlbumClick = {},
+                onHighLightClick = {}
             )
         }
     }

@@ -25,7 +25,7 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     // 1. 메인화면 - 캘린더 뷰
     entry<GalleryNavKey> {
         CalendarRoute(
-//            onBackClick = { navigator.goBack() },
+            onBack = { navigator.goBack() },
             onDateClick = {navigator.navigate(GridNavKey)},
             onGridClick= {navigator.navigate(GridNavKey)},
             onTempAlbumClick={navigator.navigate(TempAlbumNavKey)},
