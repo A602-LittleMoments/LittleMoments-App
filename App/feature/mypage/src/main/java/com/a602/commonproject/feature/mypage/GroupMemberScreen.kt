@@ -133,7 +133,7 @@ fun GroupMemberScreen(
             // 'item'은 LazyColumn 안에서 하나의 고정된 항목
             item {
                 if (group != null) {
-                    GroupSummaryCard(groupName = group.name, description = "함께 추억을 공유해요")
+                    GroupSummaryCard(groupName = group.name, description = "함께 추억을 공유해요", onEditClick = {})
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }

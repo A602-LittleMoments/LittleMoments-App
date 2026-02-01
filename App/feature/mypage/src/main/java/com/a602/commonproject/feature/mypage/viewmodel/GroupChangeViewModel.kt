@@ -25,10 +25,14 @@ data class GroupChangeUiState(
     // Dialog states
     val showRoleSelectDialog: Boolean = false,
     val showInviteCodeDialog: Boolean = false,
-    val memberToEdit: GroupMember? = null, // 역할 변경 대상 멤버
+    val memberToEdit: GroupMember? = null,
+    val showEditNameDialog: Boolean = false, // 그룹 이름 수정 팝업 상태
+    val showLeaveGroupConfirmDialog: Boolean = false, // 그룹 나가기 확인 팝업 상태
+    val isLeaveSuccess: Boolean = false, // 그룹 나가기 성공 상태
     // Data for dialogs
     val inviteCode: String? = null,
-    val inviteCodeExpiry: Int = 180
+    val inviteCodeExpiry: Int = 180,
+    val isMemberCode: Boolean = true
 )
 
 @HiltViewModel
@@ -53,11 +57,12 @@ class GroupChangeViewModel @Inject constructor(
             val membersResult = groupRepository.getGroupMembers()
 
             if (groupResult.isSuccess && membersResult.isSuccess) {
+                val sortedMembers = membersResult.getOrThrow().sortedBy { it.role.ordinal }
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         group = groupResult.getOrThrow(),
-                        members = membersResult.getOrThrow()
+                        members = sortedMembers
                     )
                 }
             } else {
@@ -73,6 +78,52 @@ class GroupChangeViewModel @Inject constructor(
         loadGroupAndMembers()
     }
 
+    // --- 그룹 이름 수정 관련 ---
+    fun onEditGroupNameClicked() {
+        _uiState.update { it.copy(showEditNameDialog = true) }
+    }
+
+    fun onEditGroupNameDismissed() {
+        _uiState.update { it.copy(showEditNameDialog = false) }
+    }
+
+    fun updateGroupName(newName: String) {
+        viewModelScope.launch {
+            val result = groupRepository.updateGroupName(newName)
+            if(result.isSuccess) {
+                loadGroupAndMembers() // 성공 시 그룹 정보 새로고침
+            } else {
+                _uiState.update{ it.copy(errorMessage = "그룹 이름 변경에 실패했습니다.") }
+            }
+            _uiState.update { it.copy(showEditNameDialog = false) } // 성공 여부와 관계없이 다이얼로그 닫기
+        }
+    }
+
+    // --- 그룹 나가기 관련 ---
+    fun onLeaveGroupClicked() {
+        _uiState.update { it.copy(showLeaveGroupConfirmDialog = true) }
+    }
+
+    fun onLeaveGroupDismissed() {
+        _uiState.update { it.copy(showLeaveGroupConfirmDialog = false) }
+    }
+
+    fun leaveGroup() {
+        viewModelScope.launch {
+            val result = groupRepository.leaveGroup()
+            if(result.isSuccess) {
+                _uiState.update { it.copy(isLeaveSuccess = true) }
+            } else {
+                _uiState.update { it.copy(errorMessage = "그룹 나가기에 실패했습니다.") }
+            }
+            _uiState.update { it.copy(showLeaveGroupConfirmDialog = false) }
+        }
+    }
+
+    fun onLeaveSuccessConsumed() {
+        _uiState.update { it.copy(isLeaveSuccess = false) }
+    }
+
     // --- 초대 플로우 관련 액션 ---
 
     // 1. '멤버 추가' 버튼 클릭 -> 역할 선택 팝업 표시
@@ -82,9 +133,19 @@ class GroupChangeViewModel @Inject constructor(
 
     // 2. 역할 선택 팝업에서 '확인' 클릭 -> 초대 코드 요청 및 표시
     fun onRoleSelectedForInvite(isMember: Boolean) {
-        _uiState.update { it.copy(showRoleSelectDialog = false) } // 역할 선택 팝업 닫기
+        _uiState.update { it.copy(showRoleSelectDialog = false, isMemberCode = isMember) }
+        fetchInviteCode(isMember = isMember)
+    }
+
+    // 초대 코드 새로고침
+    fun refreshInviteCode(){
+        fetchInviteCode(isMember = _uiState.value.isMemberCode, isRefresh = true)
+    }
+
+    private fun fetchInviteCode(isMember: Boolean, isRefresh: Boolean = false) {
         viewModelScope.launch {
-            val result = groupRepository.getInvites()
+            val result = if(isRefresh) groupRepository.refreshInvites() else groupRepository.getInvites()
+
             if (result.isSuccess) {
                 val inviteData = result.getOrThrow()
                 // 선택된 역할에 따라 다른 코드를 사용합니다.
@@ -130,16 +191,13 @@ class GroupChangeViewModel @Inject constructor(
     fun updateMemberRole(newRole: GroupRole) {
         val userId = _uiState.value.memberToEdit?.userId ?: return
         viewModelScope.launch {
-            // TODO: GroupRepository에 역할 변경(updateMemberRole) 함수가 추가되면, 아래 주석을 풀고 실제 로직을 구현합니다.
-            /*
-            val result = groupRepository.updateMemberRole(userId, newRole)
+            // TODO: 역할 변경 API 구현 후 주석 해제
+            /* val result = groupRepository.updateMemberRole(userId, newRole)
             if (result.isSuccess) {
-                loadMembers() // 성공 시 멤버 목록 새로고침
+                loadGroupAndMembers()
             } else {
                 _uiState.update { it.copy(errorMessage = "역할 변경에 실패했습니다.") }
-            }
-            */
-            // 지금은 임시로 팝업만 닫습니다.
+            }*/
             _uiState.update { it.copy(memberToEdit = null) }
         }
     }
