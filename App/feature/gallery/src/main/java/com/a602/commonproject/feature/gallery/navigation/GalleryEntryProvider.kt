@@ -12,6 +12,9 @@ import com.a602.commonproject.feature.gallery.GridRoute
 import com.a602.commonproject.feature.gallery.HighlightCalendarNavKey
 import com.a602.commonproject.feature.gallery.HighlightCalendarRoute
 import com.a602.commonproject.feature.gallery.HighlightLoadingNavKey
+import com.a602.commonproject.feature.gallery.HighlightLoadingRoute
+import com.a602.commonproject.feature.gallery.HighlightResultNavKey
+import com.a602.commonproject.feature.gallery.HighlightResultRoute
 //import com.a602.commonproject.feature.gallery.HighlightLoadingRoute
 //import com.a602.commonproject.feature.gallery.HighlightResult
 //import com.a602.commonproject.feature.gallery.HighlightResultNavKey
@@ -86,31 +89,27 @@ fun EntryProviderScope<NavKey>.galleryEntries(
         )
     }
 
-//// 7. 하이라이트 로딩
-//    entry<HighlightLoadingNavKey> { key ->
-//        HighlightLoadingRoute(
-//            startMillis = key.startMillis,
-//            endMillis = key.endMillis,
-//            onSuccess = { HighlightResult ->
-//                navigator.navigate(
-//                    HighlightResultNavKey(HighlightResult)
-//                )
-//            },
-//            onFailure = { _ ->
-//                navigator.goBack()
-//            }
-//        )
-//    }
+    // 7. 하이라이트 로딩
+    entry<HighlightLoadingNavKey> { key ->
+        HighlightLoadingRoute(
+            startMillis = key.startMillis,
+            endMillis = key.endMillis,
+            onSuccess = { slideshowId ->
+                navigator.navigate(HighlightResultNavKey(slideshowId))
+            },
+            onFailure = { error ->
+                // TODO: 에러 토스트 또는 스낵바
+                navigator.goBack()
+            }
+        )
+    }
 
+    // 8. 하이라이트 결과
+    entry<HighlightResultNavKey> { key ->
+        HighlightResultRoute(
+            slideshowId = key.slideshowId,
+            onBack = navigator::goBack
+        )
+    }
 
-//// 8. 하이라이트 결과
-//    entry<HighlightResultNavKey> { key ->
-//        HighlightResultScreen(
-//            result = key.result,
-//            onBack = navigator::goBack,
-//            onSave = {
-//                // TODO: 다운로드 처리
-//            }
-//        )
-//    }
 }

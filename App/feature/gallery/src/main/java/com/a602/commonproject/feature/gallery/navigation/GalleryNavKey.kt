@@ -44,26 +44,9 @@ data class HighlightLoadingNavKey(
     val startMillis: Long,
     val endMillis: Long
 ) : NavKey
-//@Serializable
-//data class HighlightResultNavKey(
-//    val result: HighlightResult
-//) : NavKey
-//
-//
-//@Serializable
-//data class HighlightResult(
-//    val id: String,
-//    val title: String,
-//    val thumbnailUrl: String?,
-//    val remoteVideoUrl: String?,
-//    val localVideoPath: String?,
-//    val status: MakeStatus,
-//    val mediaCount: Int,
-//    val durationSec: Int,
-//    val createdAt: Long
-//) : NavKey {
-//
-//    enum class MakeStatus {
-//        QUEUED, PROCESSING, COMPLETED, FAILED, DOWNLOADED, UNKNOWN
-//    }
-//}
+
+// 하이라이트 결과
+@Serializable
+data class HighlightResultNavKey(
+    val slideshowId: String
+) : NavKey
