@@ -1,6 +1,7 @@
 package com.a602.commonproject.sync.services
 
 import android.util.Log
+import com.a602.commonproject.data.repository.NotificationRepository
 import com.a602.commonproject.data.repository.UserRepository
 import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
 import com.a602.commonproject.notifications.Notifier
@@ -15,7 +16,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-
 private const val SYNC_TOPIC_SENDER = "/topics/sync"
 
 @AndroidEntryPoint
@@ -28,11 +28,11 @@ class SyncNotificationService : FirebaseMessagingService() {
     lateinit var notifier: Notifier
 
     @Inject
-    lateinit var userRepository: UserRepository // 토큰 갱신용 (아래 onNewToken 설명 참고)
+    lateinit var notificationRepository: NotificationRepository // ✨ 저장소 주입
 
-    // ✨ [추가] 내 로컬 그룹 ID를 찾기 위해 필요
     @Inject
-    lateinit var userPreferences: UserPreferencesDataSource
+    lateinit var userRepository: UserRepository
+
 
     // 서비스는 생명주기가 짧지만, 비동기 작업을 위해 Scope가 필요할 수 있음
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -65,12 +65,20 @@ class SyncNotificationService : FirebaseMessagingService() {
                 content = msgBody,
                 deepLinkUri = deepLink,
             )
-            // 2. ✨ 내 그룹 데이터 갱신
+            // 2. 내 그룹 데이터 갱신 요청 (Worker가 돕니다)
             syncManager.requestSync()
+
+            // 3. ✨ [추가] DB에 알림 저장
+            saveNotificationToDb(
+                title = albumTitle,
+                body = msgBody,
+                deepLink = deepLink,
+                type = "NEW_ALBUM"
+            )
         }
 
         // ==========================================
-        // ✨ CASE C: 슬라이드쇼 제작 완료 (추가됨!)
+        // CASE C: 슬라이드쇼 제작 완료
         // ==========================================
         else if (message.data["type"] == "SLIDESHOW_COMPLETED") {
             val title = message.data["title"] ?: "추억 영상 완성!"
@@ -90,6 +98,16 @@ class SyncNotificationService : FirebaseMessagingService() {
 
             // 2. 데이터 동기화 요청 (FetchWorker 실행)
             syncManager.requestSync()
+
+
+            // 3. ✨ [추가] DB에 알림 저장
+            saveNotificationToDb(
+                title = title,
+                body = msgBody,
+                deepLink = deepLink,
+                type = "SLIDESHOW_COMPLETED"
+            )
+
         }
 
         // ==========================================
@@ -101,6 +119,32 @@ class SyncNotificationService : FirebaseMessagingService() {
                 title = it.title ?: "새 알림",
                 content = it.body ?: "새로운 사진이 공유되었습니다.",
             )
+            // ✨ [추가] 일반 알림도 저장
+            saveNotificationToDb(
+                title = it.title ?: "새 알림",
+                body = it.body ?: "",
+                type = "GENERAL"
+            )
+        }
+    }
+
+    private fun saveNotificationToDb(title: String, body: String, deepLink: String? = null, type: String?) {
+        serviceScope.launch {
+            try {
+                notificationRepository.saveNotification(
+                    com.a602.commonproject.database.model.NotificationEntity(
+                        id = System.currentTimeMillis().toString(),
+                        title = title,
+                        body = body,
+                        timestamp = System.currentTimeMillis(),
+                        isRead = false,
+                        deepLink = deepLink,
+                        type = type
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e("SyncNotificationService", "Failed to save notification: ${e.message}")
+            }
         }
     }
 
@@ -112,6 +156,7 @@ class SyncNotificationService : FirebaseMessagingService() {
         // Service는 비동기 호출을 위해 CoroutineScope 사용
         serviceScope.launch {
             try {
+                userRepository.updateFcmToken(token)
                 // UserRepository나 AuthDataSource에 updateFcmToken 함수가 필요함
                 // 예시: userRepository.updateFcmToken(token)
                 // 혹은 UserPreferences에 일단 저장해두고 나중에 보낼 수도 있음
@@ -120,5 +165,4 @@ class SyncNotificationService : FirebaseMessagingService() {
             }
         }
     }
-
 }

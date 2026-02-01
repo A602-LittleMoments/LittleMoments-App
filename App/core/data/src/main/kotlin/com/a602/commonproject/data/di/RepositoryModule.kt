@@ -4,6 +4,7 @@ import com.a602.commonproject.data.repository.BabyRepository
 import com.a602.commonproject.data.repository.CollectionRepository
 import com.a602.commonproject.data.repository.DailyQuestionRepository
 import com.a602.commonproject.data.repository.GroupRepository
+import com.a602.commonproject.data.repository.NotificationRepository
 import com.a602.commonproject.data.repository.impl.NetworkDailyQuestionRepository
 import com.a602.commonproject.data.repository.impl.OfflineFirstBabyRepository
 import com.a602.commonproject.data.repository.SharedMediaRepository
@@ -15,6 +16,7 @@ import com.a602.commonproject.data.repository.TempMediaRepository
 import com.a602.commonproject.data.repository.UserRepository
 import com.a602.commonproject.data.repository.impl.NetworkCollectionRepository
 import com.a602.commonproject.data.repository.impl.NetworkGroupRepository
+import com.a602.commonproject.data.repository.impl.OfflineFirstNotificationRepository
 import com.a602.commonproject.data.repository.impl.OfflineFirstSlideshowRepository
 import dagger.Binds
 import dagger.Module
@@ -74,4 +76,10 @@ abstract class RepositoryModule {
     abstract fun bindDailyQuestionRepository(
         impl: NetworkDailyQuestionRepository,
     ): DailyQuestionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationRepository(
+        impl: OfflineFirstNotificationRepository,
+    ): NotificationRepository
 }
