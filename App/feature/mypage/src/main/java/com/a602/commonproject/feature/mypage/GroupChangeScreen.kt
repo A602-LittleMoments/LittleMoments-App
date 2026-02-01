@@ -48,6 +48,7 @@ import com.a602.commonproject.designsystem.theme.lightblue
 import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.designsystem.theme.purple1
 import com.a602.commonproject.feature.mypage.viewmodel.GroupChangeViewModel
+import com.a602.commonproject.model.data.Group
 import com.a602.commonproject.model.data.GroupMember
 import com.a602.commonproject.model.data.GroupRole
 import com.a602.commonproject.navigation.Navigator
@@ -68,6 +69,7 @@ fun GroupChangeContainer(
                 .graphicsLayer(alpha = if (isAnyDialogOpen) 0.5f else 1f)
         ) {
             GroupManagementScreen(
+                group = uiState.group,
                 members = uiState.members,
                 onBackClick = { navigator.goBack() },
                 onRoleEditClick = { memberId ->
@@ -122,6 +124,7 @@ fun GroupChangeContainer(
 
 @Composable
 fun GroupManagementScreen(
+    group: Group?,
     members: List<GroupMember>,
     onBackClick: () -> Unit,
     onRoleEditClick: (String) -> Unit,
@@ -140,7 +143,9 @@ fun GroupManagementScreen(
             contentPadding = PaddingValues(top = 20.dp, bottom = 40.dp)
         ) {
             item {
-                GroupSummaryCard(groupName = "우리 가족 그룹", description = "함께 추억을 공유해요")
+                if (group != null) {
+                    GroupSummaryCard(groupName = group.name, description = "함께 추억을 공유해요")
+                }
                 Spacer(modifier = Modifier.height(12.dp))
             }
             item {
@@ -160,6 +165,7 @@ fun GroupManagementScreen(
             items(members) { member ->
                 ManageableMemberItem(
                     name = member.nickname,
+                    groupName = group?.name ?: "내 그룹",
                     role = member.role.name,
                     color = getColorForRole(member.role),
                     isOwner = (member.role == GroupRole.OWNER),
@@ -193,12 +199,14 @@ fun GroupManagementScreen(
 @Composable
 fun GroupManagementScreenPreview() {
     LMTheme {
+        val sampleGroup = Group(id = "1", name = "우리 가족 그룹", role = GroupRole.OWNER, relation = "엄마")
         val sampleMembers = listOf(
             GroupMember(userId = "1", nickname = "엄마", relation = "엄마", role = GroupRole.OWNER),
             GroupMember(userId = "2", nickname = "아빠", relation = "아빠", role = GroupRole.MEMBER),
             GroupMember(userId = "3", nickname = "언니", relation = "언니", role = GroupRole.VIEWER)
         )
         GroupManagementScreen(
+            group = sampleGroup,
             members = sampleMembers,
             onBackClick = {},
             onRoleEditClick = {},

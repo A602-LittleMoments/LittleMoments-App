@@ -3,6 +3,7 @@ package com.a602.commonproject.feature.mypage.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.a602.commonproject.data.repository.GroupRepository
+import com.a602.commonproject.model.data.Group
 import com.a602.commonproject.model.data.GroupMember
 import com.a602.commonproject.model.data.GroupRole
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,7 @@ import javax.inject.Inject
  * 그룹 관리 화면의 모든 UI 상태와 팝업 상태를 관리하는 데이터 클래스입니다.
  */
 data class GroupChangeUiState(
+    val group: Group? = null,
     val members: List<GroupMember> = emptyList(),
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
@@ -38,22 +40,37 @@ class GroupChangeViewModel @Inject constructor(
     val uiState: StateFlow<GroupChangeUiState> = _uiState.asStateFlow()
 
     init {
-        loadMembers()
+        loadGroupAndMembers()
     }
 
     /**
-     * 멤버 목록을 불러옵니다.
+     * 그룹 정보와 멤버 목록을 함께 불러옵니다.
      */
-    fun loadMembers() {
+    private fun loadGroupAndMembers() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val result = groupRepository.getGroupMembers()
-            if (result.isSuccess) {
-                _uiState.update { it.copy(isLoading = false, members = result.getOrThrow()) }
+            val groupResult = groupRepository.getMyGroup()
+            val membersResult = groupRepository.getGroupMembers()
+
+            if (groupResult.isSuccess && membersResult.isSuccess) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        group = groupResult.getOrThrow(),
+                        members = membersResult.getOrThrow()
+                    )
+                }
             } else {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "멤버 목록을 불러오지 못했습니다.") }
+                _uiState.update { it.copy(isLoading = false, errorMessage = "그룹 정보를 불러오지 못했습니다.") }
             }
         }
+    }
+
+    /**
+     * 화면을 아래로 당겨 새로고침할 때 호출됩니다.
+     */
+    fun refresh() {
+        loadGroupAndMembers()
     }
 
     // --- 초대 플로우 관련 액션 ---

@@ -58,8 +58,9 @@ public fun getColorForRole(role: GroupRole): Color {
 }
 
 @Composable
-fun ManageableMemberItem(
+public fun ManageableMemberItem(
     name: String,
+    groupName: String,
     role: String,
     color: Color, // 💡 마이페이지에서 생성된 랜덤 색상을 그대로 전달받습니다
     isOwner: Boolean = false,
@@ -84,7 +85,18 @@ fun ManageableMemberItem(
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(text = name, style = AppTypography.bodyMedium)
-                        Spacer(modifier = Modifier.width(15.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Surface(
+                            color = gray1,
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = groupName,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = AppTypography.labelSmall,
+                                color = color4
+                            )
+                        }
                     }
 
                     // 역할별 아이콘 매칭 (이미지 디자인 준수)

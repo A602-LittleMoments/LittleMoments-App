@@ -162,6 +162,7 @@ fun GroupMemberScreen(
                 ManageableMemberItem(
                     // GroupMember 객체에서 'nickname' 속성값을 가져와 이름으로 전달합니다.
                     name = member.nickname,
+                    groupName = group?.name ?: "내 그룹",
                     // GroupMember 객체의 'role' 속성(enum)에서 '.name'으로 실제 이름("OWNER" 등)을 문자열로 가져옵니다.
                     role = member.role.name,
                     color = getColorForRole(member.role),
