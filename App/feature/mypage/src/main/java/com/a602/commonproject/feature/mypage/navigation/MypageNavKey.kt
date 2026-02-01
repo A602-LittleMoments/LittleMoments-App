@@ -1,21 +1,21 @@
 package com.a602.commonproject.feature.mypage.navigation
 
+import android.os.Parcelable
 import androidx.navigation3.runtime.NavKey
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
-// 1. 마이페이지 기능의 각 화면에 대한 '스마트 주소'들을 정의합니다.
-//    @Serializable 어노테이션은 이 주소들이 안전하게 전달될 수 있도록 보장합니다.
-
+// 데이터를 전달하지 않는 단순 주소는 @Serializable object로 정의합니다.
 @Serializable
 object MyPageNavKey : NavKey
-
 
 @Serializable
 object ProfileEditKey : NavKey
 
+// 데이터를 화면 간에 전달해야 하는 Key는 @Serializable과 @Parcelize를 모두 사용합니다.
 @Serializable
-data class KidEditKey(val babyId: String) : NavKey
-
+@Parcelize
+data class KidEditKey(val babyId: String) : NavKey, Parcelable
 
 @Serializable
 object KidAddKey : NavKey
