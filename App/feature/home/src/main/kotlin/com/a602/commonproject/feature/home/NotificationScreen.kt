@@ -1,6 +1,8 @@
 package com.a602.commonproject.feature.home
 
+import android.text.format.DateUtils
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,27 +19,37 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.a602.commonproject.database.model.NotificationEntity
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.designsystem.theme.background
+import com.a602.commonproject.feature.home.viewmodel.NotificationUiState
+import com.a602.commonproject.feature.home.viewmodel.NotificationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(
     onBackClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: NotificationViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             LMTopAppBar(
@@ -46,24 +58,61 @@ fun NotificationScreen(
                 onNavigationClick = onBackClick
             )
         },
-        containerColor = Color(0xFFF9F9F9)
+        containerColor = background
     ) { paddingValues ->
-        LazyColumn(
-            contentPadding = paddingValues,
-            modifier = Modifier.fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
+            when (val state = uiState) {
+                is NotificationUiState.Loading -> {
+                   Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                       CircularProgressIndicator()
+                   }
+                }
+                is NotificationUiState.Empty -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("새로운 알림이 없습니다.", color = Color.Gray)
+                    }
+                }
+                is NotificationUiState.Success -> {
+                    NotificationList(notifications = state.notifications)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NotificationList(notifications: List<NotificationEntity>) {
+    // 날짜별 그룹핑 (오늘 / 그 외)
+    val now = System.currentTimeMillis()
+    val todayNotifications = notifications.filter {
+        DateUtils.isToday(it.timestamp)
+    }
+    val otherNotifications = notifications.filter {
+        !DateUtils.isToday(it.timestamp)
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        if (todayNotifications.isNotEmpty()) {
             item {
                 NotificationHeader(title = "오늘")
             }
-            items(getMockNotifications().filter { it.isToday }) { notification ->
+            items(todayNotifications) { notification ->
                 NotificationItem(notification)
             }
+        }
 
+        if (otherNotifications.isNotEmpty()) {
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                NotificationHeader(title = "이번주")
+                NotificationHeader(title = "이전 알림")
             }
-             items(getMockNotifications().filter { !it.isToday }) { notification ->
+            items(otherNotifications) { notification ->
                 NotificationItem(notification)
             }
         }
@@ -81,7 +130,13 @@ fun NotificationHeader(title: String) {
 }
 
 @Composable
-fun NotificationItem(item: NotificationUiModel) {
+fun NotificationItem(item: NotificationEntity) {
+    val timeAgo = DateUtils.getRelativeTimeSpanString(
+        item.timestamp,
+        System.currentTimeMillis(),
+        DateUtils.MINUTE_IN_MILLIS
+    ).toString()
+
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -89,6 +144,9 @@ fun NotificationItem(item: NotificationUiModel) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clickable {
+                // TODO: 딥링크 처리 또는 상세 이동
+            }
     ) {
         Row(
             modifier = Modifier
@@ -104,7 +162,6 @@ fun NotificationItem(item: NotificationUiModel) {
                     .background(Color(0xFFFFF3E0)), // 연한 주황색
                 contentAlignment = Alignment.Center
             ) {
-               // 아이콘은 임시로 텍스트나 기본 아이콘 사용
                 Text("🔔", fontSize = 20.sp)
             }
 
@@ -127,41 +184,11 @@ fun NotificationItem(item: NotificationUiModel) {
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = item.timeAgo,
+                    text = timeAgo,
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
             }
-
-            if (item.hasImage) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier.size(48.dp).background(Color.LightGray, RoundedCornerShape(8.dp))
-                )
-            }
         }
     }
-}
-
-data class NotificationUiModel(
-    val id: String,
-    val title: String,
-    val body: String,
-    val timeAgo: String,
-    val isToday: Boolean,
-    val hasImage: Boolean = false
-)
-
-private fun getMockNotifications() = listOf(
-    NotificationUiModel("1", "아이의 성장을 함께 볼 가족이 들어왔어요", "", "50분 전", true),
-    NotificationUiModel("2", "지금 열어보면 웃게 될지도 몰라요", "짧은 순간들이 모여 하나의 추억이 됐어요", "2시간 전", true, true),
-    NotificationUiModel("3", "아이와 함께한 지 N일째예요", "", "10시간 전", true),
-    NotificationUiModel("4", "아이의 성장을 함께 볼 가족이 들어왔어요", "", "30분 전", false),
-    NotificationUiModel("5", "지금 열어보면 웃게 될지도 몰라요", "", "2시간 전", false)
-)
-
-@Preview
-@Composable
-fun PreviewNotificationScreen() {
-    NotificationScreen(onBackClick = {})
 }

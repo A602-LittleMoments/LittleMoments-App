@@ -1,23 +1,15 @@
 package com.a602.commonproject.feature.mypage
 
 import android.net.Uri
-//import androidx.activity.compose.rememberLauncherForActivityResult
-//import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -33,16 +25,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.component.GenderToggle
 import com.a602.commonproject.designsystem.component.LMEditInputField
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
+import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.LMTheme
-import com.a602.commonproject.designsystem.theme.background
-import com.a602.commonproject.designsystem.theme.lightbackground
-import com.a602.commonproject.designsystem.theme.main
+import com.a602.commonproject.designsystem.theme.*
+import com.a602.commonproject.feature.mypage.navigation.KidEditKey
 import com.a602.commonproject.feature.mypage.viewmodel.KidEditUiState
 import com.a602.commonproject.feature.mypage.viewmodel.KidEditViewModel
 import com.a602.commonproject.model.data.Baby
@@ -52,16 +43,25 @@ import com.a602.commonproject.navigation.Navigator
 @Composable
 fun KidEditContainer(
     navigator: Navigator,
+    key: KidEditKey,
     viewModel: KidEditViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 저장 성공 시 뒤로가기
-    LaunchedEffect(uiState.isSaveSuccess) {
+    LaunchedEffect(key) {
+        viewModel.initialize(key)
+    }
+
+    // 저장 또는 삭제 성공 시 뒤로가기
+    LaunchedEffect(uiState.isSaveSuccess, uiState.isDeleteSuccess) {
         if (uiState.isSaveSuccess) {
             navigator.goBack()
             viewModel.onSaveSuccessConsumed()
+        }
+        if (uiState.isDeleteSuccess) {
+            navigator.goBack()
+            viewModel.onDeleteSuccessConsumed()
         }
     }
 
@@ -72,7 +72,6 @@ fun KidEditContainer(
         }
     }
 
-    // 데이터 로딩 중 UI
     if (uiState.isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -94,6 +93,7 @@ fun KidEditContainer(
                 viewModel.onImageSelected(uri?.toString())
             },
             onSaveClick = viewModel::updateBaby,
+            onDeleteClick = viewModel::deleteBaby, // 삭제 콜백 연결
             onBackClick = { navigator.goBack() }
         )
     }
@@ -108,12 +108,13 @@ fun KidEditScreen(
     onGenderSelected: (Gender) -> Unit,
     onImageSelected: (Uri?) -> Unit,
     onSaveClick: () -> Unit,
+    onDeleteClick: () -> Unit, // 삭제 콜백 추가
     onBackClick: () -> Unit
 ) {
-//    val pickerLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.PickVisualMedia(),
-//        onResult = { uri -> onImageSelected(uri) }
-//    )
+    val pickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri -> onImageSelected(uri) }
+    )
 
     Scaffold(
         containerColor = background,
@@ -139,10 +140,12 @@ fun KidEditScreen(
                     selectedImageUri = uiState.imageUri?.let { Uri.parse(it) },
                     remoteImageUrl = uiState.imageUri,
                     onClick = {
-//                        pickerLauncher.launch(
-//                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                        )
+                        pickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
                     },
+                    clickableEnabled = true, // 클릭 활성화
+                    showEditBadge = true,    // 편집 배지 표시
                     headSize = 140.dp,
                     bodyWidth = 150.dp,
                     bodyOffsetY = 100.dp
@@ -154,7 +157,7 @@ fun KidEditScreen(
                     label = "이름",
                     value = uiState.name,
                     onValueChange = onNameChanged,
-                    icon = Icons.Outlined.Person
+                    trailingIcon = { Icon(LMicons.Person, contentDescription = "이름") }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -175,8 +178,7 @@ fun KidEditScreen(
                 }
                 GenderToggle(
                     selected = selectedGender,
-                    onSelectedChange = { selected -> // 람다의 파라미터 이름을 'it'에서 'selected'로 변경
-                        // 👇 null이 아닐 때만 onGenderSelected를 호출하도록 수정
+                    onSelectedChange = { selected ->
                         if (selected != null) {
                             onGenderSelected(selected)
                         }
@@ -185,13 +187,27 @@ fun KidEditScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Button(
-                    onClick = onSaveClick,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = main),
-                    shape = RoundedCornerShape(12.dp)
+                // 수정 및 삭제 버튼 영역
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(text = "수정 완료", style = MaterialTheme.typography.labelLarge, color = lightbackground)
+                    Button(
+                        onClick = onSaveClick,
+                        modifier = Modifier.weight(2f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = main),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(text = "수정 완료", style = MaterialTheme.typography.labelLarge, color = lightbackground)
+                    }
+                    Button(
+                        onClick = onDeleteClick,
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = errorRed)
+                    ) {
+                        Text(text = "삭제", style = MaterialTheme.typography.labelLarge, color = lightbackground)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -216,6 +232,7 @@ fun KidEditScreenPreview() {
             onGenderSelected = {},
             onImageSelected = {},
             onSaveClick = {},
+            onDeleteClick = {},
             onBackClick = {}
         )
     }

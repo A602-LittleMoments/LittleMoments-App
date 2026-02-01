@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.navigation)
     implementation(projects.core.common)
+    implementation(projects.sync)
 
     implementation(libs.androidx.compose.ui.tooling.preview)
 

@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import com.a602.commonproject.designsystem.icon.LMicons
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -35,6 +35,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.a602.commonproject.designsystem.theme.AppTypography
 import com.a602.commonproject.designsystem.theme.*
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.a602.commonproject.model.data.GroupRole
+
+// 공용 함수로 분리
+public fun getColorForRole(role: GroupRole): Color {
+    return when (role) {
+        GroupRole.OWNER -> main
+        GroupRole.MEMBER -> color1
+        GroupRole.VIEWER -> purple1
+        else -> gray1
+    }
+}
 
 @Composable
 fun ManageableMemberItem(
@@ -68,9 +89,9 @@ fun ManageableMemberItem(
 
                     // 역할별 아이콘 매칭 (이미지 디자인 준수)
                     val (icon, tint) = when(role) {
-                        "관리자" -> Icons.Default.EmojiEvents to color1
-                        "멤버" -> Icons.Default.Shield to main
-                        else -> Icons.Default.StarBorder to color4
+                        "OWNER" -> Icons.Default.EmojiEvents to getColorForRole(GroupRole.OWNER)
+                        "MEMBER" -> LMicons.Shield to getColorForRole(GroupRole.MEMBER)
+                        else -> Icons.Default.StarBorder to getColorForRole(GroupRole.VIEWER)
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -81,10 +102,10 @@ fun ManageableMemberItem(
                 }
             }
 
-            // 💡 권한 변경 버튼 (현서님이 요청하신 파란 상자 스타일)
+            // 권한 변경 버튼 (현서님이 요청하신 파란 상자 스타일)
             if (!isOwner) {
                 Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = color3), // 0xFF6D625E
+                    colors = ButtonDefaults.buttonColors(containerColor = color3),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp),
                     onClick = onEditClick,
@@ -98,7 +119,11 @@ fun ManageableMemberItem(
 
 // 1. 상단 그룹 요약 카드 정의
 @Composable
-fun GroupSummaryCard(groupName: String, description: String) {
+fun GroupSummaryCard(
+    groupName: String,
+    description: String,
+    onEditClick: (() -> Unit)? = null
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -106,32 +131,73 @@ fun GroupSummaryCard(groupName: String, description: String) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 이미지의 하트 아이콘 부분
-            Surface(
-                modifier = Modifier.size(50.dp),
-                shape = androidx.compose.foundation.shape.CircleShape,
-                color = background
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = null,
-                    tint = errorRed,
-                    modifier = Modifier.padding(12.dp)
-                )
+                Surface(
+                    modifier = Modifier.size(50.dp),
+                    shape = androidx.compose.foundation.shape.CircleShape,
+                    color = background
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = null,
+                        tint = errorRed,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(text = groupName, style = AppTypography.bodyMedium)
+                    Text(text = description, style = AppTypography.labelSmall, color = color4)
+                }
             }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = groupName, style = AppTypography.bodyMedium) // Suite 폰트 적용
-                Text(text = description, style = AppTypography.labelSmall, color = color4)
+            if (onEditClick != null) {
+                IconButton(onClick = onEditClick) {
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = "그룹 이름 수정", tint = color3)
+                }
             }
         }
     }
 }
 
-// 2. 하단 권한 안내 섹션 정의
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GroupNameEditDialog(
+    currentName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var newName by remember { mutableStateOf(currentName) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("그룹 이름 변경") },
+        text = {
+            OutlinedTextField(
+                value = newName,
+                onValueChange = { newName = it },
+                label = { Text("새 그룹 이름") },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(newName) }) {
+                Text("확인")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("취소")
+            }
+        }
+    )
+}
+
 @Composable
 fun PermissionGuideSection() {
     Card(
@@ -149,16 +215,17 @@ fun PermissionGuideSection() {
             Spacer(modifier = Modifier.height(12.dp))
 
             // 각 권한별 행 배치
-            PermissionRow(icon = Icons.Default.EmojiEvents, title = "관리자", desc = "모든 권한", color = color1)
-            PermissionRow(icon = Icons.Default.Shield, title = "멤버", desc = "편집 및 업로드 가능", color = main)
-            PermissionRow(icon = Icons.Default.StarBorder, title = "뷰어", desc = "보기만 가능", color = color4)
+            PermissionRow(icon = Icons.Default.EmojiEvents, title = "관리자", desc = "모든 권한", role = GroupRole.OWNER)
+            PermissionRow(icon = LMicons.Shield, title = "멤버", desc = "편집 및 업로드 가능", role = GroupRole.MEMBER)
+            PermissionRow(icon = Icons.Default.StarBorder, title = "뷰어", desc = "보기만 가능", role = GroupRole.VIEWER)
         }
     }
 }
 
 // 권한 안내용 소형 행 컴포넌트
 @Composable
-fun PermissionRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, desc: String, color: Color) {
+fun PermissionRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, desc: String, role: GroupRole) {
+    val color = getColorForRole(role)
     Row(
         modifier = Modifier.padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically

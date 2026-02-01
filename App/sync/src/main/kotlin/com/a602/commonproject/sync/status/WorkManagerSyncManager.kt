@@ -5,6 +5,7 @@ import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -41,17 +42,19 @@ internal class WorkManagerSyncManager @Inject constructor(
         val uploadWorkRequest = OneTimeWorkRequestBuilder<UploadWorker>()
             .setConstraints(SyncConstraints)
 //            .setInputData(inputData)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
 
         val fetchWorkRequest = OneTimeWorkRequestBuilder<FetchWorker>()
             .setConstraints(SyncConstraints)
 //            .setInputData(inputData)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
 
         workManager
             .beginUniqueWork(
                 SYNC_WORK_NAME,
-                ExistingWorkPolicy.KEEP, // 이미 돌고 있으면 무시 (중복 방지)
+                ExistingWorkPolicy.REPLACE, // 이미 돌고 있어도 새로 요청 들어오면 다시 시작
                 uploadWorkRequest, // 업로드 작업
             )
             .then(fetchWorkRequest) // 없로드 끝나면 다운으로

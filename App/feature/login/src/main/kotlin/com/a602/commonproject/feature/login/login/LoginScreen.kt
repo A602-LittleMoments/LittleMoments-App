@@ -56,6 +56,7 @@ fun LoginRoute(
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is LoginUiState.Success -> onLoginSuccess()
+            is LoginUiState.NeedGroupSetup -> onNavigateToSignUp()
             is LoginUiState.Error -> {
                 snackBarHostState.showSnackbar(state.message)
                 viewModel.clearError()

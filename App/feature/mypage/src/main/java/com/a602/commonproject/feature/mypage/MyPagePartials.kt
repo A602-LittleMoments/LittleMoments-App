@@ -2,46 +2,29 @@ package com.a602.commonproject.feature.mypage
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.a602.commonproject.designsystem.component.LMFilledIconButton
-
 import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.designsystem.theme.AppTypography
+import com.a602.commonproject.model.data.Baby
 
 // 마이페이지 화면에서 사용하는 재사용 가능한 UI 컴포넌트들을 모아놓은 파일
 
@@ -168,11 +151,27 @@ fun GroupSectionHeader(memberCount: Int, onEditClick: () -> Unit) {
             shape = RoundedCornerShape(8.dp)
         ) {
             Text(
-                text = "수정",
+                text = "관리",
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                 color = lightbackground,
                 style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Medium)
             )
+        }
+    }
+}
+
+@Composable
+fun NoGroupSection(onCreateClick: () -> Unit, onJoinClick: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text("아직 참여중인 그룹이 없어요.\n그룹을 만들거나 참여해서 가족과 함께 아이의 성장을 기록해보세요.")
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onCreateClick, modifier = Modifier.weight(1f)) {
+                Text("그룹 만들기")
+            }
+            Button(onClick = onJoinClick, modifier = Modifier.weight(1f)) {
+                Text("그룹 참여하기")
+            }
         }
     }
 }
@@ -187,7 +186,6 @@ fun GroupSectionHeader(memberCount: Int, onEditClick: () -> Unit) {
  */
 @Composable
 fun ProfileInfoCard(
-    name: String,
     nickname: String,
     email: String,
     onEditClick: () -> Unit = {}
@@ -230,7 +228,6 @@ fun ProfileInfoCard(
             // 2. 실제 정보 (이름, 닉네임, 이메일)
             // 재사용 가능한 InfoRow 컴포넌트를 사용하여 정보를 표시합니다.
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                InfoRow(label = "이름", value = name)
                 InfoRow(label = "닉네임", value = nickname)
                 InfoRow(label = "이메일", value = email)
             }
@@ -261,19 +258,14 @@ fun InfoRow(label: String, value: String) {
 /**
  * 아이의 정보(사진, 이름, 생년월일)와 추가 버튼을 보여주는 카드입니다.
  *
- * @param kidName 아이의 이름.
- * @param birthDate 아이의 생년월일.
- * @param imageUri 아이의 프로필 사진 URI (없을 경우 기본 이미지 표시).
  * @param onEditClick "수정" 버튼 클릭 시 실행될 함수.
  * @param onAddClick "+" 버튼 클릭 시 실행될 함수.
  */
 @Composable
-fun KidInfoCard(
-    kidName: String,
-    birthDate: String,
-    imageUri: android.net.Uri? = null,
-    onEditClick: () -> Unit = {},
-    onAddClick: () -> Unit = {}
+fun KidsInfoCard(
+    babies: List<Baby>,
+    onEditClick: (String) -> Unit,
+    onAddClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
@@ -282,69 +274,23 @@ fun KidInfoCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            // 1. 헤더: "아이 정보" 라벨과 "수정" 버튼
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "아이 정보", style = MaterialTheme.typography.labelMedium, color = color4)
+            Text(
+                text = "아이 정보",
+                style = MaterialTheme.typography.labelMedium,
+                color = color4,
+                modifier = Modifier.padding(bottom = 10.dp)
+            )
 
-                Surface(
-                    onClick = onEditClick,
-                    color = main,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "수정",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        color = lightbackground,
-                        style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Medium)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // 2. 본문: 아이 사진과 텍스트 정보
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 아이 사진을 보여주는 동그란 영역
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(CircleShape) // 원 모양으로 자름
-                        .background(background)
-                        .border(2.dp, color4, CircleShape), // 원 모양 테두리
-                    contentAlignment = Alignment.Center // 내용물(이모지)을 중앙에 배치
-                ) {
-                    // imageUri가 있으면 실제 사진을, 없으면 기본 이모지를 보여줍니다.
-                    if (imageUri != null) {
-                        // TODO: Coil이나 Glide 같은 이미지 로딩 라이브러리를 사용해 사진을 표시합니다.
-                    } else {
-                        Text("👶", fontSize = 32.sp) // 사진이 없을 때 보여줄 기본 이모지
+            if (babies.isEmpty()) {
+                // TODO: 아이가 없을 때 보여줄 UI (예: "아이를 추가해주세요")
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    babies.forEach { baby ->
+                        BabyInfoRow(
+                            baby = baby,
+                            onEditClick = onEditClick // 콜백을 그대로 전달
+                        )
                     }
-                }
-
-                Spacer(modifier = Modifier.width(20.dp))
-
-                // 이름과 생년월일 텍스트
-                Column {
-                    Text(
-                        text = kidName,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = color4
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = birthDate,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = color4,
-                        letterSpacing = 0.5.sp // 자간을 약간 넓혀 가독성 향상
-                    )
                 }
             }
 
@@ -372,33 +318,62 @@ fun KidInfoCard(
 }
 
 @Composable
-fun KidEditInputField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String = "",
-    icon: androidx.compose.ui.graphics.vector.ImageVector? = null
+private fun BabyInfoRow(
+    baby: Baby,
+    onEditClick: (String) -> Unit // babyId를 받도록 변경
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = {Text(label, color = color4.copy(alpha = 0.6f), style = AppTypography.labelMedium) },
-        placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f)) },
-        // ✅ [수정] 사용자가 입력하는 글씨 스타일을 titleMedium으로 지정
-        textStyle = AppTypography.titleMedium.copy(color = color4),
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        singleLine = true,
-        trailingIcon = {
-            if (icon != null) {
-                Icon(imageVector = icon, contentDescription = null, tint = color4.copy(alpha = 0.4f))
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+                    .background(background)
+                    .border(2.dp, color4, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                if (baby.imageUrl != null) {
+                    AsyncImage(
+                        model = baby.imageUrl,
+                        contentDescription = "baby profile photo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text("👶", fontSize = 32.sp)
+                }
             }
-        },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = lightbackground,
-            unfocusedContainerColor = lightbackground,
-            focusedBorderColor = main,
-            unfocusedBorderColor = lightblue
-        )
-    )
+            Spacer(modifier = Modifier.width(20.dp))
+            Column {
+                Text(
+                    text = baby.babyName,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = color4
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = baby.birthDate,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = color4
+                )
+            }
+        }
+        Surface(
+            onClick = { onEditClick(baby.babyId) }, // 클릭 시 babyId를 전달
+            color = main,
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(
+                text = "수정",
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                color = lightbackground,
+                style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Medium)
+            )
+        }
+    }
 }
