@@ -37,6 +37,7 @@ import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color4
 import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.designsystem.theme.main
+import com.a602.commonproject.feature.login.navigation.LoginNavKey
 import com.a602.commonproject.feature.mypage.viewmodel.ProfileEditUiState
 import com.a602.commonproject.feature.mypage.viewmodel.ProfileEditViewModel
 import com.a602.commonproject.navigation.Navigator
@@ -54,6 +55,15 @@ fun ProfileEditContainer(
         if (uiState.isSaveSuccess) {
             navigator.goBack()
             viewModel.onSaveSuccessConsumed()
+        }
+    }
+
+    // 비밀번호 변경 성공 시 (재로그인 필요)
+    LaunchedEffect(uiState.isPasswordChanged) {
+        if (uiState.isPasswordChanged) {
+            snackbarHostState.showSnackbar("비밀번호가 변경되었습니다. 다시 로그인해주세요.")
+            viewModel.onPasswordChangedConsumed()
+            navigator.replaceRoot(LoginNavKey) // 모든 스택을 지우고 로그인 화면으로 이동
         }
     }
 

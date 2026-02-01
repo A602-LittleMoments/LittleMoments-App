@@ -51,7 +51,7 @@ internal interface RetrofitAuthApi {
     @Multipart
     @PUT("users/me")
     suspend fun updateMyProfile(
-        @Part request: RequestBody,
+        @Part("data") request: RequestBody,
         // 'profile_image': 이미지 파일 (선택 사항일 수 있으니 Nullable)
         @Part profileImage: MultipartBody.Part?,
     ): UserResponse

@@ -1,5 +1,6 @@
 package com.a602.commonproject.feature.mypage.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.a602.commonproject.data.repository.UserRepository
@@ -31,6 +32,7 @@ data class ProfileEditUiState(
 
     val isLoading: Boolean = false,
     val isSaveSuccess: Boolean = false,
+    val isPasswordChanged: Boolean = false, // 비밀번호 변경 성공 여부
     val errorMessage: String? = null
 )
 
@@ -99,8 +101,6 @@ class ProfileEditViewModel @Inject constructor(
 
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            var isSuccess = true
-
             // 1. 닉네임 변경 처리 (이미지 URL과 함께 전송)
             if (isNicknameChanged) {
                 val profileResult = userRepository.updateProfile(
@@ -125,21 +125,26 @@ class ProfileEditViewModel @Inject constructor(
                     new = currentState.newPassword,
                     confirm = currentState.confirmNewPassword
                 )
-                if (passwordResult.isFailure) {
+                if (passwordResult.isSuccess) {
+                    // 비밀번호 변경 성공 시, 재로그인 필요 상태로 변경
+                    _uiState.update { it.copy(isLoading = false, isPasswordChanged = true) }
+                    return@launch // 다른 상태 업데이트를 막기 위해 여기서 종료
+                } else {
                     _uiState.update { it.copy(isLoading = false, errorMessage = "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.") }
-                    isSuccess = false
+                    return@launch
                 }
             }
 
-            if(isSuccess) {
-                _uiState.update { it.copy(isLoading = false, isSaveSuccess = true) }
-            } else {
-                 _uiState.update { it.copy(isLoading = false) }
-            }
+            // 닉네임만 변경된 경우
+            _uiState.update { it.copy(isLoading = false, isSaveSuccess = true) }
         }
     }
 
     fun onSaveSuccessConsumed() {
         _uiState.update { it.copy(isSaveSuccess = false) }
+    }
+
+    fun onPasswordChangedConsumed() {
+        _uiState.update { it.copy(isPasswordChanged = false) }
     }
 }
