@@ -1,6 +1,12 @@
 package com.a602.commonproject.ui
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FabPosition
@@ -30,6 +36,7 @@ import com.a602.commonproject.feature.memory.navigation.memoryEntries
 import com.a602.commonproject.feature.mypage.navigation.myPageEntries
 import com.a602.commonproject.feature.camera.navigation.CameraNavKey
 import com.a602.commonproject.feature.camera.navigation.cameraEntries
+import com.a602.commonproject.feature.gallery.GridNavKey
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -66,16 +73,18 @@ fun LMApp() {
             */
 
             // 애니메이션: 스플래시 화면이 사라질 때까지 100ms 기다렸다가 300ms 동안 서서히 나타남 (겹침 방지)
-            androidx.compose.animation.AnimatedVisibility(
+            AnimatedVisibility(
                 visible = appState.shouldShowBottomBar,
-                enter = androidx.compose.animation.fadeIn(
-                    animationSpec = androidx.compose.animation.core.tween(durationMillis = 300, delayMillis = 200)
+                enter = fadeIn(
+                    animationSpec = tween(durationMillis = 300, delayMillis = 200)
                 ),
-                exit = androidx.compose.animation.fadeOut()
+                exit = fadeOut()
             ) {
                 LMNavigationBar {
                     TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
-                        val isSelected = appState.navigationState.currentTopLevelKey == navKey
+                        // [Fix] Grid 화면이어도 갤러리 탭이 선택된 것으로 표시
+                        val isSelected = appState.navigationState.currentTopLevelKey == navKey ||
+                                (navKey == GalleryNavKey && appState.navigationState.currentTopLevelKey == GridNavKey)
 
                         // 3. ✨ 사용자님이 만든 LMNavigationBarItem 적용
                         LMNavigationBarItem(
@@ -109,12 +118,12 @@ fun LMApp() {
             }
             */
 
-            androidx.compose.animation.AnimatedVisibility(
+          AnimatedVisibility(
                 visible = isTopLevelTab,
-                enter = androidx.compose.animation.fadeIn(
-                    animationSpec = androidx.compose.animation.core.tween(durationMillis = 300, delayMillis = 200)
-                ) + androidx.compose.animation.scaleIn(initialScale = 0.8f),
-                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut()
+                enter = fadeIn(
+                    animationSpec = tween(durationMillis = 300, delayMillis = 200)
+                ) + scaleIn(initialScale = 0.8f),
+                exit = fadeOut() + scaleOut()
             ) {
                 CameraButton(
                     onClick = { appState.navigator.navigate(CameraNavKey) },

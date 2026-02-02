@@ -32,26 +32,28 @@ class HomeViewModel @Inject constructor(
     private val _isError = MutableStateFlow(false)
     private val _selectedBabyIndex = MutableStateFlow(0)
 
+    // Paging 3 Stream (별도로 노출)
+    val mediaPagingFlow: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<SharedMedia>> =
+        sharedMediaRepository.getSharedAlbumPagingStream()
+            .androidx.paging.cachedIn(viewModelScope)
+
     val uiState: StateFlow<HomeUiState> = combine(
         babyRepository.getBabyStream(),
-        sharedMediaRepository.getSharedAlbumStream(),
         _collections,
         _isError,
         _selectedBabyIndex
-    ) { babies, mediaList, collections, isError, selectedIndex ->
+    ) { babies, collections, isError, selectedIndex ->
         if (isError) {
-            // 데이터가 아예 없는 경우: 단순히 Success(empty)로 보여줄지, Error로 보여줄지 결정
-            // 여기서는 서버 에러가 났을 때를 위해 Error 상태를 활용할 수 있습니다.
             HomeUiState.Error("데이터를 불러오지 못했습니다. 네트워크를 확인해주세요.")
-        }else {
+        } else {
             HomeUiState.Success(
                 babies = babies,
                 selectedBabyIndex = selectedIndex,
-                mediaList = mediaList,
                 collections = collections,
             )
         }
-    }.stateIn(
+    }
+    .stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeUiState.Loading
@@ -90,7 +92,6 @@ sealed interface HomeUiState {
     data class Success(
         val babies: List<Baby>,
         val selectedBabyIndex: Int = 0,
-        val mediaList: List<SharedMedia>,
         val collections: List<Collection> = emptyList(),
         val hasNotifications: Boolean = false
     ) : HomeUiState {

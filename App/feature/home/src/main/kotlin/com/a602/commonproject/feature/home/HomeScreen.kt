@@ -54,7 +54,7 @@ import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.feature.home.components.MemorableMoments
-import com.a602.commonproject.feature.home.components.TimelineSection
+import com.a602.commonproject.feature.home.components.timelineSection
 import com.a602.commonproject.model.data.Baby
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -238,22 +238,23 @@ fun HomeScreen(
                 }
             }
 
+import androidx.paging.compose.collectAsLazyPagingItems
+
             // 3. [타임라인 섹션] (Photo List)
-            item {
-                // TODO: 현재 미디어 리스트 필터링 로직 확인 필요 (전체 보기 vs 아기별 보기)
-                val currentBaby = if (uiState.babies.isNotEmpty()) {
+            val pagingItems = viewModel.mediaPagingFlow.collectAsLazyPagingItems()
+
+             val currentBaby = if (uiState.babies.isNotEmpty()) {
                     uiState.babies.getOrNull(pagerState.currentPage)
                 } else null
 
-                TimelineSection(
-                    mediaList = uiState.mediaList,
+                timelineSection(
+                    pagingItems = pagingItems,
                     birthDate = currentBaby?.birthDate ?: "",
                     onPhotoClick = {},
                 )
-            }
 
             // [Empty Timeline Handling]
-            if (uiState.mediaList.isEmpty()) {
+            if (pagingItems.itemCount == 0) {
                 item {
                     EmptyTimelineState()
                 }
@@ -327,9 +328,14 @@ fun TopTabSection(
 
         IconButton(
             onClick = onNotificationClick,
-            modifier = Modifier.padding(end = 8.dp),
+            modifier = Modifier.padding(end = 8.dp).size(48.dp),
         ) {
-            Icon(imageVector = LMicons.Notifications, contentDescription = null)
+            Icon(
+                imageVector = LMicons.Notifications,
+                contentDescription = null,
+                tint = main,
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }

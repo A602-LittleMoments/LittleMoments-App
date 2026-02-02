@@ -18,13 +18,26 @@ import androidx.camera.core.Preview
 import androidx.camera.core.UseCaseGroup
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons.Default
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -33,12 +46,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.Executor
 import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.supervisorScope
@@ -46,11 +65,18 @@ import kotlinx.coroutines.supervisorScope
 @Composable
 fun CameraScreen(
     onCloseClick: () -> Unit,
-    onCaptureSuccess: (String, String) -> Unit // BackUri, FrontUri
+    onNavigateToTempAlbum: () -> Unit,
+    viewModel: CameraViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.saveResultEvent.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -86,7 +112,10 @@ fun CameraScreen(
                 CameraContent(
                     context = context,
                     lifecycleOwner = lifecycleOwner,
-                    onCaptureSuccess = onCaptureSuccess
+                    onPhotoCaptured = { back, front ->
+                        viewModel.savePhoto(back, front)
+                    },
+                    onNavigateToTempAlbum = onNavigateToTempAlbum
                 )
             } else {
                 Box(
@@ -100,15 +129,19 @@ fun CameraScreen(
                 }
             }
 
-            // Close Button Overlay
-            Button(
-                onClick = onCloseClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
-            ) {
-                Text("닫기")
-            }
+            // Close Button (Top End) is fine to keep or remove. Keeping for navigation safety.
+            IconButton(
+               onClick = onCloseClick,
+               modifier = Modifier
+                   .align(Alignment.TopEnd)
+                   .padding(16.dp)
+           ) {
+                Icon(
+                   imageVector = Default.Close,
+                   contentDescription = "닫기",
+                   tint = androidx.compose.ui.graphics.Color.White
+               )
+           }
         }
     }
 }
@@ -117,22 +150,18 @@ fun CameraScreen(
 fun CameraContent(
     context: Context,
     lifecycleOwner: LifecycleOwner,
-    onCaptureSuccess: (String, String) -> Unit
+    onPhotoCaptured: (String, String) -> Unit,
+    onNavigateToTempAlbum: () -> Unit
 ) {
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
 
-    // 두 개의 PreviewView를 위한 레이아웃: PIP (Picture-in-Picture) 스타일
-    // 후면 카메라: 전체 화면 / 전면 카메라: 우측 상단 작은 화면
-
-    // Previews are created once and reused to avoid re-inflating
-    // Back Preview: Use COMPATIBLE mode (TextureView) to allow bitmap capture for double bitmap concurrent shooting
+    // ... (PreviewViews initialization remains same)
     val backPreviewView = remember {
         PreviewView(context).apply {
             scaleType = PreviewView.ScaleType.FILL_CENTER
             implementationMode = PreviewView.ImplementationMode.COMPATIBLE
         }
     }
-    // Front Preview: Use COMPATIBLE mode (TextureView) to allow bitmap capture for hybrid concurrent shooting
     val frontPreviewView = remember {
         PreviewView(context).apply {
             scaleType = PreviewView.ScaleType.FILL_CENTER
@@ -140,22 +169,19 @@ fun CameraContent(
         }
     }
 
-    // Implements ImageCapture use cases
     val backImageCapture = remember { ImageCapture.Builder().build() }
     val frontImageCapture = remember { ImageCapture.Builder().build() }
     val mainExecutor = remember { ContextCompat.getMainExecutor(context) }
-
-    // State to track if dual mode (concurrent camera) is actually active
     var isDualMode by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // 1. Back Camera View (Background)
+        // 1. Back Camera View
         AndroidView<PreviewView>(
             factory = { _ -> backPreviewView },
             modifier = Modifier.fillMaxSize()
         )
 
-        // 2. Front Camera View (Floating PIP) - Show only if dual mode
+        // 2. Front Camera View (PIP)
         if (isDualMode) {
             AndroidView<PreviewView>(
                 factory = { _ -> frontPreviewView },
@@ -163,161 +189,109 @@ fun CameraContent(
                     .align(Alignment.TopEnd)
                     .padding(top = 80.dp, end = 16.dp)
                     .size(120.dp, 160.dp)
-                    .border(
-                        2.dp,
-                        MaterialTheme.colorScheme.primary,
-                        androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                    )
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
             )
         }
 
-        // Capture Button
-        val scope = rememberCoroutineScope()
-
-        Button(
-            onClick = {
-                val sdf = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.KOREA)
-                val timestamp = sdf.format(java.util.Date())
-                val backFile = java.io.File(context.externalCacheDir, "back_$timestamp.jpg")
-                // Front file is only needed if dual mode
-                val frontFile = if (isDualMode) java.io.File(context.externalCacheDir, "front_$timestamp.jpg") else null
-
-                val backOutputOptions = androidx.camera.core.ImageCapture.OutputFileOptions.Builder(backFile).build()
-                val frontOutputOptions = frontFile?.let { androidx.camera.core.ImageCapture.OutputFileOptions.Builder(it).build() }
-
-                scope.launch {
-                    Log.d("CameraScreen", "촬영 버튼 클릭됨")
-                    try {
-                        // Use supervisorScope to prevent child coroutine (async) failure from crashing the parent scope
-                        supervisorScope {
-                             Log.d("CameraScreen", "동시 촬영 시작 (Hybrid: Back=API, Front=Bitmap)")
-
-                             // 1. 후면 촬영 시작 (API 사용 - 고화질)
-                             val backJob = async {
-                                 Log.d("CameraScreen", "후면 카메라 takePicture 요청")
-                                 val result = backImageCapture.takePicture(backOutputOptions, mainExecutor)
-                                 Log.d("CameraScreen", "후면 카메라 촬영 완료: ${result.savedUri}")
-                                 backFile.absolutePath
-                             }
-
-                             // 2. 전면 촬영 시작 (API 사용 - Staggered 방식)
-                             // NOTE: 실기기 테스트를 위해 API 방식으로 복구. (Bitmap 방식은 아래에 주석 처리됨)
-                             
-                             val frontPath = if (isDualMode && frontOutputOptions != null) {
-                                 val frontJob = async {
-                                     delay(150) // Driver crash workaround
-                                     Log.d("CameraScreen", "전면 카메라 takePicture 요청")
-                                     val result = frontImageCapture.takePicture(frontOutputOptions, mainExecutor)
-                                     Log.d("CameraScreen", "전면 카메라 촬영 완료: ${result.savedUri}")
-                                     frontFile.absolutePath
-                                 }
-                                 frontJob.await()
-                             } else { "" }
-                             
-
-                             /*
-                             // Bitmap 캡처 방식 (에뮬레이터/드라이버 호환성 이슈 해결용)
-                             val frontPath = if (isDualMode) {
-                                 Log.d("CameraScreen", "전면 카메라 Bitmap 캡처 시작")
-                                 val bitmap = frontPreviewView.bitmap
-                                 if (bitmap != null) {
-                                     val fFile = java.io.File(context.externalCacheDir, "front_${System.currentTimeMillis()}.jpg")
-                                     try {
-                                         java.io.FileOutputStream(fFile).use { out ->
-                                             bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
-                                         }
-                                         Log.d("CameraScreen", "전면 카메라 Bitmap 저장 완료: ${fFile.absolutePath}")
-                                         fFile.absolutePath
-                                     } catch (e: Exception) {
-                                         Log.e("CameraScreen", "전면 Bitmap 저장 실패", e)
-                                         ""
-                                     }
-                                 } else {
-                                     Log.e("CameraScreen", "전면 PreviewView Bitmap이 null입니다.")
-                                     ""
-                                 }
-                             } else {
-                                 ""
-                             }
-                             */
-
-                             Log.d("CameraScreen", "후면 카메라 결과 대기 중")
-                             val backPath = backJob.await()
-
-                             Log.d("CameraScreen", "모든 촬영 완료. onCaptureSuccess 호출: 후면=$backPath, 전면=$frontPath")
-                             onCaptureSuccess(backPath, frontPath)
-                         }
-                    } catch (e: Exception) {
-                        Log.e("CameraScreen", "촬영 실패: ${e.message}", e)
-                    }
-                }
-            },
+        // Bottom Control Bar
+        Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp)
+                .fillMaxWidth()
+                .padding(bottom = 40.dp, start = 32.dp, end = 32.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("촬영")
+            // Left: Temp Album Shortcut
+            Column(
+                 horizontalAlignment = Alignment.CenterHorizontally,
+                 modifier = Modifier.clickable(onClick = onNavigateToTempAlbum)
+             ) {
+                 // Placeholder for Gallery Icon/Thumbnail
+               Box(
+                     modifier = Modifier
+                         .size(48.dp)
+                         .clip(RoundedCornerShape(8.dp))
+                         .background(Color.Black.copy(alpha = 0.5f))
+                         .border(1.dp, Color.White, RoundedCornerShape(8.dp)),
+                     contentAlignment = Alignment.Center
+                 ) {
+                      // TODO: Show latest image thumbnail if possible
+                 Icon(
+                         imageVector = Default.PhotoLibrary, // Use default or LMicon
+                         contentDescription = "임시 앨범",
+                         tint = Color.White
+                     )
+                 }
+                 Text("임시 앨범", color = Color.White, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top=4.dp))
+             }
+
+            // Center: Shutter Button
+             val scope = rememberCoroutineScope()
+          Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
+                    .clickable { // Click Logic
+                        // ... Same capture logic ...
+                         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.KOREA)
+                         val timestamp = sdf.format(Date())
+                         val backFile = File(context.externalCacheDir, "back_$timestamp.jpg")
+                         val frontFile = if (isDualMode) File(context.externalCacheDir, "front_$timestamp.jpg") else null
+                         val backOutputOptions = ImageCapture.OutputFileOptions.Builder(backFile).build()
+                         val frontOutputOptions = frontFile?.let { ImageCapture.OutputFileOptions.Builder(it).build() }
+
+                         scope.launch {
+                             try {
+                                 supervisorScope {
+                                     val backJob = async { backImageCapture.takePicture(backOutputOptions, mainExecutor); backFile.absolutePath }
+                                     val frontPath = if (isDualMode && frontOutputOptions != null) {
+                                         val frontJob = async { delay(150); frontImageCapture.takePicture(frontOutputOptions, mainExecutor); frontFile.absolutePath }
+                                         frontJob.await()
+                                     } else ""
+
+                                     onPhotoCaptured(backJob.await(), frontPath)
+                                 }
+                             } catch (e: Exception) { Log.e("Camera", "Error", e) }
+                         }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                 Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Color.Black, CircleShape)
+                )
+            }
+
+            // Right: Spacer to balance layout
+            Box(modifier = Modifier.size(48.dp))
         }
 
-        // Camera Binding Logic
+        // Camera Binding Logic (Same as before)
         LaunchedEffect(cameraProviderFuture) {
-            val cameraProvider = cameraProviderFuture.get()
-
-            val backSelector = CameraSelector.DEFAULT_BACK_CAMERA
-            val frontSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-
-            val backPreview = Preview.Builder().build().also {
-                it.surfaceProvider = backPreviewView.surfaceProvider
-            }
-            val frontPreview = Preview.Builder().build().also {
-                it.surfaceProvider = frontPreviewView.surfaceProvider
-            }
-
-            // Check Concurrent Support
-            val isConcurrentSupported = context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_CONCURRENT)
-            Log.d("CameraScreen", "동시 카메라(Concurrent) 지원 여부: $isConcurrentSupported")
-
-            try {
-                cameraProvider.unbindAll()
-
-                if (isConcurrentSupported) {
-                    Log.d("CameraScreen", "동시 카메라 바인딩 시작 (전면 + 후면)")
-                    // Concurrent Binding
-                    val backConfig = ConcurrentCamera.SingleCameraConfig(
-                        backSelector,
-                        UseCaseGroup.Builder()
-                            .addUseCase(backPreview)
-                            .addUseCase(backImageCapture)
-                            .build(),
-                        lifecycleOwner
-                    )
-                    val frontConfig = ConcurrentCamera.SingleCameraConfig(
-                        frontSelector,
-                        androidx.camera.core.UseCaseGroup.Builder()
-                            .addUseCase(frontPreview)
-                            .addUseCase(frontImageCapture)
-                            .build(),
-                        lifecycleOwner
-                    )
-
-                    cameraProvider.bindToLifecycle(listOf(backConfig, frontConfig))
-                    isDualMode = true
-                } else {
-                    Log.d("CameraScreen", "동시 카메라 미지원. 후면 카메라만 사용합니다.")
-                    // Fallback: Bind only Back Camera
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner,
-                        backSelector,
-                        backPreview,
-                        backImageCapture
-                    )
-                    isDualMode = false
-                }
-            } catch (e: Exception) {
-                Log.e("CameraScreen", "카메라 바인딩 실패", e)
-                isDualMode = false
-            }
+             // ... Binding logic ...
+             val cameraProvider = cameraProviderFuture.get()
+             val backSelector = CameraSelector.DEFAULT_BACK_CAMERA
+             val frontSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+             val backPreview = Preview.Builder().build().also { it.surfaceProvider = backPreviewView.surfaceProvider }
+             val frontPreview = Preview.Builder().build().also { it.surfaceProvider = frontPreviewView.surfaceProvider }
+             val isConcurrentSupported = context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_CONCURRENT)
+             try {
+                 cameraProvider.unbindAll()
+                 if (isConcurrentSupported) {
+                     val backConfig = ConcurrentCamera.SingleCameraConfig(backSelector, UseCaseGroup.Builder().addUseCase(backPreview).addUseCase(backImageCapture).build(), lifecycleOwner)
+                     val frontConfig = ConcurrentCamera.SingleCameraConfig(frontSelector, UseCaseGroup.Builder().addUseCase(frontPreview).addUseCase(frontImageCapture).build(), lifecycleOwner)
+                     cameraProvider.bindToLifecycle(listOf(backConfig, frontConfig))
+                     isDualMode = true
+                 } else {
+                     cameraProvider.bindToLifecycle(lifecycleOwner, backSelector, backPreview, backImageCapture)
+                     isDualMode = false
+                 }
+             } catch (e: Exception) { isDualMode = false }
         }
     }
 }

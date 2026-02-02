@@ -66,22 +66,50 @@ fun Polaroid(
                     .background(Color.Black)
             ) {
                 // rear (큰 사진)
+                // [Progressive Loading] 1. 썸네일 (Placeholder)
+                if (media.localUri == null && media.thumbnailUrl != null) {
+                    AsyncImage(
+                        model = media.thumbnailUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                // [Progressive Loading] 2. 원본 (Main) - Crossfade로 자연스럽게 덮어씌움
                 AsyncImage(
-                    model = rearUrl,
+                    model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                        .data(rearUrl)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
 
                 // front (작은 사진)
+                val frontModifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(10.dp)
+                    .fillMaxWidth(0.4f)
+                    .aspectRatio(3f / 4f)
+
+                // [Progressive Loading] 1. 썸네일 (Placeholder)
+                if (media.subLocalUri == null && media.subThumbnailUrl != null) {
+                    AsyncImage(
+                        model = media.subThumbnailUrl,
+                        contentDescription = null,
+                        modifier = frontModifier,
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                // [Progressive Loading] 2. 원본 (Main)
                 AsyncImage(
-                    model = frontUrl,
+                    model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                        .data(frontUrl)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = null,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(10.dp)
-                        .fillMaxWidth(0.4f)
-                        .aspectRatio(3f / 4f),
+                    modifier = frontModifier,
                     contentScale = ContentScale.Crop
                 )
             }

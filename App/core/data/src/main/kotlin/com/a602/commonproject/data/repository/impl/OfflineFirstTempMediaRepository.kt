@@ -118,6 +118,7 @@ class OfflineFirstTempMediaRepository @Inject constructor(
 
     override suspend fun moveToShared(
         tempIds: List<String>,
+        captions: Map<String, String>?
     ): Result<Unit> {
         return try {
             // ✨ 1. 업로더 이름(내 닉네임) 가져오기
@@ -152,7 +153,7 @@ class OfflineFirstTempMediaRepository @Inject constructor(
                         takenAt = tempEntity.takenAt,
 
                         // ✨ 추가된 필드들 처리
-                        caption = null,       // 임시 저장엔 캡션이 없었으므로 null
+                        caption = captions?.get(tempId),       // 캡션 저장
                         type = "PHOTO",       // 기본값은 사진 (필요 시 로직 추가)
                         uploaderName = myNickname, // ✨ 아까 가져온 닉네임 사용
 

@@ -33,9 +33,13 @@ data class CommentEditNavKey(
 ) : NavKey
 
 
-// 임시 앨범
 @Serializable
 data object TempAlbumNavKey : NavKey
+
+@Serializable
+data class MultiPhotoUploadNavKey(
+    val mediaIds: List<String>
+) : NavKey
 
 @Serializable
 object HighlightCalendarNavKey : NavKey

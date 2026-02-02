@@ -21,6 +21,8 @@ import com.a602.commonproject.feature.gallery.HighlightResultRoute
 //import com.a602.commonproject.feature.gallery.HighlightResultScreen
 import com.a602.commonproject.feature.gallery.MediaDetailNavKey
 import com.a602.commonproject.feature.gallery.MediaDetailRoute
+import com.a602.commonproject.feature.gallery.MultiPhotoUploadNavKey
+import com.a602.commonproject.feature.gallery.MultiPhotoUploadScreen
 import com.a602.commonproject.feature.gallery.TempAlbumNavKey
 import com.a602.commonproject.feature.gallery.TempGridGalleryRoute
 
@@ -73,13 +75,30 @@ fun EntryProviderScope<NavKey>.galleryEntries(
                 // TODO: 임시 앨범의 상세보기 화면 정의 필요
                 // 현재는 PhotoDetailNavKey 재사용
             },
-            onBackClick = navigator::goBack
-
+            onBackClick = navigator::goBack,
+            onNavigateToUpload = { ids ->
+                navigator.navigate(MultiPhotoUploadNavKey(mediaIds = ids))
+            }
         )
     }
 
 
-    // 6. 하이라이트 캘린더 (날짜 선택)
+
+    // 6. 멀티 포토 업로드
+    entry<MultiPhotoUploadNavKey> { key ->
+        MultiPhotoUploadScreen(
+            mediaIds = key.mediaIds,
+            onBackClick = { navigator.goBack() },
+            onUploadSuccess = {
+                // 1. 현재 탭의 스택 정리 (카메라/업로드 화면 제거)
+                navigator.navigate(navigator.state.currentTopLevelKey)
+                // 2. 갤러리 화면으로 이동
+                navigator.navigate(GalleryNavKey)
+            }
+        )
+    }
+
+    // 7. 하이라이트 캘린더
     entry<HighlightCalendarNavKey> {
         HighlightCalendarRoute(
             onDateRangeSelected = { start, end ->

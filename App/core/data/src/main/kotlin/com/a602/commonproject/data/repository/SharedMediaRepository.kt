@@ -5,11 +5,19 @@ import java.io.File
 import kotlinx.coroutines.flow.Flow
 
 interface SharedMediaRepository {
+import androidx.paging.PagingData
+
     /**
      * 🖼️ 공유 앨범 목록 관찰 (Offline-First)
-     * - DB의 변경 사항을 실시간으로 UI에 반영
+     * - DB의 변경 사항을 실시간으로 UI에 반영 (기존 유지)
      */
     fun getSharedAlbumStream(): Flow<List<SharedMedia>>
+
+    /**
+     * 🖼️ 공유 앨범 목록 관찰 (Paging 3)
+     * - 최적화된 Paging 데이터 스트림
+     */
+    fun getSharedAlbumPagingStream(): Flow<PagingData<SharedMedia>>
 
     /**
      * ➕ 새로운 미디어 추가 (업로드 대기 상태로 저장)
