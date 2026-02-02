@@ -11,8 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.a602.commonproject.designsystem.component.LMNavigationDefaults
 import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.feature.mypage.navigation.GroupCreateKey
 import com.a602.commonproject.feature.mypage.navigation.GroupJoinKey
@@ -30,7 +30,7 @@ import com.a602.commonproject.model.data.User
 import com.a602.commonproject.navigation.Navigator
 
 @Composable
-fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel = hiltViewModel()) {
+fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel =hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.isLoading) {
@@ -79,7 +79,8 @@ fun MypageScreen(
             modifier = Modifier
                 .fillMaxSize() // 화면을 가득 채우고
                 .padding(innerPadding) // 상단바 아래부터 내용이 시작되도록 패딩을 적용하고
-                .padding(horizontal = 24.dp), // 앱의 표준에 맞춰 좌우 여백을 24.dp로 설정합니다.
+                .padding(bottom = LMNavigationDefaults.NavigationBarHeight)
+                .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp), // 각 항목 사이의 수직 간격을 16.dp로 줍니다.
             contentPadding = PaddingValues(top = 40.dp, bottom = 40.dp) // 목록 전체의 위, 아래 여백을 줍니다.
         ) {

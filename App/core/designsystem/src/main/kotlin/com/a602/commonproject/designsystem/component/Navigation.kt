@@ -144,4 +144,6 @@ object LMNavigationDefaults {
 
     @Composable
     fun navigationIndicatorColor() = Color.Transparent
+
+    val NavigationBarHeight = 80.dp
 }

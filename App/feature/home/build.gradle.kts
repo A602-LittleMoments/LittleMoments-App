@@ -14,7 +14,7 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.ui)
     implementation(projects.core.designsystem)
-
+    implementation(projects.feature.camera)
 
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)

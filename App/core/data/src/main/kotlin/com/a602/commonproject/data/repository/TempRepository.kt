@@ -21,6 +21,7 @@ interface TempMediaRepository {
     suspend fun saveTempMedia(
         tempId: String,       // UUID
         file: File,           // 저장된 파일
+        subFile: File? = null, // 전면 카메라 파일 (선택)
         takenAt: Long,        // 촬영 시간
         orientation: Int,     // 회전 정보
         cameraFacing: String  // 전/후면 정보

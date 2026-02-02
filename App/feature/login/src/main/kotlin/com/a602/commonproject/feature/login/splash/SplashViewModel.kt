@@ -18,10 +18,10 @@ class SplashViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    // 1.5초 딜레이 후 인증 상태 방출 (로고 보여줄 시간 확보)
+    // 인증 상태 방출 (로딩 즉시 처리)
     val uiState: StateFlow<SplashUiState> = userRepository.authState
         .map { authState ->
-            delay(1500) // 1.5초 대기
+            // delay(1500) 제거: 로딩 완료되면 즉시 전환
             when (authState) {
                 is AuthState.LoggedIn -> SplashUiState.NavigateToHome
                 is AuthState.NotLoggedIn -> SplashUiState.NavigateToLogin

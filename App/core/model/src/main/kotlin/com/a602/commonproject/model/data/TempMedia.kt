@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit
 data class TempMedia(
     val id: String,           // tempId
     val localUri: String,     // 원본 경로
+    val subLocalUri: String? = null, // 전면 카메라 (PIP) 경로
     val takenAt: Long,        // 촬영일
     val expirationDate: Long  // 완전 삭제 예정일 (Timestamp)
 ) {

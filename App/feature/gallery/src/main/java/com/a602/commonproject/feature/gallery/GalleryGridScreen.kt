@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.component.FillWrapButton
+import com.a602.commonproject.designsystem.component.LMNavigationDefaults.NavigationBarHeight
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
@@ -65,6 +67,8 @@ fun GridGalleryScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .padding(bottom = NavigationBarHeight)
+                .navigationBarsPadding()
                 .background(background)
                 .padding(horizontal = 16.dp),
 

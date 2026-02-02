@@ -8,6 +8,3 @@ object HomeNavKey : NavKey
 
 @Serializable
 object NotificationNavKey : NavKey
-
-@Serializable
-object UploadNavKey : NavKey
