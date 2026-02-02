@@ -31,6 +31,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.a602.commonproject.designsystem.component.ButtonSize
+import com.a602.commonproject.designsystem.component.FilledButton
 import com.a602.commonproject.designsystem.component.Gender
 import com.a602.commonproject.designsystem.component.GenderToggle
 import com.a602.commonproject.designsystem.component.LMEditInputField
@@ -176,19 +178,13 @@ fun KidAddScreen(
                         }
                     }
                 )
-
                 Spacer(modifier = Modifier.weight(1f))
-
-                Button(
+                FilledButton(
+                    text = "추가하기",
                     onClick = onSaveClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = main),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(text = "아이 등록하기", style = MaterialTheme.typography.labelLarge, color = lightbackground)
-                }
+                    size = ButtonSize.Full,
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 32.dp, top = 12.dp)
+                )
 
                 Spacer(modifier = Modifier.height(32.dp))
             }

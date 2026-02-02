@@ -3,6 +3,8 @@ package com.a602.commonproject.feature.mypage.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.feature.mypage.GroupChangeContainer
+import com.a602.commonproject.feature.mypage.GroupCreateContainer
+import com.a602.commonproject.feature.mypage.GroupJoinContainer
 import com.a602.commonproject.feature.mypage.KidAddContainer
 import com.a602.commonproject.feature.mypage.KidEditContainer
 import com.a602.commonproject.feature.mypage.MyPageMainContainer
@@ -35,5 +37,15 @@ fun EntryProviderScope<NavKey>.myPageEntries(
     // 5. 그룹(가족) 관리
     entry<GroupManageKey> {
         GroupChangeContainer(navigator = navigator)
+    }
+
+    // 6. 그룹 생성
+    entry<GroupCreateKey> {
+        GroupCreateContainer(navigator = navigator)
+    }
+
+    // 7. 그룹 참여
+    entry<GroupJoinKey> {
+        GroupJoinContainer(navigator = navigator)
     }
 }

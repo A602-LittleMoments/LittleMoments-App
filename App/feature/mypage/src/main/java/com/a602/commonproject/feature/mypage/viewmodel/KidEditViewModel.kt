@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.a602.commonproject.data.repository.BabyRepository
+import com.a602.commonproject.data.repository.GroupRepository
 import com.a602.commonproject.feature.mypage.navigation.KidEditKey
 import com.a602.commonproject.model.data.Baby
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,15 +29,16 @@ data class KidEditUiState(
     val birthDate: String = "",
     val gender: Baby.Gender = Baby.Gender.UNKNOWN,
     val imageUri: String? = null,
-    val isLoading: Boolean = true, // 처음에는 데이터를 불러오므로 true
+    val isLoading: Boolean = true,
     val isSaveSuccess: Boolean = false,
-    val isDeleteSuccess: Boolean = false, // 삭제 성공 상태 추가
+    val isDeleteSuccess: Boolean = false,
     val errorMessage: String? = null
 )
 
 @HiltViewModel
 class KidEditViewModel @Inject constructor(
     private val babyRepository: BabyRepository,
+    private val groupRepository: GroupRepository, // 그룹 ID를 가져오기 위해 의존성 추가
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -44,7 +46,7 @@ class KidEditViewModel @Inject constructor(
     val uiState: StateFlow<KidEditUiState> = _uiState.asStateFlow()
 
     private var babyId: String? = null
-    private var initialImageUri: String? = null // 초기 이미지 URI를 저장할 변수
+    private var initialImageUri: String? = null
 
     fun initialize(key: KidEditKey) {
         if (key.babyId.isBlank()) {
@@ -57,12 +59,10 @@ class KidEditViewModel @Inject constructor(
 
     private fun loadBabyInfo(babyId: String) {
         viewModelScope.launch {
-            val baby = babyRepository.getBabyStream()
-                .first()
-                .find { it.babyId == babyId }
+            val baby = babyRepository.getBabyStream().first().find { it.babyId == babyId }
 
             if (baby != null) {
-                initialImageUri = baby.imageUrl // 초기 URI 저장
+                initialImageUri = baby.imageUrl
                 _uiState.value = KidEditUiState(
                     name = baby.babyName,
                     birthDate = baby.birthDate,
@@ -97,35 +97,12 @@ class KidEditViewModel @Inject constructor(
     // --- 핵심 로직: 아이 정보 수정 저장 ---
 
     fun updateBaby() {
-        val currentBabyId = babyId ?: run {
-            _uiState.update { it.copy(errorMessage = "아이 ID를 찾을 수 없어 저장할 수 없습니다.") }
-            return
-        }
-
+        val currentBabyId = babyId ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val currentState = _uiState.value
 
-            val imageFile: File? = if (currentState.imageUri != initialImageUri && currentState.imageUri != null) {
-                if (currentState.imageUri.startsWith("content://")) {
-                    try {
-                        val uri = Uri.parse(currentState.imageUri)
-                        val tempFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
-                        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                            FileOutputStream(tempFile).use { outputStream ->
-                                inputStream.copyTo(outputStream)
-                            }
-                        }
-                        tempFile
-                    } catch (e: Exception) {
-                        Log.e("KidEditViewModel", "Failed to create temp file from URI", e)
-                        null
-                    }
-                } else null
-            } else {
-                // 이미지가 변경되지 않았으면 파일을 보내지 않습니다 (null).
-                null
-            }
+            val imageFile: File? = getFileFromUri(currentState.imageUri)
 
             val result = babyRepository.updateBaby(
                 babyId = currentBabyId,
@@ -135,9 +112,19 @@ class KidEditViewModel @Inject constructor(
                 imageFile = imageFile
             )
 
+            Log.d("update", "response : $result");
+
             if (result.isSuccess) {
-                // 수정 성공 후, 서버와 동기화하여 최신 데이터를 반영합니다.
-                babyRepository.syncWithServer(groupId = "") // groupId는 Repository에서 처리합니다.
+                // 수정 성공 후, 동기화를 위해 그룹 정보를 가져옵니다.
+                val groupResult = groupRepository.getMyGroup()
+                if (groupResult.isFailure) {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "그룹 정보를 찾을 수 없어 동기화에 실패했습니다.") }
+                    return@launch
+                }
+                val groupId = groupResult.getOrThrow().id
+
+                // 최신 데이터로 동기화합니다.
+                babyRepository.syncWithServer(groupId = groupId)
                 _uiState.update { it.copy(isLoading = false, isSaveSuccess = true) }
             } else {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "아이 정보 수정에 실패했습니다.") }
@@ -147,22 +134,46 @@ class KidEditViewModel @Inject constructor(
 
     // --- 핵심 로직: 아이 정보 삭제 ---
     fun deleteBaby() {
-        val currentBabyId = babyId ?: run {
-            _uiState.update { it.copy(errorMessage = "아이 ID를 찾을 수 없어 삭제할 수 없습니다.") }
-            return
-        }
-
+        val currentBabyId = babyId ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            // BabyRepository에 그룹 ID가 필요하므로, 이 부분은 Repository에서 처리하도록 위임합니다.
-            val result = babyRepository.deleteBaby(groupId = "", babyId = currentBabyId)
+            // 1. 그룹 ID를 먼저 가져옵니다.
+            val groupResult = groupRepository.getMyGroup()
+            if (groupResult.isFailure) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "그룹 정보를 찾을 수 없어 삭제할 수 없습니다.") }
+                return@launch
+            }
+            val groupId = groupResult.getOrThrow().id
 
-            if (result.isSuccess) {
+            // 2. 정확한 그룹 ID로 삭제를 요청합니다.
+            val deleteResult = babyRepository.deleteBaby(groupId = groupId, babyId = currentBabyId)
+
+            if (deleteResult.isSuccess) {
                 _uiState.update { it.copy(isLoading = false, isDeleteSuccess = true) }
             } else {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "아이 정보 삭제에 실패했습니다.") }
             }
+        }
+    }
+
+    private fun getFileFromUri(uriString: String?): File? {
+        return if (uriString != initialImageUri && uriString != null && uriString.startsWith("content://")) {
+            try {
+                val uri = Uri.parse(uriString)
+                val tempFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    FileOutputStream(tempFile).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                tempFile
+            } catch (e: Exception) {
+                Log.e("KidEditViewModel", "URI에서 임시 파일 생성 실패", e)
+                null
+            }
+        } else {
+            null
         }
     }
 
