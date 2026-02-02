@@ -24,6 +24,10 @@ class FakeSharedMediaRepository : SharedMediaRepository {
     override suspend fun deleteMedia(mediaId: String): Result<Unit> =
         Result.success(Unit)
 
+    override suspend fun updateCaption(mediaId: String, caption: String): Result<Unit> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun syncDeletedMedia(groupId: String): Boolean = true
     override suspend fun syncWithServer(groupId: String): Boolean = true
     override suspend fun uploadUnsyncedMedia(groupId: String): Boolean = true

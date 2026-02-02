@@ -31,6 +31,10 @@ interface MediaDao {
     @Query("SELECT syncStatus FROM shared_media WHERE mediaId = :mediaId")
     suspend fun getSyncStatus(mediaId: String): String?
 
+    // 캡션 업데이트 (로컬 DB 즉시 반영용)
+    @Query("UPDATE shared_media SET caption = :caption WHERE mediaId = :mediaId")
+    suspend fun updateCaption(mediaId: String, caption: String)
+
 
     // 임시 앨범 Upsert 하는 부분
     @Upsert

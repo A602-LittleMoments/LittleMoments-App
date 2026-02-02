@@ -21,7 +21,7 @@ data object GridNavKey : NavKey
 // 사진 상세보기
 
 @Serializable
-data class PhotoDetailNavKey(
+data class MediaDetailNavKey(
     val mediaId: String
 ) : NavKey
 
@@ -37,19 +37,16 @@ data class CommentEditNavKey(
 @Serializable
 data object TempAlbumNavKey : NavKey
 
-
-// 하이라이트 생성
 @Serializable
-data object HighlightCalendarNavKey : NavKey
-//하이라이트 로딩
+object HighlightCalendarNavKey : NavKey
 @Serializable
 data class HighlightLoadingNavKey(
     val startMillis: Long,
     val endMillis: Long
 ) : NavKey
 
-// 하이라이트 완료
+// 하이라이트 결과
 @Serializable
 data class HighlightResultNavKey(
-    val highlightId: String
+    val slideshowId: String
 ) : NavKey

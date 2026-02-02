@@ -22,3 +22,9 @@ object KidAddKey : NavKey
 
 @Serializable
 object GroupManageKey : NavKey
+
+@Serializable
+object GroupJoinKey : NavKey
+
+@Serializable
+object GroupCreateKey : NavKey

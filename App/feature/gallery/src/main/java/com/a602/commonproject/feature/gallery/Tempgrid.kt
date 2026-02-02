@@ -30,15 +30,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.main
-import com.a602.commonproject.model.data.SharedMedia
+import com.a602.commonproject.model.data.TempMedia
 
 @Composable
 fun TempImageGrid(
-    medias: List<SharedMedia>,
+    medias: List<TempMedia>,
     isSelectMode: Boolean,
     selectedIds: List<String>,
-    onClick: (SharedMedia) -> Unit,
+    onClick: (TempMedia) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -61,7 +62,7 @@ fun TempImageGrid(
             ) {
                 // 이미지
                 AsyncImage(
-                    model = media.remoteUrl ?: media.localUri,
+                    model = media.localUri,
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
@@ -113,25 +114,15 @@ fun TempImageGrid(
 @Composable
 fun TempImageGridPreview() {
     val fakeMedias = List(6) { i ->
-        SharedMedia(
+        TempMedia(
             id = i.toString(),
-            type = SharedMedia.MediaType.PHOTO,
-            localUri = null,
-            remoteUrl = "https://picsum.photos/600/80${i}",
-            thumbnailUrl = null,
-            subLocalUri = null,
-            subRemoteUrl = null,
-            subThumbnailUrl = null,
-            cameraFacing = "DUAL",
-            caption = "임시 앨범 사진 ${i + 1}",
-            dateTaken = System.currentTimeMillis(),
-            orientation = 0,
-            uploaderName = "엄마",
-            syncStatus = SharedMedia.SyncStatus.SYNCED
+            localUri = "/path/to/temp/${i}.jpg",
+            takenAt = System.currentTimeMillis(),
+            expirationDate = System.currentTimeMillis() + 30 * 24 * 60 * 60 * 1000L
         )
     }
 
-    MaterialTheme {
+    LMTheme {
         Surface(color = Color(0xFFFDF7F2)) {
             TempImageGrid(
                 medias = fakeMedias,
