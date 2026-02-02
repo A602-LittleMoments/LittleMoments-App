@@ -31,7 +31,8 @@ interface SharedMediaRepository {
      * - 로컬 DB 삭제 + 서버 삭제 요청
      */
     suspend fun deleteMedia(mediaId: String): Result<Unit>
-
+    // 캡션 업데이트용
+    suspend fun updateCaption(mediaId: String, caption: String): Result<Unit>
 
     // =================================================================
     // ⚙️ Worker 용 (백그라운드 동기화)
@@ -54,7 +55,6 @@ interface SharedMediaRepository {
      * - DB에서 'NOT_UPLOADED' 상태인 항목들을 찾아 서버로 전송
      */
     suspend fun uploadUnsyncedMedia(groupId: String): Boolean
-
 
 
 

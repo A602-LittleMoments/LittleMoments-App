@@ -5,22 +5,26 @@ import com.a602.commonproject.data.model.asExternalModel
 import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.database.dao.MediaDao
 import com.a602.commonproject.database.model.ShareMediaEntity
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.network.datasource.MediaNetworkDataSource
 import com.a602.commonproject.network.model.MediaFileKey
 import com.a602.commonproject.network.model.MediaUploadMetadata
 import com.a602.commonproject.network.model.MediaUploadMetadataWrapper
+import com.a602.commonproject.network.model.UpdateCaptionRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 // 앱 전체에서 하나만 쓰려면 추가
 class OfflineFirstSharedMediaRepository @Inject constructor(
     private val mediaDao: MediaDao,
     private val networkDataSource: MediaNetworkDataSource,
+    private val userPreferences: UserPreferencesDataSource,
     @ApplicationContext private val context: Context,
 ) : SharedMediaRepository {
 
@@ -31,6 +35,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
         // DAO에서 이미 '삭제 예정(TO_BE_DELETED)'은 제외하고 가져와야 함
         return mediaDao.getSharedMediaFlow().map { entities -> entities.map { it.asExternalModel() } }
     }
+
 
     // =================================================================
     // ➕ 2. UI용: 미디어 저장 (로컬 선저장 -> 업로드 대기)
@@ -304,4 +309,22 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
         }
     }
 
+//        캡션
+    override suspend fun updateCaption(mediaId: String, caption: String): Result<Unit> {
+    return try {
+        val groupId = getGroupIdOrThrow()
+
+        networkDataSource.updateCaption(groupId, mediaId, UpdateCaptionRequest(caption))
+
+        mediaDao.updateCaption(mediaId, caption)
+
+
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
+    private suspend fun getGroupIdOrThrow(): String =
+        userPreferences.userGroupId.first()
+            ?: throw IllegalStateException("그룹 정보가 없습니다.")
 }
