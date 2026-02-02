@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -65,6 +66,7 @@ import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.CompositionLocalProvider
+import com.a602.commonproject.designsystem.component.LMNavigationDefaults.NavigationBarHeight
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color6
 import com.a602.commonproject.designsystem.theme.lightblue
@@ -179,9 +181,12 @@ fun HomeScreen(
 
     // region [Layout Structure]
     Scaffold(
+        contentColor = background,
         modifier = Modifier
-            .fillMaxSize(),
-        // [중요] 시스템 상태바(시계, 배터리 등)에 컨텐츠가 가려지지 않도록 패딩 추가
+            .fillMaxSize()
+            .padding(bottom = NavigationBarHeight)
+            .navigationBarsPadding()
+            .statusBarsPadding()
     ) { paddingValues ->
 
         // [Main Content: Scrollable List]
@@ -480,7 +485,7 @@ fun calculateDaysSince(dateString: String): Long {
     return try {
         val today = java.time.LocalDate.now()
         val birth = java.time.LocalDate.parse(dateString) // ISO_LOCAL_DATE 포맷 가정
-        java.time.temporal.ChronoUnit.DAYS.between(birth, today)
+        java.time.temporal.ChronoUnit.DAYS.between(birth, today) + 1 // D+1 (태어난 날이 1일)
     } catch (e: Exception) {
         // 날짜 파싱 실패 시 예외 처리 (로그 추가 권장)
         Log.e("DateCalculation", "Failed to parse date: $dateString", e)

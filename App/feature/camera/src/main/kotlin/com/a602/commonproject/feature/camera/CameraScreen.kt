@@ -4,14 +4,18 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
-import android.view.ViewGroup
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import java.io.FileOutputStream
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ConcurrentCamera
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCaseGroup
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.border
@@ -34,9 +38,10 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.unit.dp
+import java.util.concurrent.Executor
+import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.supervisorScope
 
 @Composable
 fun CameraScreen(
@@ -120,12 +125,24 @@ fun CameraContent(
     // 후면 카메라: 전체 화면 / 전면 카메라: 우측 상단 작은 화면
 
     // Previews are created once and reused to avoid re-inflating
-    val backPreviewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
-    val frontPreviewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
+    // Back Preview: Use COMPATIBLE mode (TextureView) to allow bitmap capture for double bitmap concurrent shooting
+    val backPreviewView = remember {
+        PreviewView(context).apply {
+            scaleType = PreviewView.ScaleType.FILL_CENTER
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+    }
+    // Front Preview: Use COMPATIBLE mode (TextureView) to allow bitmap capture for hybrid concurrent shooting
+    val frontPreviewView = remember {
+        PreviewView(context).apply {
+            scaleType = PreviewView.ScaleType.FILL_CENTER
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+    }
 
     // Implements ImageCapture use cases
-    val backImageCapture = remember { androidx.camera.core.ImageCapture.Builder().build() }
-    val frontImageCapture = remember { androidx.camera.core.ImageCapture.Builder().build() }
+    val backImageCapture = remember { ImageCapture.Builder().build() }
+    val frontImageCapture = remember { ImageCapture.Builder().build() }
     val mainExecutor = remember { ContextCompat.getMainExecutor(context) }
 
     // State to track if dual mode (concurrent camera) is actually active
@@ -133,15 +150,15 @@ fun CameraContent(
 
     Box(modifier = Modifier.fillMaxSize()) {
         // 1. Back Camera View (Background)
-        AndroidView(
-            factory = { backPreviewView },
+        AndroidView<PreviewView>(
+            factory = { _ -> backPreviewView },
             modifier = Modifier.fillMaxSize()
         )
 
         // 2. Front Camera View (Floating PIP) - Show only if dual mode
         if (isDualMode) {
-            AndroidView(
-                factory = { frontPreviewView },
+            AndroidView<PreviewView>(
+                factory = { _ -> frontPreviewView },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 80.dp, end = 16.dp)
@@ -160,7 +177,8 @@ fun CameraContent(
 
         Button(
             onClick = {
-                val timestamp = System.currentTimeMillis()
+                val sdf = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.KOREA)
+                val timestamp = sdf.format(java.util.Date())
                 val backFile = java.io.File(context.externalCacheDir, "back_$timestamp.jpg")
                 // Front file is only needed if dual mode
                 val frontFile = if (isDualMode) java.io.File(context.externalCacheDir, "front_$timestamp.jpg") else null
@@ -169,31 +187,68 @@ fun CameraContent(
                 val frontOutputOptions = frontFile?.let { androidx.camera.core.ImageCapture.OutputFileOptions.Builder(it).build() }
 
                 scope.launch {
+                    Log.d("CameraScreen", "촬영 버튼 클릭됨")
                     try {
                         // Use supervisorScope to prevent child coroutine (async) failure from crashing the parent scope
-                        kotlinx.coroutines.supervisorScope {
-                            // Back Capture is always done
-                            val backJob = async {
-                                backImageCapture.takePicture(backOutputOptions, mainExecutor)
-                                backFile.absolutePath
-                            }
+                        supervisorScope {
+                             Log.d("CameraScreen", "동시 촬영 시작 (Hybrid: Back=API, Front=Bitmap)")
 
-                            val frontPath = if (isDualMode && frontOutputOptions != null) {
-                                val frontJob = async {
-                                    frontImageCapture.takePicture(frontOutputOptions, mainExecutor)
-                                    frontFile!!.absolutePath
-                                }
-                                frontJob.await()
-                            } else {
-                                "" // No front image
-                            }
+                             // 1. 후면 촬영 시작 (API 사용 - 고화질)
+                             val backJob = async {
+                                 Log.d("CameraScreen", "후면 카메라 takePicture 요청")
+                                 val result = backImageCapture.takePicture(backOutputOptions, mainExecutor)
+                                 Log.d("CameraScreen", "후면 카메라 촬영 완료: ${result.savedUri}")
+                                 backFile.absolutePath
+                             }
 
-                            val backPath = backJob.await()
+                             // 2. 전면 촬영 시작 (API 사용 - Staggered 방식)
+                             // NOTE: 실기기 테스트를 위해 API 방식으로 복구. (Bitmap 방식은 아래에 주석 처리됨)
+                             
+                             val frontPath = if (isDualMode && frontOutputOptions != null) {
+                                 val frontJob = async {
+                                     delay(150) // Driver crash workaround
+                                     Log.d("CameraScreen", "전면 카메라 takePicture 요청")
+                                     val result = frontImageCapture.takePicture(frontOutputOptions, mainExecutor)
+                                     Log.d("CameraScreen", "전면 카메라 촬영 완료: ${result.savedUri}")
+                                     frontFile.absolutePath
+                                 }
+                                 frontJob.await()
+                             } else { "" }
+                             
 
-                            Log.d("CameraScreen", "촬영 성공: 후면=$backPath, 전면=$frontPath")
-                            onCaptureSuccess(backPath, frontPath)
-                        }
-                    } catch (e: Exception) { // ImageCaptureException includes "Camera is closed"
+                             /*
+                             // Bitmap 캡처 방식 (에뮬레이터/드라이버 호환성 이슈 해결용)
+                             val frontPath = if (isDualMode) {
+                                 Log.d("CameraScreen", "전면 카메라 Bitmap 캡처 시작")
+                                 val bitmap = frontPreviewView.bitmap
+                                 if (bitmap != null) {
+                                     val fFile = java.io.File(context.externalCacheDir, "front_${System.currentTimeMillis()}.jpg")
+                                     try {
+                                         java.io.FileOutputStream(fFile).use { out ->
+                                             bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
+                                         }
+                                         Log.d("CameraScreen", "전면 카메라 Bitmap 저장 완료: ${fFile.absolutePath}")
+                                         fFile.absolutePath
+                                     } catch (e: Exception) {
+                                         Log.e("CameraScreen", "전면 Bitmap 저장 실패", e)
+                                         ""
+                                     }
+                                 } else {
+                                     Log.e("CameraScreen", "전면 PreviewView Bitmap이 null입니다.")
+                                     ""
+                                 }
+                             } else {
+                                 ""
+                             }
+                             */
+
+                             Log.d("CameraScreen", "후면 카메라 결과 대기 중")
+                             val backPath = backJob.await()
+
+                             Log.d("CameraScreen", "모든 촬영 완료. onCaptureSuccess 호출: 후면=$backPath, 전면=$frontPath")
+                             onCaptureSuccess(backPath, frontPath)
+                         }
+                    } catch (e: Exception) {
                         Log.e("CameraScreen", "촬영 실패: ${e.message}", e)
                     }
                 }
@@ -213,10 +268,10 @@ fun CameraContent(
             val frontSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
             val backPreview = Preview.Builder().build().also {
-                it.setSurfaceProvider(backPreviewView.surfaceProvider)
+                it.surfaceProvider = backPreviewView.surfaceProvider
             }
             val frontPreview = Preview.Builder().build().also {
-                it.setSurfaceProvider(frontPreviewView.surfaceProvider)
+                it.surfaceProvider = frontPreviewView.surfaceProvider
             }
 
             // Check Concurrent Support
@@ -229,15 +284,15 @@ fun CameraContent(
                 if (isConcurrentSupported) {
                     Log.d("CameraScreen", "동시 카메라 바인딩 시작 (전면 + 후면)")
                     // Concurrent Binding
-                    val backConfig = androidx.camera.core.ConcurrentCamera.SingleCameraConfig(
+                    val backConfig = ConcurrentCamera.SingleCameraConfig(
                         backSelector,
-                        androidx.camera.core.UseCaseGroup.Builder()
+                        UseCaseGroup.Builder()
                             .addUseCase(backPreview)
                             .addUseCase(backImageCapture)
                             .build(),
                         lifecycleOwner
                     )
-                    val frontConfig = androidx.camera.core.ConcurrentCamera.SingleCameraConfig(
+                    val frontConfig = ConcurrentCamera.SingleCameraConfig(
                         frontSelector,
                         androidx.camera.core.UseCaseGroup.Builder()
                             .addUseCase(frontPreview)
@@ -267,19 +322,22 @@ fun CameraContent(
     }
 }
 
-suspend fun androidx.camera.core.ImageCapture.takePicture(
-    outputOptions: androidx.camera.core.ImageCapture.OutputFileOptions,
-    executor: java.util.concurrent.Executor
-): androidx.camera.core.ImageCapture.OutputFileResults = kotlin.coroutines.suspendCoroutine { continuation ->
+suspend fun ImageCapture.takePicture(
+    outputOptions: ImageCapture.OutputFileOptions,
+    executor: Executor
+): ImageCapture.OutputFileResults = suspendCoroutine { continuation ->
+    Log.d("CameraScreenExt", "takePicture 확장 함수 호출됨")
     this.takePicture(
         outputOptions,
         executor,
-        object : androidx.camera.core.ImageCapture.OnImageSavedCallback {
-            override fun onImageSaved(outputFileResults: androidx.camera.core.ImageCapture.OutputFileResults) {
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                Log.d("CameraScreenExt", "onImageSaved 콜백 수신: ${outputFileResults.savedUri}")
                 continuation.resumeWith(Result.success(outputFileResults))
             }
 
-            override fun onError(exception: androidx.camera.core.ImageCaptureException) {
+            override fun onError(exception: ImageCaptureException) {
+                Log.e("CameraScreenExt", "onError 콜백 수신: ${exception.message}", exception)
                 continuation.resumeWith(Result.failure(exception))
             }
         }

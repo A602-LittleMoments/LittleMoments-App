@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -43,6 +44,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.a602.commonproject.designsystem.component.FillWrapButton
+import com.a602.commonproject.designsystem.component.LMNavigationDefaults.NavigationBarHeight
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.LMTheme
@@ -134,6 +136,7 @@ fun mapToCalendarDays(
     return days
 }
 
+// Placeholder - I will look up GridRoute file next.
 @Composable
 fun CalendarScreen(
     medias: List<SharedMedia>,
@@ -156,6 +159,8 @@ fun CalendarScreen(
         modifier = Modifier
             .background(background)
             .fillMaxSize()
+            .padding(bottom = NavigationBarHeight)
+            .navigationBarsPadding()
     ) {
         LMTopAppBar(
             title = "캘린더",

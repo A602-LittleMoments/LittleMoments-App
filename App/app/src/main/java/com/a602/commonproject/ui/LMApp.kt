@@ -1,16 +1,13 @@
-package com.a602.commonproject.ui.theme
+package com.a602.commonproject.ui
 
-import androidx.compose.foundation.background
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold // 표준 Scaffold 사용
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.NavDisplay
@@ -24,7 +21,6 @@ import com.a602.commonproject.feature.home.navigation.HomeNavKey
 import com.a602.commonproject.feature.home.navigation.homeEntries
 import com.a602.commonproject.navigation.TOP_LEVEL_NAV_ITEMS
 import com.a602.commonproject.navigation.toEntries
-import com.a602.commonproject.ui.rememberLMAppState
 import com.a602.commonproject.designsystem.component.CameraButton
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.feature.gallery.GalleryNavKey
@@ -35,17 +31,48 @@ import com.a602.commonproject.feature.mypage.navigation.myPageEntries
 import com.a602.commonproject.feature.camera.navigation.CameraNavKey
 import com.a602.commonproject.feature.camera.navigation.cameraEntries
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LMApp() {
     val appState = rememberLMAppState()
     // 1. NavigationSuiteScaffold 대신 표준 Scaffold 사용
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = Color.Transparent,
+        containerColor = background,
         floatingActionButtonPosition = FabPosition.Center,
         bottomBar = {
             // 2. ✨ 사용자님이 만든 LMNavigationBar 적용
+
+            /*
+            // [Backup] 애니메이션 없이 즉시 표시 (문제 발생 시 주석 해제하여 복구)
             if (appState.shouldShowBottomBar) {
+                LMNavigationBar {
+                    TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
+                        val isSelected = appState.navigationState.currentTopLevelKey == navKey
+                        LMNavigationBarItem(
+                            selected = isSelected,
+                            onClick = { appState.navigator.navigate(navKey) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (isSelected) navItem.selectedIcon else navItem.unselectedIcon,
+                                    contentDescription = stringResource(navItem.iconTextId),
+                                )
+                            },
+                            label = stringResource(navItem.iconTextId),
+                        )
+                    }
+                }
+            }
+            */
+
+            // 애니메이션: 스플래시 화면이 사라질 때까지 100ms 기다렸다가 300ms 동안 서서히 나타남 (겹침 방지)
+            androidx.compose.animation.AnimatedVisibility(
+                visible = appState.shouldShowBottomBar,
+                enter = androidx.compose.animation.fadeIn(
+                    animationSpec = androidx.compose.animation.core.tween(durationMillis = 300, delayMillis = 200)
+                ),
+                exit = androidx.compose.animation.fadeOut()
+            ) {
                 LMNavigationBar {
                     TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
                         val isSelected = appState.navigationState.currentTopLevelKey == navKey
@@ -53,7 +80,7 @@ fun LMApp() {
                         // 3. ✨ 사용자님이 만든 LMNavigationBarItem 적용
                         LMNavigationBarItem(
                             selected = isSelected,
-                            onClick = { appState.navigator.navigate(navKey as NavKey) },
+                            onClick = { appState.navigator.navigate(navKey) },
                             icon = {
                                 Icon(
                                     imageVector = if (isSelected) navItem.selectedIcon else navItem.unselectedIcon,
@@ -72,16 +99,33 @@ fun LMApp() {
             val currentKey = appState.navigationState.currentKey
             val isTopLevelTab = currentKey == HomeNavKey || currentKey == GalleryNavKey || currentKey == MemoryNavKey
 
+            /*
+            // [Backup] 애니메이션 없이 즉시 표시
             if (isTopLevelTab) {
                 CameraButton(
                     onClick = { appState.navigator.navigate(CameraNavKey) },
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
             }
+            */
+
+            androidx.compose.animation.AnimatedVisibility(
+                visible = isTopLevelTab,
+                enter = androidx.compose.animation.fadeIn(
+                    animationSpec = androidx.compose.animation.core.tween(durationMillis = 300, delayMillis = 200)
+                ) + androidx.compose.animation.scaleIn(initialScale = 0.8f),
+                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut()
+            ) {
+                CameraButton(
+                    onClick = { appState.navigator.navigate(CameraNavKey) },
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+            }
         }
-    ) { innerPadding ->
+    ) { _ ->
+
         // 5. 모듈별 EntryProvider 연결
-        val provider = entryProvider<NavKey> {
+        val provider = entryProvider {
             loginEntries(
                 navigator = appState.navigator,
                 onLoginSuccess = {
@@ -103,7 +147,7 @@ fun LMApp() {
         }
 
         val combinedEntryProvider: (NavKey) -> NavEntry<NavKey> = { key ->
-            provider.invoke(key) ?: error("Unknown key: $key")
+            provider.invoke(key)
         }
 
         val entries = appState.navigationState.toEntries(combinedEntryProvider)
@@ -112,10 +156,9 @@ fun LMApp() {
         NavDisplay(
             entries = entries,
             modifier = Modifier
-                .fillMaxSize()
-                // 💡 innerPadding 전체를 적용하지 않고, '하단(Bottom)' 패딩만 적용합니다.
-                // 이렇게 하면 TopBar 영역(원래라면 비어있을 상단)까지 NavDisplay가 꽉 차게 됩니다.
-                .padding(bottom = innerPadding.calculateBottomPadding()),
+                .fillMaxSize(),
+
+                // 💡 [Fix] Global padding removed. Padding is applied via wrapper above.
             onBack = { appState.navigator.goBack() },
         )
     }
