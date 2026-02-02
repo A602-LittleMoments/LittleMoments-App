@@ -1,6 +1,7 @@
 package com.a602.commonproject.feature.gallery
 
 import androidx.navigation3.runtime.NavKey
+import java.time.LocalDate
 import kotlinx.serialization.Serializable
 
 
@@ -16,6 +17,7 @@ data object CalendarNavKey : NavKey*/
 // 캘린더 -> 날짜 클릭 -> 이동 -> 날짜 필터 안한다 하여 이렇게 둡니다
 @Serializable
 data object GridNavKey : NavKey
+data class DayGridNavKey(val date: LocalDate) : NavKey
 
 
 // 사진 상세보기

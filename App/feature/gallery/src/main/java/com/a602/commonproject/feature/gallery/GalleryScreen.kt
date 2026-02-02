@@ -6,51 +6,59 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.a602.commonproject.designsystem.component.FillWrapButton
+import com.a602.commonproject.designsystem.R.drawable.temporary
 import com.a602.commonproject.designsystem.component.LMNavigationDefaults.NavigationBarHeight
-import com.a602.commonproject.designsystem.component.LMTopAppBar
-import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
-import com.a602.commonproject.designsystem.theme.color3
+import com.a602.commonproject.designsystem.theme.color4
 import com.a602.commonproject.designsystem.theme.lightbackground
+import com.a602.commonproject.designsystem.theme.lightblue
+import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.feature.gallery.viewmodel.CalendarViewModel
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.model.data.SharedMedia.SyncStatus.SYNCED
@@ -58,11 +66,11 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import kotlinx.coroutines.launch
 
 @Composable
 fun CalendarRoute(
-    onBack: () -> Unit,
-    onDateClick: () -> Unit,
+    onDateClick: (LocalDate) -> Unit,
     onGridClick: () -> Unit,
     onTempAlbumClick: () -> Unit,
     onHighLightClick: () -> Unit,
@@ -76,7 +84,6 @@ fun CalendarRoute(
         uiState.error != null -> Text(uiState.error!!)
         else -> CalendarScreen(
             medias = uiState.medias,
-            onBack=onBack,
             onDateClick = onDateClick,
             onGridClick = onGridClick,
             onTempAlbumClick = onTempAlbumClick,
@@ -120,7 +127,6 @@ fun mapToCalendarDays(
         val date = yearMonth.atDay(day)
         val representative = grouped[date]?.firstOrNull()
 
-        // remoteUrl을 대표 이미지로 사용
         val imageUrl = representative?.remoteUrl
 
         days.add(CalendarDay(date, imageUrl))
@@ -135,163 +141,194 @@ fun mapToCalendarDays(
 
     return days
 }
+@Composable
+fun CalendarMiniToolbar(
+    onGridClick: () -> Unit,
+    onTempAlbum: () -> Unit,
+    onHighlight: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End,
+        ) {
+            IconButton(onClick = onGridClick) {
+                Icon(
+                    imageVector = Icons.Outlined.GridView,
+                    contentDescription = "보기 전환",
+                    tint = main,
+                )
 
-// Placeholder - I will look up GridRoute file next.
+            }
+            IconButton(onClick = onTempAlbum) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(temporary),
+                    contentDescription = "임시앨범",
+                    tint = main
+                )
+            }
+            IconButton(onClick = onHighlight) {
+                Icon(
+                    imageVector = Icons.Outlined.AutoAwesome,
+                    contentDescription = "하이라이트",
+                    tint = main
+                )
+            }
+        }
+
+    }
+}
+
+
 @Composable
 fun CalendarScreen(
     medias: List<SharedMedia>,
     initialMonth: YearMonth = YearMonth.now(),
-    onBack: () -> Unit,
-    onDateClick: () -> Unit,
+    onDateClick: (LocalDate) -> Unit,
     onGridClick: () -> Unit,
     onTempAlbumClick: () -> Unit,
     onHighLightClick: () -> Unit,
 ) {
-    var currentMonth by remember { mutableStateOf(initialMonth) }
-
-    val rows: Int = remember(currentMonth) { weekRowCount(currentMonth) }
-
-    val days = remember(currentMonth, medias) {
-        mapToCalendarDays(currentMonth, medias)
-    }
+    val scope = rememberCoroutineScope()
+    val baseMonth = remember { initialMonth }
+    val centerPage = 100
+    val pagerState = rememberPagerState(
+        initialPage = centerPage,
+        pageCount = { 200 }
+    )
 
     Column(
         modifier = Modifier
             .background(background)
-            .fillMaxSize()
             .padding(bottom = NavigationBarHeight)
             .navigationBarsPadding()
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 50.dp)
+            .fillMaxSize( )
     ) {
-        LMTopAppBar(
-            title = "캘린더",
-            navigationIcon = LMicons.Back,
-            onNavigationClick = onBack,
+        CalendarMiniToolbar(
+            onGridClick = onGridClick,
+            onTempAlbum = onTempAlbumClick,
+            onHighlight = onHighLightClick
         )
 
-        Box(
+        Spacer(Modifier.height(10.dp))
+
+        Column(
             modifier = Modifier
+                .fillMaxWidth()
                 .weight(1f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
+                .background(lightbackground, RoundedCornerShape(16.dp))
+                .padding(12.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(y = (-40).dp)
+
+            // 월 헤더 (<  >)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    FillWrapButton(
-                        text = "그리드 보기",
-                        onClick = onGridClick,
-                        modifier = Modifier.align(Alignment.TopEnd)
-                    )
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp, horizontal = 16.dp)
-                        .background(lightbackground, shape = RoundedCornerShape(20.dp))
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    androidx.compose.foundation.layout.Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            "<",
-                            Modifier.clickable { currentMonth = currentMonth.minusMonths(1) },
-                            style = MaterialTheme.typography.headlineLarge
-                        )
-                        Text(
-                            "${currentMonth.year}년 ${currentMonth.monthValue}월",
-                            style = MaterialTheme.typography.headlineLarge
-                        )
-                        Text(
-                            ">",
-                            Modifier.clickable { currentMonth = currentMonth.plusMonths(1) },
-                            style = MaterialTheme.typography.headlineLarge
-                        )
+                Text(
+                    "<",
+                    modifier = Modifier.clickable {
+                        scope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                        }
                     }
+                )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                val currentMonth = baseMonth.plusMonths(
+                    pagerState.currentPage - centerPage.toLong()
+                )
+                Text(
+                    "${currentMonth.year}년 ${currentMonth.monthValue}월",
+                    style = MaterialTheme.typography.titleLarge
+                )
 
-                    CalendarPhotoView(
-                        days = days,
-                        rows = rows,
-                        onDateClick = { onDateClick() }
-                    )
+                Text(
+                    ">",
+                    modifier = Modifier.clickable {
+                        scope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                        }
+                    }
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            // 좌우 스와이프
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.weight(1f)
+            ) { page ->
+
+                val month = baseMonth.plusMonths(page - centerPage.toLong())
+                val rows = weekRowCount(month)
+                val days = remember(month, medias) {
+                    mapToCalendarDays(month, medias)
                 }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    FillWrapButton(
-                        text = "임시앨범",
-                        onClick = onTempAlbumClick,
-                    )
-
-                    FillWrapButton(
-                        text = "하이라이트 생성",
-                        onClick = onHighLightClick,
-                        modifier = Modifier.align(Alignment.TopEnd)
-                    )
-                }
+                CalendarPhotoViewFill(
+                    days = days,
+                    rows = rows,
+                    modifier = Modifier.fillMaxSize(),
+                    onDateClick = onDateClick
+                )
             }
         }
     }
 }
 
 @Composable
-fun CalendarPhotoView(
+fun CalendarPhotoViewFill(
     days: List<CalendarDay>,
-    rows: Int, // 5 or 6
-    onDateClick: (LocalDate) -> Unit
-) {
-    val vSpace = 12.dp
-    val hSpace = 8.dp
-
-    Column {
+    rows: Int,
+    modifier: Modifier = Modifier,
+    onDateClick: (LocalDate) -> Unit) {
+    Column(modifier = modifier.fillMaxWidth()) {
         DayOfWeekHeader()
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val cellSize = (maxWidth - hSpace * 6) / 7
-            val oneRowHeight = cellSize + vSpace
-            val fixedGridHeight = cellSize * 6 + vSpace * 5
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            val cellW = maxWidth / 7
+            val rowH = maxHeight / rows
 
-            val missing = (6 - rows).coerceAtLeast(0)
-            val offsetY = (missing * oneRowHeight) / 2
+            val hSpace = (cellW * 0.18f).coerceIn(10.dp, 22.dp)
+            val vSpace = (rowH * 0.30f).coerceIn(18.dp, 36.dp)
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(fixedGridHeight)
+            val contentW = (maxWidth - hSpace * 6) / 7
+            val contentH = (maxHeight - vSpace * (rows - 1)) / rows
+
+            LazyVerticalGrid(
+                modifier = Modifier.fillMaxSize(),
+                columns = GridCells.Fixed(7),
+                horizontalArrangement = Arrangement.spacedBy(hSpace),
+                verticalArrangement = Arrangement.spacedBy(vSpace),
+                userScrollEnabled = false
             ) {
-                LazyVerticalGrid(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset(y = offsetY),
-                    columns = GridCells.Fixed(7),
-                    verticalArrangement = Arrangement.spacedBy(vSpace),
-                    horizontalArrangement = Arrangement.spacedBy(hSpace),
-                    userScrollEnabled = false
-                ) {
-                    items(days) { day ->
-                        CalendarDayItem(
+                items(days) { day ->
+                    Box(
+                        modifier = Modifier
+                            .width(contentW)
+                            .height(contentH),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val ChipSize = minOf(52.dp, contentW, contentH)
+
+                        CalendarDayChip(
                             day = day,
-                            onClick = { day.date?.let { onDateClick(it) } }
+                            chipSize = ChipSize,
+                            onClick = { day.date?.let(onDateClick) }
                         )
                     }
                 }
@@ -301,19 +338,19 @@ fun CalendarPhotoView(
 }
 
 @Composable
-fun DayOfWeekHeader() {
+fun DayOfWeekHeader(modifier: Modifier = Modifier) {
     val days = listOf("일", "월", "화", "수", "목", "금", "토")
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(7),
-        userScrollEnabled = false
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        items(days) { day ->
+        days.forEach { day ->
             Text(
                 text = day,
+                modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -321,34 +358,29 @@ fun DayOfWeekHeader() {
 }
 
 @Composable
-fun CalendarDayItem(
-    day: CalendarDay,
-    onClick: () -> Unit
-) {
+fun CalendarDayChip(day: CalendarDay, chipSize: Dp,
+                    onClick: () -> Unit,
+                    modifier: Modifier = Modifier) {
     val isPreview = LocalInspectionMode.current
 
+    val shape = CircleShape
+
     Box(
-        modifier = Modifier
-            .aspectRatio(1f)
-            .fillMaxWidth()
-            .clickable(enabled = day.date != null, onClick = onClick),
+        modifier = modifier
+            .size(chipSize)
+            .clip(CircleShape)
+            .clickable(enabled = day.representativeThumbUrl != null, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         if (day.representativeThumbUrl != null) {
             if (isPreview) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                        .background(Color.LightGray)
-                )
+                Box(Modifier.fillMaxSize().background(Color.LightGray))
             } else {
                 AsyncImage(
                     model = day.representativeThumbUrl,
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(CircleShape)
                         .graphicsLayer(alpha = 0.85f),
                     contentScale = ContentScale.Crop
                 )
@@ -357,11 +389,12 @@ fun CalendarDayItem(
 
         Text(
             text = day.date?.dayOfMonth?.toString() ?: "",
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (day.representativeThumbUrl != null) lightbackground else color3,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (day.representativeThumbUrl != null) lightbackground else color4,
         )
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
@@ -372,8 +405,8 @@ fun CalendarScreenPreview() {
             type = SharedMedia.MediaType.PHOTO,
             localUri = null,
             caption = null,
-            remoteUrl = "https://via.placeholder.com/300", // ✅ remoteUrl 사용
-            thumbnailUrl = null, // ✅ 없어도 됨
+            remoteUrl = "https://via.placeholder.com/300",
+            thumbnailUrl = null,
             dateTaken = System.currentTimeMillis(),
             orientation = 0,
             uploaderName = "엄마",
@@ -382,16 +415,14 @@ fun CalendarScreenPreview() {
     )
 
     LMTheme() {
-        Surface {
-            CalendarScreen(
-                medias = sampleMedias,
-                initialMonth = YearMonth.now(),
-                onBack = {},
-                onDateClick = {},
-                onGridClick = {},
-                onTempAlbumClick = {},
-                onHighLightClick = {}
-            )
-        }
+
+        CalendarScreen(
+            medias = sampleMedias,
+            initialMonth = YearMonth.now(),
+            onDateClick = {},
+            onGridClick = {},
+            onTempAlbumClick = {},
+            onHighLightClick = {}
+        )
     }
 }

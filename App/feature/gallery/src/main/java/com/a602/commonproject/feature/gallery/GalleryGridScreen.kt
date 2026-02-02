@@ -12,6 +12,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,10 +27,14 @@ import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.feature.gallery.viewmodel.GridGalleryViewmodel
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.coommonproject.ui.GalleryGridPolaroid
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 
 @Composable
 fun GridRoute(
+    date: LocalDate? = null,
     onBackClick: () -> Unit,
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
@@ -37,13 +42,28 @@ fun GridRoute(
 
     ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val filtered = remember(uiState.medias, date) {
+        if (date == null) uiState.medias
+        else uiState.medias.filter { it.isSameDay(date) }
+    }
+
+    val headerText = remember(date) {
+        date?.let { "${it.year}년 ${it.monthValue}월 ${it.dayOfMonth}일" } ?: "Recent"
+    }
 
     GridGalleryScreen(
-        medias = uiState.medias,
+        medias = filtered,
+        headerText = headerText,
         onCalendarClick = onCalendarClick,
         onMediaClick = onMediaClick,
         onBackClick = onBackClick
     )
+}
+private fun SharedMedia.isSameDay(target: LocalDate): Boolean {
+    val day = Instant.ofEpochMilli(this.dateTaken)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+    return day == target
 }
 
 // 격자 보기
@@ -53,6 +73,7 @@ fun GridGalleryScreen(
     onCalendarClick: () -> Unit,
     onBackClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
+    headerText: String = "Recent",
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -82,8 +103,8 @@ fun GridGalleryScreen(
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Text(
-                    text = "Recent",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = headerText,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
 
                 FillWrapButton(
