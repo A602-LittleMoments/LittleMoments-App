@@ -1,11 +1,11 @@
 package com.a602.commonproject.data.repository
 
+import androidx.paging.PagingData
 import com.a602.commonproject.model.data.SharedMedia
 import java.io.File
 import kotlinx.coroutines.flow.Flow
 
 interface SharedMediaRepository {
-import androidx.paging.PagingData
 
     /**
      * 🖼️ 공유 앨범 목록 관찰 (Offline-First)

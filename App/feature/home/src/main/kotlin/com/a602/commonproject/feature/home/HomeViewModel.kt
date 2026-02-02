@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import okhttp3.internal.userAgent
+import androidx.paging.cachedIn
+
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -35,7 +37,7 @@ class HomeViewModel @Inject constructor(
     // Paging 3 Stream (별도로 노출)
     val mediaPagingFlow: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<SharedMedia>> =
         sharedMediaRepository.getSharedAlbumPagingStream()
-            .androidx.paging.cachedIn(viewModelScope)
+            .cachedIn(viewModelScope)
 
     val uiState: StateFlow<HomeUiState> = combine(
         babyRepository.getBabyStream(),

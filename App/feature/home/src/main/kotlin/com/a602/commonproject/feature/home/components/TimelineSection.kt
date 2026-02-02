@@ -3,6 +3,7 @@ package com.a602.commonproject.feature.home.components
 import Polaroid
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,8 +27,8 @@ import com.a602.commonproject.model.data.SharedMedia
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
 import androidx.paging.compose.LazyPagingItems
+
 
 fun LazyListScope.timelineSection(
     pagingItems: LazyPagingItems<SharedMedia>, // ✨ Paging Items 수신
@@ -74,7 +75,7 @@ fun LazyListScope.timelineSection(
                     true // 안전하게 표시
                 }
             }
-            
+
             // 날짜 문자열 계산
             val dateString = if (showDate) {
                  val dDayString = getDaysSinceBirth(birthDate, media.dateTaken)
@@ -89,7 +90,7 @@ fun LazyListScope.timelineSection(
                 isLastInGroup = false, // 그룹 개념이 모호해지므로 일단 false (필요 시 다음 아이템 비교)
                 onPhotoClick = onPhotoClick
             )
-            
+
             // 아이템 간 간격 (같은 날짜면 40dp, 아니면 좀 더 넒게?)
             // TimelineItem 내부에서 Spacer(40.dp)를 쓰고 있음.
             // 날짜가 바뀌는 지점(다음 아이템이 다른 날짜)이면 추가 여백을 줄 수도 있음.
@@ -193,7 +194,7 @@ private fun getDaysSinceBirth(birthDate: String, currentTimestamp: Long): String
     return try {
         // birthDate format: "yyyy-MM-dd"
         val birthDateParsed = java.time.LocalDate.parse(birthDate)
-        
+
         // Convert timestamp to LocalDate (System Default Zone)
         val imageDate = java.time.Instant.ofEpochMilli(currentTimestamp)
             .atZone(java.time.ZoneId.systemDefault())

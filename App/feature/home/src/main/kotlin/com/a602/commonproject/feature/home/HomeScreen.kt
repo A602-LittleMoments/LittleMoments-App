@@ -74,6 +74,8 @@ import com.a602.commonproject.designsystem.theme.main
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.a602.commonproject.model.data.SharedMedia
 
 
 /**
@@ -147,6 +149,7 @@ fun HomeRoute(
  * @param onNavigateToUpload 상위에서 전달받은 업로드 클릭 이벤트 핸들러
  * @param viewModel 탭 변경(아기 선택) 시 상태 업데이트를 위해 사용
  */
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
@@ -167,6 +170,11 @@ fun HomeScreen(
     // CoroutineScope: 비동기 작업(예: 스크롤 애니메이션)을 시작하기 위한 스코프
     val coroutineScope = rememberCoroutineScope()
     // endregion
+
+    val pagingItems = viewModel.mediaPagingFlow.collectAsLazyPagingItems()
+    val currentBaby = if (uiState.babies.isNotEmpty()) {
+        uiState.babies.getOrNull(pagerState.currentPage)
+    } else null
 
     // region [Side Effects - State Synchronization]
 
@@ -238,14 +246,8 @@ fun HomeScreen(
                 }
             }
 
-import androidx.paging.compose.collectAsLazyPagingItems
-
             // 3. [타임라인 섹션] (Photo List)
-            val pagingItems = viewModel.mediaPagingFlow.collectAsLazyPagingItems()
 
-             val currentBaby = if (uiState.babies.isNotEmpty()) {
-                    uiState.babies.getOrNull(pagerState.currentPage)
-                } else null
 
                 timelineSection(
                     pagingItems = pagingItems,

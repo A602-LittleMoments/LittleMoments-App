@@ -1,5 +1,6 @@
 package com.a602.commonproject.database.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
@@ -15,7 +16,6 @@ interface MediaDao {
     @Query("SELECT * FROM temp_media ORDER BY takenAt DESC")
     fun getTempMediaFlow() : Flow<List<TempMediaEntity>>
 
-import androidx.paging.PagingSource
 
     // 공유 앨범을 내림차순으로 조회 (Legacy List)
     @Query("SELECT * FROM shared_media WHERE syncStatus !='TO_BE_DELETE' ORDER BY takenAt DESC")

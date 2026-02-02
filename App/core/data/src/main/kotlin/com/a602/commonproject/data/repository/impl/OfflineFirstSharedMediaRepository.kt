@@ -19,8 +19,12 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 
-// 앱 전체에서 하나만 쓰려면 추가
+
 class OfflineFirstSharedMediaRepository @Inject constructor(
     private val mediaDao: MediaDao,
     private val networkDataSource: MediaNetworkDataSource,
@@ -28,10 +32,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : SharedMediaRepository {
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
+    // =================================================================
 
     // =================================================================
     // 📱 1. UI용: 목록 관찰 (Offline-First) - Legacy List
