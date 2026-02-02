@@ -98,6 +98,7 @@ class KidAddViewModel @Inject constructor(
                 imageFile = imageFile
             )
 
+            Log.d("add", "response : $result")
             if (result.isSuccess) {
                 // 추가 성공 후, 서버와 동기화하여 최신 데이터를 반영합니다.
                 babyRepository.syncWithServer(groupId = "") // groupId는 Repository에서 처리합니다.

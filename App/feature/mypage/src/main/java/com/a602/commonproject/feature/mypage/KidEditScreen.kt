@@ -33,6 +33,8 @@ import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.*
+import com.a602.commonproject.designsystem.component.FilledButton
+import com.a602.commonproject.designsystem.component.ButtonSize
 import com.a602.commonproject.feature.mypage.navigation.KidEditKey
 import com.a602.commonproject.feature.mypage.viewmodel.KidEditUiState
 import com.a602.commonproject.feature.mypage.viewmodel.KidEditViewModel
@@ -93,7 +95,7 @@ fun KidEditContainer(
                 viewModel.onImageSelected(uri?.toString())
             },
             onSaveClick = viewModel::updateBaby,
-            onDeleteClick = viewModel::deleteBaby, // 삭제 콜백 연결
+            onDeleteClick = viewModel::deleteBaby,
             onBackClick = { navigator.goBack() }
         )
     }
@@ -108,7 +110,7 @@ fun KidEditScreen(
     onGenderSelected: (Gender) -> Unit,
     onImageSelected: (Uri?) -> Unit,
     onSaveClick: () -> Unit,
-    onDeleteClick: () -> Unit, // 삭제 콜백 추가
+    onDeleteClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
     val pickerLauncher = rememberLauncherForActivityResult(
@@ -121,7 +123,9 @@ fun KidEditScreen(
         topBar = {
             LMTopAppBar(
                 title = "아이 정보 수정",
-                onNavigationClick = onBackClick
+                onNavigationClick = onBackClick,
+                actionIcon = LMicons.Delete,
+                onActionClick = onDeleteClick
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -144,8 +148,8 @@ fun KidEditScreen(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
                     },
-                    clickableEnabled = true, // 클릭 활성화
-                    showEditBadge = true,    // 편집 배지 표시
+                    clickableEnabled = true,
+                    showEditBadge = true,
                     headSize = 140.dp,
                     bodyWidth = 150.dp,
                     bodyOffsetY = 100.dp
@@ -157,7 +161,7 @@ fun KidEditScreen(
                     label = "이름",
                     value = uiState.name,
                     onValueChange = onNameChanged,
-                    trailingIcon = { Icon(LMicons.Person, contentDescription = "이름") }
+                    trailingIcon = { Icon(LMicons.Person, contentDescription = "이름", tint = color4) }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -184,32 +188,13 @@ fun KidEditScreen(
                         }
                     }
                 )
-
                 Spacer(modifier = Modifier.weight(1f))
-
-                // 수정 및 삭제 버튼 영역
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = onSaveClick,
-                        modifier = Modifier.weight(2f).height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = main),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(text = "수정 완료", style = MaterialTheme.typography.labelLarge, color = lightbackground)
-                    }
-                    Button(
-                        onClick = onDeleteClick,
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = errorRed)
-                    ) {
-                        Text(text = "삭제", style = MaterialTheme.typography.labelLarge, color = lightbackground)
-                    }
-                }
-
+                FilledButton(
+                    text = "수정 완료",
+                    onClick = onSaveClick,
+                    size = ButtonSize.Full,
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 32.dp, top = 12.dp)
+                )
                 Spacer(modifier = Modifier.height(32.dp))
             }
 

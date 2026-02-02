@@ -1,5 +1,6 @@
 package com.a602.commonproject.feature.mypage.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.a602.commonproject.data.repository.UserRepository
@@ -20,7 +21,7 @@ data class ProfileEditUiState(
     val initialNickname: String = "",
     val nickname: String = "",
     val email: String = "",
-    val profileImageUrl: String? = null, // 현재 프로필 이미지 URL 저장
+    val profileImageUrl: String? = null,
     val currentPassword: String = "",
     val newPassword: String = "",
     val confirmNewPassword: String = "",
@@ -31,7 +32,15 @@ data class ProfileEditUiState(
 
     val isLoading: Boolean = false,
     val isSaveSuccess: Boolean = false,
-    val errorMessage: String? = null
+    val isPasswordChanged: Boolean = false,
+    val showLogoutConfirmDialog: Boolean = false,
+    val isLogoutSuccess: Boolean = false,
+    val showDeleteConfirmDialog: Boolean = false,
+    val isDeleteSuccess: Boolean = false,
+    // 필드별 오류 메시지
+    val nicknameError: String? = null,
+    val currentPasswordError: String? = null,
+    val newPasswordError: String? = null,
 )
 
 @HiltViewModel
@@ -50,42 +59,61 @@ class ProfileEditViewModel @Inject constructor(
                     initialNickname = authState.user.nickname,
                     nickname = authState.user.nickname,
                     email = authState.user.email,
-                    profileImageUrl = authState.user.profileImageUrl // 초기 프로필 이미지 URL 설정
+                    profileImageUrl = authState.user.profileImageUrl
                 )
             }
         }
     }
 
-    // --- UI 이벤트 처리 함수들 ---
-
     fun onNicknameChanged(newNickname: String) {
-        _uiState.update { it.copy(nickname = newNickname) }
+        _uiState.update { it.copy(nickname = newNickname, nicknameError = null) }
     }
 
     fun onCurrentPasswordChanged(password: String) {
-        _uiState.update { it.copy(currentPassword = password) }
+        _uiState.update { it.copy(currentPassword = password, currentPasswordError = null) }
     }
 
     fun onNewPasswordChanged(password: String) {
-        _uiState.update { it.copy(newPassword = password) }
+        _uiState.update { it.copy(newPassword = password, newPasswordError = null) }
     }
 
     fun onConfirmNewPasswordChanged(password: String) {
-        _uiState.update { it.copy(confirmNewPassword = password) }
+        _uiState.update { it.copy(confirmNewPassword = password, newPasswordError = null) } // 새 비밀번호 확인도 newPasswordError를 초기화
     }
 
-    fun onToggleCurrentPasswordVisibility() {
-        _uiState.update { it.copy(isCurrentPasswordVisible = !it.isCurrentPasswordVisible) }
+    fun onToggleCurrentPasswordVisibility() { _uiState.update { it.copy(isCurrentPasswordVisible = !it.isCurrentPasswordVisible) } }
+    fun onToggleNewPasswordVisibility() { _uiState.update { it.copy(isNewPasswordVisible = !it.isNewPasswordVisible) } }
+    fun onToggleConfirmPasswordVisibility() { _uiState.update { it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) } }
+    fun onSaveSuccessConsumed() { _uiState.update { it.copy(isSaveSuccess = false) } }
+    fun onPasswordChangedConsumed() { _uiState.update { it.copy(isPasswordChanged = false) } }
+
+    // --- 로그아웃 관련 ---
+    fun onLogoutClicked() { _uiState.update { it.copy(showLogoutConfirmDialog = true) } }
+    fun onLogoutDismissed() { _uiState.update { it.copy(showLogoutConfirmDialog = false) } }
+    fun onLogoutSuccessConsumed() { _uiState.update { it.copy(isLogoutSuccess = false) } }
+    fun onDeleteAccountClicked() { _uiState.update { it.copy(showDeleteConfirmDialog = true) } }
+    fun onDeleteAccountDismissed() { _uiState.update { it.copy(showDeleteConfirmDialog = false) } }
+    fun onDeleteSuccessConsumed() { _uiState.update { it.copy(isDeleteSuccess = false) } }
+
+    fun logout() {
+        viewModelScope.launch {
+            userRepository.logout()
+            _uiState.update { it.copy(showLogoutConfirmDialog = false, isLogoutSuccess = true) }
+        }
     }
 
-    fun onToggleNewPasswordVisibility() {
-        _uiState.update { it.copy(isNewPasswordVisible = !it.isNewPasswordVisible) }
+    fun deleteAccount() {
+        viewModelScope.launch {
+            val result = userRepository.deleteAccount()
+            if (result.isSuccess) {
+                _uiState.update { it.copy(showDeleteConfirmDialog = false, isDeleteSuccess = true) }
+            } else {
+                // 이제 errorMessage 대신 snackbar를 사용하거나 다른 방식으로 처리
+            }
+        }
     }
 
-    fun onToggleConfirmPasswordVisibility() {
-        _uiState.update { it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) }
-    }
-
+    // --- 프로필 저장 로직 ---
     fun saveProfile() {
         viewModelScope.launch {
             val currentState = _uiState.value
@@ -93,22 +121,17 @@ class ProfileEditViewModel @Inject constructor(
             val isPasswordChangeAttempted = currentState.newPassword.isNotEmpty()
 
             if (!isNicknameChanged && !isPasswordChangeAttempted) {
-                _uiState.update { it.copy(errorMessage = "변경된 내용이 없습니다.") }
+                // 변경된 내용이 없을 때 처리 (예: 스낵바 메시지)
                 return@launch
             }
 
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
-            var isSuccess = true
+            _uiState.update { it.copy(isLoading = true) }
 
             // 1. 닉네임 변경 처리 (이미지 URL과 함께 전송)
             if (isNicknameChanged) {
-                val profileResult = userRepository.updateProfile(
-                    nickname = currentState.nickname,
-                    profileImageUrl = currentState.profileImageUrl // 기존 이미지 URL 사용
-                )
+                val profileResult = userRepository.updateProfile(nickname = currentState.nickname, profileImageUrl = currentState.profileImageUrl)
                 if (profileResult.isFailure) {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = "닉네임 변경에 실패했습니다.") }
+                    _uiState.update { it.copy(isLoading = false, nicknameError = "닉네임 변경에 실패했습니다.") }
                     return@launch
                 }
             }
@@ -116,30 +139,23 @@ class ProfileEditViewModel @Inject constructor(
             // 2. 비밀번호 변경 처리
             if (isPasswordChangeAttempted) {
                 if (currentState.newPassword != currentState.confirmNewPassword) {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = "새 비밀번호가 일치하지 않습니다.") }
+                    _uiState.update { it.copy(isLoading = false, newPasswordError = "새 비밀번호가 일치하지 않습니다.") }
                     return@launch
                 }
 
-                val passwordResult = userRepository.changePassword(
-                    current = currentState.currentPassword,
-                    new = currentState.newPassword,
-                    confirm = currentState.confirmNewPassword
-                )
-                if (passwordResult.isFailure) {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.") }
-                    isSuccess = false
+                val passwordResult = userRepository.changePassword(current = currentState.currentPassword, new = currentState.newPassword, confirm = currentState.confirmNewPassword)
+                if (passwordResult.isSuccess) {
+                    // 비밀번호 변경 성공 시, 재로그인 필요 상태로 변경
+                    _uiState.update { it.copy(isLoading = false, isPasswordChanged = true) }
+                    return@launch
+                } else {
+                    _uiState.update { it.copy(isLoading = false, currentPasswordError = "현재 비밀번호를 확인해주세요.") }
+                    return@launch
                 }
             }
 
-            if(isSuccess) {
-                _uiState.update { it.copy(isLoading = false, isSaveSuccess = true) }
-            } else {
-                 _uiState.update { it.copy(isLoading = false) }
-            }
+            // 닉네임만 변경된 경우
+            _uiState.update { it.copy(isLoading = false, isSaveSuccess = true) }
         }
-    }
-
-    fun onSaveSuccessConsumed() {
-        _uiState.update { it.copy(isSaveSuccess = false) }
     }
 }

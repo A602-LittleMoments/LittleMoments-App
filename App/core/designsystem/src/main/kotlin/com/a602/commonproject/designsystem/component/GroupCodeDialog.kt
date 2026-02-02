@@ -1,21 +1,47 @@
 package com.a602.commonproject.designsystem.component
 
-import android.graphics.Color
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,8 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.a602.commonproject.designsystem.R
-import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.designsystem.theme.*
 import kotlinx.coroutines.delay
 
 /**
@@ -34,29 +60,30 @@ import kotlinx.coroutines.delay
  */
 @Composable
 fun GroupCodeDialog(
-    onDismissRequest: () -> Unit, // 닫기 버튼 클릭 시 동작
-    onRefreshClick: () -> Unit,   // 새로고침 버튼 클릭 시 부모에게 알림
-    initialCode: String = "572999", // 처음 보여줄 코드
-    initialSeconds: Int = 180,      // 초기 타이머 시간 (3분)
+    onDismissRequest: () -> Unit,
+    onRefreshClick: () -> Unit,
+    initialCode: String,
+    initialSeconds: Int = 180,
 ) {
-    // 1. 상태 관리: 코드 번호와 남은 시간을 remember로 기억합니다.
-    var currentCode by remember { mutableStateOf(initialCode) }
     var remainingSeconds by remember { mutableStateOf(initialSeconds) }
+    val context = LocalContext.current
 
-    // 2. 타이머 엔진: 1초마다 숫자를 줄입니다.
+    // 부모로부터 새로운 코드나 시간이 내려올 때마다 타이머를 리셋합니다.
+    LaunchedEffect(key1 = initialCode, key2 = initialSeconds) {
+        remainingSeconds = initialSeconds
+    }
+
+    // 1초마다 타이머를 감소시킵니다.
     LaunchedEffect(key1 = remainingSeconds) {
         if (remainingSeconds > 0) {
-            delay(1000L) // 1초 대기
-            remainingSeconds -= 1 // 1초 차감
+            delay(1000L)
+            remainingSeconds -= 1
         }
     }
 
-    // 3. 시간 포맷팅: 초 단위를 "00:00" 형식으로 바꿉니다.
     val minutes = remainingSeconds / 60
     val seconds = remainingSeconds % 60
     val timerText = "%02d:%02d".format(minutes, seconds)
-
-    // 아이콘 위에 위치시키기 위해
     val badgeSize = 56.dp
     val badgeRadius = badgeSize / 2
     val shape = RoundedCornerShape(24.dp)
@@ -68,7 +95,7 @@ fun GroupCodeDialog(
         ) {
             Card(
                 modifier = Modifier
-                    .padding(top = badgeRadius/2)
+                    .padding(top = badgeRadius / 2)
                     .widthIn(min = 328.dp)
                     .wrapContentHeight(),
                 shape = shape,
@@ -79,7 +106,6 @@ fun GroupCodeDialog(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    // 우측 상단 X 버튼
                     IconButton(
                         onClick = onDismissRequest,
                         modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
@@ -99,11 +125,10 @@ fun GroupCodeDialog(
                             style = MaterialTheme.typography.headlineLarge,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center
-                            )
+                        )
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // 4. 6자리 코드 표시 컴포넌트 호출
-                        CodeDisplay(code = currentCode)
+                        CodeDisplay(code = initialCode)
 
                         Spacer(modifier = Modifier.height(20.dp))
 
@@ -112,31 +137,42 @@ fun GroupCodeDialog(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // 하단 안내 메시지 영역
-                        Text(
-                            text = "이 코드를 초대할 구성원에게 공유하세요",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = color4,
+                        // 하단 안내 메시지 및 복사 버튼 영역
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(color = color2.copy(alpha = 0.1f), shape = RoundedCornerShape(12.dp))
                                 .border(width = 1.dp, color = color2.copy(alpha = 0.7f), shape = RoundedCornerShape(12.dp))
-                                .padding(vertical = 12.dp),
-                            textAlign = TextAlign.Center
-                        )
+                                .padding(horizontal = 16.dp, vertical = 4.dp), // 내부 패딩 조정
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "이 코드를 초대할 구성원에게 공유하세요",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = color4,
+                                modifier = Modifier.weight(1f) // 텍스트가 남은 공간을 채우도록
+                            )
+                            IconButton(onClick = {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("Invite Code", initialCode)
+                                clipboard.setPrimaryClip(clip)
+                                Toast.makeText(context, "코드가 복사되었습니다.", Toast.LENGTH_SHORT).show()
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ContentCopy,
+                                    contentDescription = "복사하기",
+                                    tint = color3
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // 6. 새로고침 버튼: 클릭 시 번호 랜덤 생성 및 시간 초기화
                         FilledButton(
                             text = "새로고침",
-                            onClick = {
-                                // 0~999999 사이 숫자를 생성 후 앞자리를 '0'으로 채워 6자리 유지
-                                val randomCode = (0..999999).random().toString().padStart(6, '0')
-                                currentCode = randomCode // 코드 상태 업데이트
-                                remainingSeconds = initialSeconds // 시간 리셋
-                                onRefreshClick() // 부모 컴포넌트 로직 실행
-                            },
+                            onClick = onRefreshClick, // ViewModel에 코드 재요청을 위임
                             modifier = Modifier.fillMaxWidth(),
                             size = ButtonSize.Medium,
                             leadingIcon = Icons.Outlined.Refresh
@@ -149,7 +185,7 @@ fun GroupCodeDialog(
                 modifier = Modifier
                     .size(56.dp)
                     .align(Alignment.TopCenter)
-                    .offset(y = - (badgeRadius / 2))
+                    .offset(y = -(badgeRadius / 2))
                     .clip(CircleShape)
                     .background(color = color2),
                 contentAlignment = Alignment.Center
@@ -172,10 +208,10 @@ fun GroupCodeDialog(
 @Composable
 private fun CodeDisplay(code: String) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.spacedBy(8.dp) // 칸 사이 간격 유지
     ) {
-        code.forEach { char ->
+        repeat(6) { index ->
+            val char = code.getOrNull(index)?.toString() ?: ""
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -183,7 +219,7 @@ private fun CodeDisplay(code: String) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = char.toString(),
+                    text = char,
                     style = MaterialTheme.typography.titleLarge.copy(
                         lineHeight = TextUnit.Unspecified,
                         lineHeightStyle = null,
@@ -218,13 +254,14 @@ private fun TimerDisplay(time: String) {
     }
 }
 
-@Preview(showBackground = true, widthDp = 411, heightDp = 520)
+@Preview(showBackground = true)
 @Composable
 fun GroupCodeDialogPreview() {
     LMTheme {
         GroupCodeDialog(
             onDismissRequest = {},
-            onRefreshClick = {}
+            onRefreshClick = {},
+            initialCode = "A1B2C3"
         )
     }
 }
