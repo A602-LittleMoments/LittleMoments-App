@@ -159,13 +159,16 @@ private fun formatDate(timestamp: Long): String {
 
 private fun getDaysSinceBirth(birthDate: String, currentTimestamp: Long): String {
     return try {
-        // birthDate format: "yyyy-MM-dd" (assuming standard ISO format from DB/Input)
-        val birthSdf = SimpleDateFormat("yyyy-MM-dd", Locale.KOREA)
-        val birthObj = birthSdf.parse(birthDate) ?: return ""
+        // birthDate format: "yyyy-MM-dd"
+        val birthDateParsed = java.time.LocalDate.parse(birthDate)
+        
+        // Convert timestamp to LocalDate (System Default Zone)
+        val imageDate = java.time.Instant.ofEpochMilli(currentTimestamp)
+            .atZone(java.time.ZoneId.systemDefault())
+            .toLocalDate()
 
-        val diff = currentTimestamp - birthObj.time
-        val days = diff / (1000 * 60 * 60 * 24)
-        "D+${days + 1}" // D+1 for the day of birth
+        val days = java.time.temporal.ChronoUnit.DAYS.between(birthDateParsed, imageDate)
+        "D+${days + 1}" // D+1 meaning: Birth Day is Day 1
     } catch (e: Exception) {
         ""
     }

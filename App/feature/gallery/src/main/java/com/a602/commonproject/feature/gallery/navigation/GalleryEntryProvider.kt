@@ -6,6 +6,7 @@ import com.a602.commonproject.navigation.Navigator
 import com.a602.commonproject.feature.gallery.CalendarRoute
 import com.a602.commonproject.feature.gallery.CommentEditNavKey
 import com.a602.commonproject.feature.gallery.CommentEditRoute
+import com.a602.commonproject.feature.gallery.DayGridNavKey
 import com.a602.commonproject.feature.gallery.GalleryNavKey
 import com.a602.commonproject.feature.gallery.GridNavKey
 import com.a602.commonproject.feature.gallery.GridRoute
@@ -30,9 +31,7 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     // 1. 메인화면 - 캘린더 뷰
     entry<GalleryNavKey> {
         CalendarRoute(
-            onBack = navigator::goBack,
-            onDateClick = { navigator.navigate(GridNavKey) },
-            onGridClick = { navigator.navigate(GridNavKey) },
+            onDateClick = { date -> navigator.navigate(DayGridNavKey(date)) },            onGridClick = { navigator.navigate(GridNavKey) },
             onTempAlbumClick = { navigator.navigate(TempAlbumNavKey) },
             onHighLightClick = { navigator.navigate(HighlightCalendarNavKey) }
         )
@@ -47,6 +46,16 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             }
         )
     }
+    //2-1. 그리드 날짜 필터링
+    entry<DayGridNavKey> { key ->
+        GridRoute(
+            date = key.date,
+            onBackClick = navigator::goBack,
+            onCalendarClick = { navigator.navigate(GalleryNavKey) },
+            onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(media.id)) } // 예시
+        )
+    }
+
 
     // 3. 사진 상세보기
     entry<MediaDetailNavKey> { key ->

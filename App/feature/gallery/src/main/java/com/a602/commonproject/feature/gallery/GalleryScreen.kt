@@ -8,13 +8,13 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -31,7 +31,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -47,16 +46,19 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.a602.commonproject.designsystem.R.drawable.temporary
+import com.a602.commonproject.designsystem.component.LMNavigationDefaults.NavigationBarHeight
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color4
 import com.a602.commonproject.designsystem.theme.lightbackground
+import com.a602.commonproject.designsystem.theme.lightblue
+import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.feature.gallery.viewmodel.CalendarViewModel
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.model.data.SharedMedia.SyncStatus.SYNCED
@@ -68,7 +70,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun CalendarRoute(
-    onDateClick: () -> Unit,
+    onDateClick: (LocalDate) -> Unit,
     onGridClick: () -> Unit,
     onTempAlbumClick: () -> Unit,
     onHighLightClick: () -> Unit,
@@ -153,24 +155,28 @@ fun CalendarMiniToolbar(
                 .height(48.dp)
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.End,
         ) {
             IconButton(onClick = onGridClick) {
                 Icon(
                     imageVector = Icons.Outlined.GridView,
-                    contentDescription = "보기 전환"
+                    contentDescription = "보기 전환",
+                    tint = main,
                 )
+
             }
             IconButton(onClick = onTempAlbum) {
                 Icon(
                     imageVector = ImageVector.vectorResource(temporary),
-                    contentDescription = "임시앨범"
+                    contentDescription = "임시앨범",
+                    tint = main
                 )
             }
             IconButton(onClick = onHighlight) {
                 Icon(
                     imageVector = Icons.Outlined.AutoAwesome,
-                    contentDescription = "하이라이트"
+                    contentDescription = "하이라이트",
+                    tint = main
                 )
             }
         }
@@ -183,7 +189,7 @@ fun CalendarMiniToolbar(
 fun CalendarScreen(
     medias: List<SharedMedia>,
     initialMonth: YearMonth = YearMonth.now(),
-    onDateClick: () -> Unit,
+    onDateClick: (LocalDate) -> Unit,
     onGridClick: () -> Unit,
     onTempAlbumClick: () -> Unit,
     onHighLightClick: () -> Unit,
@@ -198,9 +204,12 @@ fun CalendarScreen(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
             .background(background)
-            .padding(horizontal = 16.dp, vertical = 100.dp)
+            .padding(bottom = NavigationBarHeight)
+            .navigationBarsPadding()
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 50.dp)
+            .fillMaxSize( )
     ) {
         CalendarMiniToolbar(
             onGridClick = onGridClick,
@@ -269,7 +278,7 @@ fun CalendarScreen(
                     days = days,
                     rows = rows,
                     modifier = Modifier.fillMaxSize(),
-                    onDateClick = { onDateClick() }
+                    onDateClick = onDateClick
                 )
             }
         }
@@ -281,8 +290,7 @@ fun CalendarPhotoViewFill(
     days: List<CalendarDay>,
     rows: Int,
     modifier: Modifier = Modifier,
-    onDateClick: (LocalDate) -> Unit
-) {
+    onDateClick: (LocalDate) -> Unit) {
     Column(modifier = modifier.fillMaxWidth()) {
         DayOfWeekHeader()
         Spacer(modifier = Modifier.height(8.dp))
@@ -298,8 +306,8 @@ fun CalendarPhotoViewFill(
             val hSpace = (cellW * 0.18f).coerceIn(10.dp, 22.dp)
             val vSpace = (rowH * 0.30f).coerceIn(18.dp, 36.dp)
 
-            val contentW = (cellW - hSpace).coerceAtLeast(0.dp)
-            val contentH = (rowH - vSpace).coerceAtLeast(0.dp)
+            val contentW = (maxWidth - hSpace * 6) / 7
+            val contentH = (maxHeight - vSpace * (rows - 1)) / rows
 
             LazyVerticalGrid(
                 modifier = Modifier.fillMaxSize(),
@@ -315,9 +323,11 @@ fun CalendarPhotoViewFill(
                             .height(contentH),
                         contentAlignment = Alignment.Center
                     ) {
+                        val ChipSize = minOf(52.dp, contentW, contentH)
 
                         CalendarDayChip(
                             day = day,
+                            chipSize = ChipSize,
                             onClick = { day.date?.let(onDateClick) }
                         )
                     }
@@ -348,21 +358,18 @@ fun DayOfWeekHeader(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun CalendarDayChip(
-    day: CalendarDay,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun CalendarDayChip(day: CalendarDay, chipSize: Dp,
+                    onClick: () -> Unit,
+                    modifier: Modifier = Modifier) {
     val isPreview = LocalInspectionMode.current
 
-    val chipSize = 52.dp
-    val shape = RoundedCornerShape(14.dp)
+    val shape = CircleShape
 
     Box(
         modifier = modifier
             .size(chipSize)
             .clip(CircleShape)
-            .clickable(enabled = day.date != null, onClick = onClick),
+            .clickable(enabled = day.representativeThumbUrl != null, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         if (day.representativeThumbUrl != null) {

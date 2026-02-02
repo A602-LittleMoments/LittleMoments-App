@@ -173,7 +173,9 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                         val metadataItem = MediaUploadMetadata(
                             clientMediaKey = media.mediaId, // 로컬 ID를 키로 사용
                             mediaType = "PHOTO",
-                            takenAt = media.takenAt.toString(), // Long -> String 변환
+                            // 서버가 ISO-8601 포맷을 반환하므로, 업로드 시에도 포맷을 맞춰줌
+                            // Long(millis) -> ISO String ("2023-10-27T10:00:00Z")
+                            takenAt = java.time.Instant.ofEpochMilli(media.takenAt).toString(),
                             cameraFacing = media.cameraFacing,
                             orientation = media.orientation,
                             caption = media.caption,
@@ -289,8 +291,18 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
 
                     // 날짜 변환 (String -> Long)
                     takenAt = try {
-                        remote.takenAt.toLong()
+                        // 1. 숫자(Timestamp)일 경우 처리 (소수점 포함 대비)
+                        val numeric = remote.takenAt.trim().toDoubleOrNull()
+                        if (numeric != null) {
+                            numeric.toLong()
+                        } else {
+                            // 2. ISO-8601 문자열 Parsing (User suggestion: OffsetDateTime)
+                            // 예: "2026-01-30T01:49:05.894517Z"
+                            java.time.OffsetDateTime.parse(remote.takenAt).toInstant().toEpochMilli()
+                        }
                     } catch (e: Exception) {
+                        // 3. 파싱 실패 시 로그 출력 및 현재 시간 사용
+                        android.util.Log.e("SharedMediaRepo", "Date parsing failed for value: '${remote.takenAt}'. Defaulting to NOW.", e)
                         System.currentTimeMillis()
                     },
 

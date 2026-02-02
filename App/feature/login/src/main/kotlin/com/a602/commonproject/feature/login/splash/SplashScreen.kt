@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.R
-
 // TODO: 로고 리소스 필요 (없으면 임시 텍스트나 아이콘 대체)
 
 @Composable
