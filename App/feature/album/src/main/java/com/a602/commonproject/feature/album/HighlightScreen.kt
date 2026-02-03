@@ -58,6 +58,11 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.a602.commonproject.designsystem.R
+
 private val koreanDateFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern("yyyy.MM.dd", Locale.KOREA)
 
@@ -146,9 +151,17 @@ fun HighlightResultScreen(
             slideshow.localVideoPath.isNullOrBlank()
     }
 
-    Column(
-        modifier = modifier.background(background)
-    ) {
+    Box(modifier = modifier) {
+        Image(
+            painter = painterResource(id = R.drawable.gallery_background),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
         LMTopAppBar(
             title = "하이라이트",
             navigationIcon = LMicons.Back,
@@ -185,7 +198,6 @@ fun HighlightResultScreen(
                 shadowElevation = 4.dp
             ) {
                 when {
-                    // 로딩 중
                     isLoading -> {
                         Box(
                             modifier = Modifier
@@ -263,6 +275,7 @@ fun HighlightResultScreen(
             Spacer(Modifier.weight(1f))
         }
     }
+}
 
     // 삭제 확인 다이얼로그
     if (showDeleteDialog) {
@@ -310,18 +323,28 @@ private fun SlideshowMetaRow(slideshow: Slideshow) {
 
 @Composable
 private fun InfoChip(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+        shadowElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 

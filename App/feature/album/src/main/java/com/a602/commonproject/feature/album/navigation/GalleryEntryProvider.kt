@@ -1,4 +1,4 @@
-package com.a602.commonproject.feature.album.navigation
+package com.a602.commonproject.feature.gallery.navigation
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
@@ -6,6 +6,7 @@ import com.a602.commonproject.navigation.Navigator
 import com.a602.commonproject.feature.album.CalendarRoute
 import com.a602.commonproject.feature.album.CommentEditNavKey
 import com.a602.commonproject.feature.album.CommentEditRoute
+import com.a602.commonproject.feature.album.DayGridNavKey
 import com.a602.commonproject.feature.album.GalleryNavKey
 import com.a602.commonproject.feature.album.GridNavKey
 import com.a602.commonproject.feature.album.GridRoute
@@ -32,11 +33,11 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     // 1. 메인화면 - 캘린더 뷰
     entry<GalleryNavKey> {
         CalendarRoute(
-            onBack = navigator::goBack,
-            onDateClick = { navigator.navigate(GridNavKey) },
+            onDateClick = { date -> navigator.navigate(DayGridNavKey(date)) },
             onGridClick = { navigator.navigate(GridNavKey) },
             onTempAlbumClick = { navigator.navigate(TempAlbumNavKey) },
-            onHighLightClick = { navigator.navigate(HighlightCalendarNavKey) }
+            onHighLightClick = { navigator.navigate(HighlightCalendarNavKey) },
+            onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(mediaId = media.id)) }
         )
     }
     // 2. 그리드 보기
@@ -49,6 +50,16 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             }
         )
     }
+    //2-1. 그리드 날짜 필터링
+    entry<DayGridNavKey> { key ->
+        GridRoute(
+            date = key.date,
+            onBackClick = navigator::goBack,
+            onCalendarClick = { navigator.navigate(GalleryNavKey) },
+            onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(media.id)) } // 예시
+        )
+    }
+
 
     // 3. 사진 상세보기
     entry<MediaDetailNavKey> { key ->

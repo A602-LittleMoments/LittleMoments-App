@@ -26,8 +26,7 @@ import com.a602.commonproject.navigation.TOP_LEVEL_NAV_ITEMS
 import com.a602.commonproject.navigation.toEntries
 import com.a602.commonproject.designsystem.component.CameraButton
 import com.a602.commonproject.designsystem.theme.background
-import com.a602.commonproject.feature.album.GalleryNavKey // UPDATED
-import com.a602.commonproject.feature.album.navigation.galleryEntries // UPDATED
+import com.a602.commonproject.feature.album.GalleryNavKey // UPDATED // UPDATED
 import com.a602.commonproject.feature.home.navigation.MemoryNavKey // UPDATED
 import com.a602.commonproject.feature.home.navigation.memoryEntries // UPDATED
 import com.a602.commonproject.feature.mypage.navigation.myPageEntries
@@ -37,6 +36,7 @@ import com.a602.commonproject.feature.album.GridNavKey // UPDATED from gallery.G
 
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.statusBarsPadding
+import com.a602.commonproject.feature.gallery.navigation.galleryEntries
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable

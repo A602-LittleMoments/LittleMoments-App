@@ -25,7 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.background
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -44,7 +46,7 @@ fun TempImageGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(8.dp),
+        contentPadding = PaddingValues(12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -58,15 +60,16 @@ fun TempImageGrid(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
+                    .shadow(4.dp, RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White)
+                    .clickable { onClick(media) }
             ) {
                 // 이미지
                 AsyncImage(
                     model = media.localUri,
                     contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onClick(media) },
+                    modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
 
@@ -76,8 +79,7 @@ fun TempImageGrid(
                     if (isSelected) {
                         Surface(
                             modifier = Modifier.fillMaxSize(),
-                            color = Color.Black.copy(alpha = 0.3f),
-                            shape = RoundedCornerShape(8.dp)
+                            color = main.copy(alpha = 0.4f)
                         ) {}
                     }
 
@@ -85,21 +87,22 @@ fun TempImageGrid(
                     Surface(
                         modifier = Modifier
                             .padding(8.dp)
-                            .size(28.dp)
-                            .align(Alignment.TopStart),
+                            .size(24.dp)
+                            .align(Alignment.TopEnd),
                         shape = CircleShape,
-                        color = if (isSelected) main else Color.White.copy(alpha = 0.9f),
+                        color = if (isSelected) main else Color.White.copy(alpha = 0.8f),
                         border = BorderStroke(
                             1.5.dp,
-                            if (isSelected) main else Color.LightGray
-                        )
+                            if (isSelected) Color.White else Color.Gray.copy(alpha = 0.5f)
+                        ),
+                        shadowElevation = 2.dp
                     ) {
                         if (isSelected) {
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.padding(5.dp)
+                                modifier = Modifier.padding(4.dp)
                             )
                         }
                     }
