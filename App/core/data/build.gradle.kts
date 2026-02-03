@@ -17,6 +17,7 @@ dependencies {
     api(projects.core.network)
 
     implementation(projects.core.notifications)
+    implementation(libs.androidx.paging.common)
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlinx.serialization.json)

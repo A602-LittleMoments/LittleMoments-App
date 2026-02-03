@@ -1,5 +1,6 @@
 package com.a602.commonproject.feature.memory.data
 
+import androidx.paging.PagingData
 import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.model.data.SharedMedia
 import kotlinx.coroutines.flow.Flow
@@ -12,6 +13,10 @@ class FakeSharedMediaRepository : SharedMediaRepository {
         flowOf(
             MemoryFakeResource.medias("k1")
         )
+
+    override fun getSharedAlbumPagingStream(): Flow<PagingData<SharedMedia>> {
+        TODO("Not yet implemented")
+    }
 
     override suspend fun saveNewMedia(
         groupId: String,

@@ -29,6 +29,7 @@ import com.a602.commonproject.designsystem.component.LMFilledIconButton
 import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.designsystem.theme.AppTypography
+import com.a602.commonproject.designsystem.component.BabyInfoRow
 import com.a602.commonproject.model.data.Baby
 import com.a602.commonproject.model.data.GroupRole
 
@@ -339,54 +340,4 @@ fun KidsInfoCard(
     }
 }
 
-@Composable
-private fun BabyInfoRow(
-    baby: Baby,
-    onEditClick: (String) -> Unit // babyId를 받도록 변경
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
-                    .background(background)
-                    .border(2.dp, color4, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                if (baby.imageUrl != null) {
-                    AsyncImage(
-                        model = baby.imageUrl,
-                        contentDescription = "baby profile photo",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Text("👶", fontSize = 32.sp)
-                }
-            }
-            Spacer(modifier = Modifier.width(20.dp))
-            Column {
-                Text(
-                    text = baby.babyName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = color4
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = baby.birthDate,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = color4
-                )
-            }
-        }
-        IconButton(onClick = { onEditClick(baby.babyId) }) {
-            Icon(imageVector = LMicons.Edit, contentDescription = "수정", tint = color3)
-        }
-    }
-}
+

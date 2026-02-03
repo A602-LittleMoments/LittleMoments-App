@@ -3,6 +3,7 @@ package com.a602.commonproject.feature.home.components
 import Polaroid
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,45 +27,80 @@ import com.a602.commonproject.model.data.SharedMedia
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.paging.compose.LazyPagingItems
 
-@Composable
-fun TimelineSection(
-    mediaList: List<SharedMedia>,
+
+fun LazyListScope.timelineSection(
+    pagingItems: LazyPagingItems<SharedMedia>, // ✨ Paging Items 수신
     birthDate: String,
     onPhotoClick: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    val groupedMedia = mediaList.groupBy { formatDate(it.dateTaken) }
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = "추억 타임라인",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-
-        groupedMedia.forEach { (dateString, medias) ->
-            medias.forEachIndexed { index, media ->
-                val isFirst = index == 0
-                val isLast = index == medias.lastIndex
-                val dDay = if (isFirst) {
-                    val dDayString = getDaysSinceBirth(birthDate, media.dateTaken)
-                    if (dDayString.isNotEmpty()) " $dDayString" else ""
-                } else ""
-
-                TimelineItem(
-                    media = media,
-                    showDate = isFirst,
-                    dateString = dateString + dDay,
-                    isLastInGroup = isLast,
-                    onPhotoClick = onPhotoClick
-                )
-            }
-            // 날짜 그룹 간의 간격 (선 끊김 효과)
-            Spacer(modifier = Modifier.height(30.dp))
+    if (pagingItems.itemCount > 0) {
+        item {
+            Text(
+                text = "추억 타임라인",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
         }
     }
+
+    items(
+        count = pagingItems.itemCount,
+        key = { index ->
+            // Paging3 Key: 아이템이 있으면 ID, 없으면(placeholder) index
+            pagingItems.peek(index)?.id ?: index
+        },
+        contentType = { index ->
+            if (pagingItems.peek(index) == null) "PLACEHOLDER" else "TIMELINE_ITEM"
+        }
+    ) { index ->
+        val media = pagingItems[index]
+
+        if (media != null) {
+            // 날짜 헤더 표시 여부 계산
+            // 1. 첫 번째 아이템이거나
+            // 2. 이전 아이템과 날짜가 다르면 헤더 표시
+            val isFirst = index == 0
+            val showDate = if (isFirst) {
+                true
+            } else {
+                val prevMedia = pagingItems.peek(index - 1)
+                if (prevMedia != null) {
+                    val currentDate = formatDate(media.dateTaken)
+                    val prevDate = formatDate(prevMedia.dateTaken)
+                    currentDate != prevDate
+                } else {
+                    true // 안전하게 표시
+                }
+            }
+
+            // 날짜 문자열 계산
+            val dateString = if (showDate) {
+                 val dDayString = getDaysSinceBirth(birthDate, media.dateTaken)
+                 val baseDate = formatDate(media.dateTaken)
+                 if (dDayString.isNotEmpty()) "$baseDate $dDayString" else baseDate
+            } else ""
+
+            TimelineItem(
+                media = media,
+                showDate = showDate,
+                dateString = dateString,
+                isLastInGroup = false, // 그룹 개념이 모호해지므로 일단 false (필요 시 다음 아이템 비교)
+                onPhotoClick = onPhotoClick
+            )
+
+            // 아이템 간 간격 (같은 날짜면 40dp, 아니면 좀 더 넒게?)
+            // TimelineItem 내부에서 Spacer(40.dp)를 쓰고 있음.
+            // 날짜가 바뀌는 지점(다음 아이템이 다른 날짜)이면 추가 여백을 줄 수도 있음.
+        }
+    }
+}
+
+private fun formatDate(timestamp: Long): String {
+    val sdf = java.text.SimpleDateFormat("yyyy.MM.dd (E)", java.util.Locale.KOREA)
+    return sdf.format(java.util.Date(timestamp))
 }
 
 @Composable
@@ -152,16 +188,13 @@ fun TimelineItem(
     }
 }
 
-private fun formatDate(timestamp: Long): String {
-    val sdf = SimpleDateFormat("yyyy.MM.dd (E)", Locale.KOREA)
-    return sdf.format(Date(timestamp))
-}
+
 
 private fun getDaysSinceBirth(birthDate: String, currentTimestamp: Long): String {
     return try {
         // birthDate format: "yyyy-MM-dd"
         val birthDateParsed = java.time.LocalDate.parse(birthDate)
-        
+
         // Convert timestamp to LocalDate (System Default Zone)
         val imageDate = java.time.Instant.ofEpochMilli(currentTimestamp)
             .atZone(java.time.ZoneId.systemDefault())

@@ -54,15 +54,7 @@ class TempAlbumViewModel @Inject constructor(
                     errorFlow.value = e.message ?: "사진 삭제에 실패했어요" }
         }
     }
-    //선택 저장
-    fun saveToShared(ids: List<String>, onComplete: () -> Unit) {
-        viewModelScope.launch {
-            repository.moveToShared(ids)
-                .onSuccess { onComplete() }
-                .onFailure {  e ->
-                    errorFlow.value = e.message ?: "사진 저장에 실패했어요" }
-        }
-    }
+
     //전체 삭제
     fun clearAll(onComplete: () -> Unit) {
         viewModelScope.launch {

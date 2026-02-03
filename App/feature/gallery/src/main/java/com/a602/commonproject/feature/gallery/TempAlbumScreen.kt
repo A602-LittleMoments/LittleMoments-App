@@ -69,6 +69,7 @@ import kotlinx.coroutines.launch
 fun TempGridGalleryRoute(
     onMediaClick: (TempMedia) -> Unit,
     onBackClick: () -> Unit,
+    onNavigateToUpload: (List<String>) -> Unit,
     viewModel: TempAlbumViewModel = hiltViewModel()
 ){
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -92,10 +93,7 @@ fun TempGridGalleryRoute(
                 }            }
         },
         onSaveSelected = { ids ->
-            viewModel.saveToShared(ids) {
-                scope.launch {
-                    snackbarHostState.showSnackbar("사진이 가족 앨범에 저장되었어요")
-                }            }
+            onNavigateToUpload(ids)
         },
         onClearAll = {
             viewModel.clearAll {

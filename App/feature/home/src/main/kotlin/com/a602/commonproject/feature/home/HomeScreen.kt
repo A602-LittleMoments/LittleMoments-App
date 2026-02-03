@@ -54,12 +54,13 @@ import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.feature.home.components.MemorableMoments
-import com.a602.commonproject.feature.home.components.TimelineSection
+import com.a602.commonproject.feature.home.components.timelineSection
 import com.a602.commonproject.model.data.Baby
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.PagerState
+import com.a602.commonproject.designsystem.component.BabyInfoRow
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.RippleConfiguration
@@ -74,6 +75,8 @@ import com.a602.commonproject.designsystem.theme.main
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.a602.commonproject.model.data.SharedMedia
 
 
 /**
@@ -147,6 +150,7 @@ fun HomeRoute(
  * @param onNavigateToUpload 상위에서 전달받은 업로드 클릭 이벤트 핸들러
  * @param viewModel 탭 변경(아기 선택) 시 상태 업데이트를 위해 사용
  */
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
@@ -167,6 +171,11 @@ fun HomeScreen(
     // CoroutineScope: 비동기 작업(예: 스크롤 애니메이션)을 시작하기 위한 스코프
     val coroutineScope = rememberCoroutineScope()
     // endregion
+
+    val pagingItems = viewModel.mediaPagingFlow.collectAsLazyPagingItems()
+    val currentBaby = if (uiState.babies.isNotEmpty()) {
+        uiState.babies.getOrNull(pagerState.currentPage)
+    } else null
 
     // region [Side Effects - State Synchronization]
 
@@ -197,23 +206,37 @@ fun HomeScreen(
         ) {
 
             // 1. [아기 프로필 섹션] (Pager)
+            // 1. [Top Section] Pager (Image) -> Tabs -> Info
             item {
-                TopTabSection(
-                    uiState = uiState,
-                    onNotificationClick = onNotificationClick,
-                    pagerState = pagerState,
-                    coroutineScope = coroutineScope,
-                )
                 if (uiState.babies.isNotEmpty()) {
-                    HorizontalPager(
+                    // A. Astronaut Pager (Images only)
+                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier.fillMaxWidth(),
                     ) { page ->
-                        // 각 페이지에 해당하는 아기 정보를 전달하여 프로필 카드 렌더링
                         BabyProfileSection(baby = uiState.babies[page])
                     }
+
+                    // B. Tabs (Middle, below image)
+                    TopTabSection(
+                        uiState = uiState,
+                        onNotificationClick = onNotificationClick,
+                        pagerState = pagerState,
+                        coroutineScope = coroutineScope,
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // C. Baby Info (MyPage Style)
+                    if (currentBaby != null) {
+                        Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                            BabyInfoRow(
+                                baby = currentBaby,
+                                onEditClick = { /* TODO: Navigate to Edit or ignore in Home */ }
+                            )
+                        }
+                    }
                 } else {
-                    // 등록된 아기가 없을 경우 표시되는 Empty State
                     EmptyBabyState()
                 }
             }
@@ -239,21 +262,16 @@ fun HomeScreen(
             }
 
             // 3. [타임라인 섹션] (Photo List)
-            item {
-                // TODO: 현재 미디어 리스트 필터링 로직 확인 필요 (전체 보기 vs 아기별 보기)
-                val currentBaby = if (uiState.babies.isNotEmpty()) {
-                    uiState.babies.getOrNull(pagerState.currentPage)
-                } else null
 
-                TimelineSection(
-                    mediaList = uiState.mediaList,
+
+                timelineSection(
+                    pagingItems = pagingItems,
                     birthDate = currentBaby?.birthDate ?: "",
                     onPhotoClick = {},
                 )
-            }
 
             // [Empty Timeline Handling]
-            if (uiState.mediaList.isEmpty()) {
+            if (pagingItems.itemCount == 0) {
                 item {
                     EmptyTimelineState()
                 }
@@ -327,9 +345,14 @@ fun TopTabSection(
 
         IconButton(
             onClick = onNotificationClick,
-            modifier = Modifier.padding(end = 8.dp),
+            modifier = Modifier.padding(end = 8.dp).size(48.dp),
         ) {
-            Icon(imageVector = LMicons.Notifications, contentDescription = null)
+            Icon(
+                imageVector = LMicons.Notifications,
+                contentDescription = null,
+                tint = main,
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }
@@ -349,13 +372,10 @@ fun BabyProfileSection(baby: Baby)
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 24.dp),
+            .padding(top = 24.dp, bottom = 0.dp), // Remove bottom padding, keep top
         contentAlignment = Alignment.Center,
     ) {
         // region [Background Decoration - Stars]
-        // Box 내에서 Absolute Offset을 사용하여 별들을 배치합니다.
-        // rotate() Modifier를 활용해 각기 다른 각도로 회전시켜 자연스러움을 줍니다.
-
         // Star 1 (좌측 상단)
         Icon(
             painter = painterResource(id = R.drawable.star),
@@ -402,72 +422,17 @@ fun BabyProfileSection(baby: Baby)
         )
         // endregion
 
-        // region [Center Content - Profile & Info]
+        // region [Center Content - Profile Only]
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
             // [Custom Component: ProfileFullAstronaut]
             // 아기 얼굴 이미지와 우주복 이미지를 합성하여 보여주는 컴포넌트입니다.
-            // 비율(Ratio) 중요: headSize와 bodyWidth의 비율이 자연스러워야 합니다.
             ProfileFullAstronaut(
                 selectedImageUri = null, // 로컬 이미지가 없을 경우 null
                 remoteImageUrl = baby.imageUrl, // 서버 URL 이미지 사용
                 clickableEnabled = false, // 클릭 이벤트 비활성화
-
-             /*   headSize = 170.dp,
-                bodyWidth = 110.dp,
-                bodyOffsetY = 140.dp,*/
             )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 아기 이름 텍스트
-            Text(
-                text = baby.babyName,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // D-Day 텍스트 (예: D+100)
-            if (baby.birthDate.isNotEmpty()) {
-                Text(
-                    text = "D+${calculateDaysSince(baby.birthDate)}",
-                    fontSize = 18.sp,
-                    color = Color.Gray,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-
-            val birthdayInfo = getBirthdayInfo(baby.birthDate)
-            // [Growth Progress Bar]
-            // 성장을 시각적으로 보여주는 프로그레스 바 (가짜 데이터 사용 중)
-            Box(
-                modifier = Modifier
-                    .width(180.dp)
-                    .height(14.dp)
-                    .clip(RoundedCornerShape(7.dp)) // 둥근 모서리 처리
-                    .background(Color.LightGray.copy(alpha = 0.5f)), // 배경색 (반투명 회색)
-            ) {
-                // 진행률(Value) 표시바
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(birthdayInfo.progress) // 계산된 진행률 적용
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(7.dp))
-                        .background(Color(0xFFFFC107)), // 포인트 컬러 (Amber)
-                )
-            }
-            // 생일 D-Day 텍스트 추가
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "생일까지 D-${birthdayInfo.daysUntil}",
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
+            // 텍스트 정보 제거됨 (BabyInfoRow로 대체)
         }
         // endregion
     }

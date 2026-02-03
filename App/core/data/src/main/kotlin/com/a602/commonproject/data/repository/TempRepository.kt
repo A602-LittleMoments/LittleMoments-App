@@ -37,5 +37,6 @@ interface TempMediaRepository {
     // 6. 공유 앨범으로 이동 (선택한 사진들을 업로드 대기 상태로 전환)
     suspend fun moveToShared(
         tempIds: List<String>,
+        captions: Map<String, String>?,
     ): Result<Unit>
 }

@@ -62,7 +62,9 @@ protobuf = "4.33.4"
 protobufPlugin = "0.9.6"
 
 # workmanager
-androidxWork = "2.11.0"
+androidxWork = "2.11.1"
+# paging
+paging = "3.4.0"
 
 # firebase 관련
 firebaseBom = "34.8.0"
@@ -152,6 +154,12 @@ androidx-hilt-lifecycle-viewModelCompose = { group = "androidx.hilt", name = "hi
 # workmanager
 androidx-work-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "androidxWork" }
 androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "androidxWork" }
+
+# paging
+androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
+androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "paging" }
+androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 
 # room DB
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }

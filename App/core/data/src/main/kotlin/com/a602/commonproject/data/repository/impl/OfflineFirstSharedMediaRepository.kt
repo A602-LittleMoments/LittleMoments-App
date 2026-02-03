@@ -19,8 +19,12 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 
-// 앱 전체에서 하나만 쓰려면 추가
+
 class OfflineFirstSharedMediaRepository @Inject constructor(
     private val mediaDao: MediaDao,
     private val networkDataSource: MediaNetworkDataSource,
@@ -29,11 +33,31 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
 ) : SharedMediaRepository {
 
     // =================================================================
-    // 📱 1. UI용: 목록 관찰 (Offline-First)
+
+    // =================================================================
+    // 📱 1. UI용: 목록 관찰 (Offline-First) - Legacy List
     // =================================================================
     override fun getSharedAlbumStream(): Flow<List<SharedMedia>> {
         // DAO에서 이미 '삭제 예정(TO_BE_DELETED)'은 제외하고 가져와야 함
         return mediaDao.getSharedMediaFlow().map { entities -> entities.map { it.asExternalModel() } }
+    }
+
+    // =================================================================
+    // 📱 1-1. UI용: 목록 관찰 (Paging 3) - Optimized for Home
+    // =================================================================
+    override fun getSharedAlbumPagingStream(): Flow<PagingData<SharedMedia>> {
+        // Paging 3: Pager 구성
+        return Pager(
+            config = PagingConfig(
+                pageSize = 30,              // 한 번에 가져올 페이지 크기
+                enablePlaceholders = false,  // null placeholder 사용 안 함
+                initialLoadSize = 90        // 처음 로딩 시 3배수 정도 로드
+            ),
+            pagingSourceFactory = { mediaDao.getSharedMediaPagingSource() }
+        ).flow.map { pagingData ->
+            // Entity -> Model 변환
+            pagingData.map { it.asExternalModel() }
+        }
     }
 
 
