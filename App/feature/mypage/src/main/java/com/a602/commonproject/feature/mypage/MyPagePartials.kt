@@ -1,5 +1,6 @@
 package com.a602.commonproject.feature.mypage
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -18,11 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.a602.commonproject.designsystem.component.ButtonSize
 import com.a602.commonproject.designsystem.component.FilledButton
 import com.a602.commonproject.designsystem.component.LMFilledIconButton
@@ -43,71 +44,35 @@ import com.a602.commonproject.model.data.GroupRole
  * @param color 멤버를 대표하는 색상 (프로필 이미지 대신 사용).
  */
 @Composable
-fun MemberItem(name: String, groupName: String, role: String, color: Color) {
-    // Card를 사용해 그림자 효과와 둥근 모서리를 적용합니다.
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp), // 모서리 곡률
-        colors = CardDefaults.cardColors(containerColor = lightbackground), // 카드 배경색
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // 그림자 깊이
+fun MemberItem(name: String, role: String, icon: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // UI 요소들을 가로로 배치하기 위해 Row를 사용합니다.
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically // 자식 요소들을 수직 중앙 정렬.
-        ) {
-            // 1. 멤버의 고유 색상을 보여주는 네모 상자
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(RoundedCornerShape(12.dp)) // 모서리
-                    .background(color) // 전달받은 색상으로 배경을 칠합니다.
-            )
+        // 아이콘 (망원경, 카메라 등)
+        Image(
+            painter = painterResource(id = icon),
+            contentDescription = null,
+            modifier = Modifier.size(50.dp)
+        )
 
-            Spacer(modifier = Modifier.width(16.dp)) // 색상 상자와 텍스트 사이의 간격
+        Spacer(modifier = Modifier.width(20.dp))
 
-            // 이름과 역할을 세로로 배치하기 위해 Column을 사용합니다.
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // 2. 멤버의 이름과 "가족" 태그
-                    Text(text = name, style = AppTypography.bodyMedium)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    // Surface는 배경색과 모양을 지정할 수 있는 UI의 기본 판입니다. 태그 모양을 만드는 데 사용됩니다.
-                    Surface(
-                        color = gray1,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = groupName,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            style = AppTypography.labelSmall,
-                            color = color4
-                        )
-                    }
-                }
+        // 이름
+        Text(
+            text = name,
+            style = AppTypography.headlineLarge.copy(color = NavyBlue, fontSize = 24.sp),
+            modifier = Modifier.weight(1f)
+        )
 
-                val icon = when (role) {
-                    GroupRole.OWNER.name -> Icons.Default.EmojiEvents
-                    GroupRole.MEMBER.name -> Icons.Default.Shield
-                    else -> Icons.Default.StarBorder
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = color,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = role,
-                        color = color,
-                        style = AppTypography.labelSmall.copy(fontWeight = FontWeight.Bold)
-                    )
-                }
-            }
-        }
+        // 역할
+        Text(
+            text = role,
+            style = AppTypography.bodyMedium.copy(color = NavyBlue.copy(alpha = 0.6f)),
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }
 
@@ -118,41 +83,70 @@ fun MemberItem(name: String, groupName: String, role: String, color: Color) {
  * @param onEditClick "수정" 버튼을 눌렀을 때 실행될 함수.
  */
 @Composable
-fun GroupSectionHeader(memberCount: Int, onEditClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween, // 자식 요소들을 양쪽 끝으로 밀어냅니다.
-        verticalAlignment = Alignment.CenterVertically
+fun FamilyCard(
+    groupName: String,
+    groupMembers: List<com.a602.commonproject.model.data.GroupMember>,
+    onEditClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(containerColor = OffWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        // 왼쪽 부분 (그룹원 텍스트 + 인원수)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "그룹원",
-                style = MaterialTheme.typography.labelLarge, // 디자인 시스템의 작은 제목 스타일
-                color = color3
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+        Column(modifier = Modifier.padding(24.dp)) {
+            // 헤더: "우리 가족"과 수정 버튼
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = groupName,
+                        style = AppTypography.headlineLarge.copy(
+                            color = NavyBlue,
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                    )
+                    // 밑줄
+                    Box(
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(2.dp)
+                            .background(NavyBlue)
+                    )
+                }
 
-            // 인원수를 보여주는 둥근 사각형 배지
-            Surface(
-                color = lightblue,
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    text = "${memberCount}명",
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = main
+                IconButton(
+                    onClick = onEditClick,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(
+                        imageVector = LMicons.Edit,
+                        contentDescription = "수정",
+                        tint = NavyBlue,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 멤버 리스트
+            groupMembers.forEach { member ->
+                val iconRes = if (member.role == GroupRole.VIEWER) {
+                    com.a602.commonproject.designsystem.R.drawable.telescope
+                } else {
+                    com.a602.commonproject.designsystem.R.drawable.camera
+                }
+
+                MemberItem(
+                    name = member.nickname,
+                    role = member.relation, // role 대신 relation 사용 (아빠, 할아버지 등)
+                    icon = iconRes
                 )
             }
-        }
-
-        // 오른쪽 부분 (수정 버튼)
-        IconButton(onClick = onEditClick) {
-            Icon(imageVector = LMicons.Edit, contentDescription = "관리", tint = color3)
         }
     }
 }
@@ -170,12 +164,12 @@ fun NoGroupSection(onCreateClick: () -> Unit, onJoinClick: () -> Unit) {
             imageVector = Icons.Default.Groups,
             contentDescription = null,
             modifier = Modifier.size(80.dp),
-            tint = color3.copy(alpha = 0.8f)
+            tint = NavyBlue.copy(alpha = 0.6f)
         )
         Text(
             text = "아직 참여중인 그룹이 없어요.\n가족과 함께 아이의 성장을 기록해보세요.",
             style = AppTypography.bodyLarge,
-            color = color4,
+            color = NavyBlue,
             textAlign = TextAlign.Center
         )
 
@@ -212,35 +206,45 @@ fun ProfileInfoCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = lightbackground),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(containerColor = OffWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            // 1. 헤더: "내 정보" 라벨과 "수정" 버튼
-            Row(
+        Box(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween, // 양쪽 끝으로 정렬
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "내 정보",
-                    style = AppTypography.labelMedium,
-                    color = color4.copy(alpha = 0.6f) // 기존 색상을 약간 투명하게 만듦
+                    text = nickname,
+                    style = AppTypography.displayLarge.copy(
+                        color = NavyBlue,
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
 
-                IconButton(onClick = onEditClick) {
-                    Icon(imageVector = LMicons.Edit, contentDescription = "수정", tint = color3)
-                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = email,
+                    style = AppTypography.bodyLarge.copy(
+                        color = NavyBlue.copy(alpha = 0.6f),
+                        fontSize = 18.sp
+                    )
+                )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // 2. 실제 정보 (이름, 닉네임, 이메일)
-            // 재사용 가능한 InfoRow 컴포넌트를 사용하여 정보를 표시합니다.
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                InfoRow(label = "닉네임", value = nickname)
-                InfoRow(label = "이메일", value = email)
+            IconButton(
+                onClick = onEditClick,
+                modifier = Modifier.align(Alignment.BottomEnd)
+            ) {
+                Icon(
+                    imageVector = LMicons.Edit,
+                    contentDescription = "수정",
+                    tint = NavyBlue,
+                    modifier = Modifier.size(32.dp)
+                )
             }
         }
     }
