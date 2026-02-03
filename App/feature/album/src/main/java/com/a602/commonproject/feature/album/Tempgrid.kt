@@ -2,7 +2,9 @@ package com.a602.commonproject.feature.album
 
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,21 +36,22 @@ import coil.compose.AsyncImage
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.model.data.TempMedia
-
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun TempImageGrid(
     medias: List<TempMedia>,
     isSelectMode: Boolean,
     selectedIds: List<String>,
     onClick: (TempMedia) -> Unit,
+    onLongClick: (TempMedia) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        contentPadding = PaddingValues(bottom = 80.dp), // 하단 버튼 가림 방지
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         items(
             items = medias,
@@ -60,10 +63,11 @@ fun TempImageGrid(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
-                    .shadow(4.dp, RoundedCornerShape(12.dp))
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White)
-                    .clickable { onClick(media) }
+                    .background(Color.LightGray) // 로딩 전 배경
+                    .combinedClickable(
+                        onClick = { onClick(media) },
+                        onLongClick = { onLongClick(media) }
+                    )
             ) {
                 // 이미지
                 AsyncImage(
@@ -83,26 +87,25 @@ fun TempImageGrid(
                         ) {}
                     }
 
-                    // 체크박스
-                    Surface(
+                    // 체크박스 (TopStart로 이동)
+                    Box(
                         modifier = Modifier
                             .padding(8.dp)
                             .size(24.dp)
-                            .align(Alignment.TopEnd),
-                        shape = CircleShape,
-                        color = if (isSelected) main else Color.White.copy(alpha = 0.8f),
-                        border = BorderStroke(
-                            1.5.dp,
-                            if (isSelected) Color.White else Color.Gray.copy(alpha = 0.5f)
-                        ),
-                        shadowElevation = 2.dp
+                            .align(Alignment.TopStart) // 왼쪽 상단 배치
+                            .clip(CircleShape)
+                            .background(
+                                subColor(isSelected)
+                            )
+                            .border(1.5.dp, if (isSelected) Color.Transparent else Color.LightGray, CircleShape),
+                        contentAlignment = Alignment.Center
                     ) {
                         if (isSelected) {
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.padding(4.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
@@ -110,6 +113,11 @@ fun TempImageGrid(
             }
         }
     }
+}
+
+// Helper for color
+fun subColor(isSelected: Boolean): Color {
+    return if (isSelected) main else Color.White.copy(alpha = 0.5f)
 }
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 640)
