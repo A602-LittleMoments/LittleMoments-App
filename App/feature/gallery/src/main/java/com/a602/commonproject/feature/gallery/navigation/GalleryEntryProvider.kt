@@ -31,9 +31,11 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     // 1. 메인화면 - 캘린더 뷰
     entry<GalleryNavKey> {
         CalendarRoute(
-            onDateClick = { date -> navigator.navigate(DayGridNavKey(date)) },            onGridClick = { navigator.navigate(GridNavKey) },
+            onDateClick = { date -> navigator.navigate(DayGridNavKey(date)) },
+            onGridClick = { navigator.navigate(GridNavKey) },
             onTempAlbumClick = { navigator.navigate(TempAlbumNavKey) },
-            onHighLightClick = { navigator.navigate(HighlightCalendarNavKey) }
+            onHighLightClick = { navigator.navigate(HighlightCalendarNavKey) },
+            onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(mediaId = media.id)) }
         )
     }
     // 2. 그리드 보기
