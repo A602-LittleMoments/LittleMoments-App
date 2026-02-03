@@ -100,15 +100,15 @@ fun RowScope.LMNavigationBarItem(
                 verticalArrangement = Arrangement.Center,
                 // [해결 핵심 3] 여기서 top 패딩을 조절하여 아이템 전체를 아래로 내립니다.
                 // 10dp~12dp 정도가 적당하며, UI를 보며 조절하세요.
-                modifier = Modifier.padding(top = 5.dp),
+                modifier = Modifier.padding(top = 4.dp),
             ) {
                 icon()
                 if (label != null && alwaysShowLabel) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     // 라벨의 색상과 스타일을 직접 적용합니다.
                     Text(
                         text = label,
-                        style = AppTypography.labelMedium, // 폰트 스타일
+                        style = AppTypography.labelLarge, // 폰트 스타일 키움 (labelMedium -> labelLarge)
                         color = main // 색상
                     )
                 }

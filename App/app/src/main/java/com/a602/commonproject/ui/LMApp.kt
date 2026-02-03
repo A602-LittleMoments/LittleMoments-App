@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold // 표준 Scaffold 사용
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,23 +19,20 @@ import androidx.navigation3.runtime.entryProvider
 import com.a602.commonproject.feature.login.navigation.loginEntries
 import com.a602.commonproject.designsystem.component.LMNavigationBar
 import com.a602.commonproject.designsystem.component.LMNavigationBarItem
-import com.a602.commonproject.feature.baby.navigation.BabyNavKey // NEW
 import com.a602.commonproject.feature.baby.navigation.babyEntries // NEW
 import com.a602.commonproject.navigation.TOP_LEVEL_NAV_ITEMS
 import com.a602.commonproject.navigation.toEntries
-import com.a602.commonproject.designsystem.component.CameraButton
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.feature.album.GalleryNavKey // UPDATED // UPDATED
 import com.a602.commonproject.feature.home.navigation.MemoryNavKey // UPDATED
 import com.a602.commonproject.feature.home.navigation.memoryEntries // UPDATED
 import com.a602.commonproject.feature.mypage.navigation.myPageEntries
-import com.a602.commonproject.feature.camera.navigation.CameraNavKey
 import com.a602.commonproject.feature.camera.navigation.cameraEntries
 import com.a602.commonproject.feature.album.GridNavKey // UPDATED from gallery.GridNavKey
 
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.statusBarsPadding
-import com.a602.commonproject.feature.gallery.navigation.galleryEntries
+import com.a602.commonproject.feature.album.navigation.galleryEntries
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable

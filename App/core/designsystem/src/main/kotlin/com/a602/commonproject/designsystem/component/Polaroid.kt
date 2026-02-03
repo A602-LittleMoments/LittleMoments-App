@@ -34,10 +34,22 @@ import androidx.compose.ui.text.font.FontWeight
 fun Polaroid(
     media: SharedMedia,
     modifier: Modifier = Modifier,
+    useThumbnail: Boolean = false, // 🚀 Grid 모드 최적화 플래그
 ) {
-    // rear / front URL
-    val rearUrl = media.remoteUrl ?: media.localUri ?: media.thumbnailUrl
-    val frontUrl = media.subRemoteUrl ?: media.subLocalUri ?: media.subThumbnailUrl
+    // URL 결정 로직
+    val rearUrl = if (useThumbnail) {
+        // 썸네일 우선 (없으면 원본)
+        media.thumbnailUrl ?: media.remoteUrl ?: media.localUri
+    } else {
+        // 원본 우선 (없으면 썸네일)
+        media.remoteUrl ?: media.localUri ?: media.thumbnailUrl
+    }
+
+    val frontUrl = if (useThumbnail) {
+        media.subThumbnailUrl ?: media.subRemoteUrl ?: media.subLocalUri
+    } else {
+        media.subRemoteUrl ?: media.subLocalUri ?: media.subThumbnailUrl
+    }
 
     // 날짜 포맷
     val dateText = remember(media.dateTaken) {
@@ -66,25 +78,37 @@ fun Polaroid(
                     .background(Color.Black)
             ) {
                 // rear (큰 사진)
-                // [Progressive Loading] 1. 썸네일 (Placeholder)
-                if (media.localUri == null && media.thumbnailUrl != null) {
+                // Grid 모드거나 로컬 파일이면 Progressive Loading 불필요 -> 하나만 로드
+                if (useThumbnail || media.localUri != null) {
                     AsyncImage(
-                        model = media.thumbnailUrl,
+                        model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                            .data(rearUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Detail 모드 & 원본 로딩 필요 -> Progressive Loading (썸네일 깔고 원본 덮기)
+                    if (media.thumbnailUrl != null) {
+                         AsyncImage(
+                            model = media.thumbnailUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    AsyncImage(
+                        model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                            .data(rearUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 }
-                // [Progressive Loading] 2. 원본 (Main) - Crossfade로 자연스럽게 덮어씌움
-                AsyncImage(
-                    model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
-                        .data(rearUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
 
                 // front (작은 사진)
                 val frontModifier = Modifier
@@ -93,25 +117,35 @@ fun Polaroid(
                     .fillMaxWidth(0.4f)
                     .aspectRatio(3f / 4f)
 
-                // [Progressive Loading] 1. 썸네일 (Placeholder)
-                if (media.subLocalUri == null && media.subThumbnailUrl != null) {
+                if (useThumbnail || media.subLocalUri != null) {
+                     AsyncImage(
+                        model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                            .data(frontUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        modifier = frontModifier,
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                     if (media.subThumbnailUrl != null) {
+                        AsyncImage(
+                            model = media.subThumbnailUrl,
+                            contentDescription = null,
+                            modifier = frontModifier,
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                     AsyncImage(
-                        model = media.subThumbnailUrl,
+                        model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                            .data(frontUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = null,
                         modifier = frontModifier,
                         contentScale = ContentScale.Crop
                     )
                 }
-                // [Progressive Loading] 2. 원본 (Main)
-                AsyncImage(
-                    model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
-                        .data(frontUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    modifier = frontModifier,
-                    contentScale = ContentScale.Crop
-                )
             }
 
             Spacer(Modifier.height(12.dp))

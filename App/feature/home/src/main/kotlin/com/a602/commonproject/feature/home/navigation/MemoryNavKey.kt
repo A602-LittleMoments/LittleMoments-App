@@ -9,8 +9,7 @@ import com.a602.commonproject.feature.home.viewmodel.SlideshowRequest
 @Serializable
 data object MemoryNavKey : NavKey
 
-@Serializable
-data object MemoryGridKey : NavKey
+
 
 @Serializable
 data object MemoryDetailKey : NavKey
@@ -18,3 +17,10 @@ data object MemoryDetailKey : NavKey
 
 @Serializable
 data class SlideshowEntryKey(val request: SlideshowRequest) : NavKey
+
+
+@Serializable
+data class HighlightLoadingNavKey(
+    val startMillis: Long,
+    val endMillis: Long
+) : NavKey

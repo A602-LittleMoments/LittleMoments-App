@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.unit.sp
 import com.a602.commonproject.model.data.SharedMedia
+import com.a602.coommonproject.ui.GalleryGridFrameless
 import com.a602.coommonproject.ui.GalleryGridPolaroid
 import java.time.Instant
 import java.time.LocalDate
@@ -46,18 +47,29 @@ import com.a602.commonproject.designsystem.theme.color4
 import com.a602.commonproject.designsystem.theme.lightbackground
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.border
+import androidx.compose.runtime.LaunchedEffect
 
 
 @Composable
 fun GridRoute(
     date: LocalDate? = null,
+    keywordId: String? = null,
+    title: String? = null,
     onBackClick: () -> Unit,
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
     viewModel: GridGalleryViewmodel = hiltViewModel(),
-
     ) {
+    LaunchedEffect(keywordId, title) {
+        viewModel.setFilter(keywordId, title)
+    }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Params decide UI mode immediately
+    val showCalendarButton = keywordId == null
+    val topBarTitle = title ?: uiState.title
+
     val filtered = remember(uiState.medias, date) {
         if (date == null) uiState.medias
         else uiState.medias.filter { it.isSameDay(date) }
@@ -72,7 +84,9 @@ fun GridRoute(
         headerText = headerText,
         onCalendarClick = onCalendarClick,
         onMediaClick = onMediaClick,
-        onBackClick = onBackClick
+        onBackClick = onBackClick,
+        title = topBarTitle,
+        showCalendarButton = showCalendarButton
     )
 }
 private fun SharedMedia.isSameDay(target: LocalDate): Boolean {
@@ -91,11 +105,13 @@ fun GridGalleryScreen(
     onMediaClick: (SharedMedia) -> Unit,
     headerText: String = "Recent",
     modifier: Modifier = Modifier,
+    title: String = "갤러리",
+    showCalendarButton: Boolean = true
 ) {
     Scaffold(
         topBar = {
             LMTopAppBar(
-                title = "갤러리",
+                title = title,
                 onNavigationClick = onBackClick,
             )
         }
@@ -121,47 +137,50 @@ fun GridGalleryScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
-                    .navigationBarsPadding()
-                    .padding(bottom = NavigationBarHeight + 16.dp)
-                    .padding(horizontal = 16.dp),
+                    .padding(top = innerPadding.calculateTopPadding()) // Top padding from Scaffold (AppBar)
+                    .padding(horizontal = 8.dp), // Side margin only
 
             ) {
                 // Main Container (Glass-like with Dark Theme)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .shadow(8.dp, RoundedCornerShape(16.dp))
+                        .shadow(8.dp, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)) // Bottom is flat or rounded? User said "go to the end". Usually means flat bottom or rounded? Let's keep rounded but maybe modify shape. "RoundedCornerShape(16.dp)" is all corners. If it goes to bottom, maybe bottom corners should be 0? Or keep them.
+                        // Let's keep 16.dp as requested style, just extending down.
                         .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                         .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
-                        .padding(16.dp)
+                        .padding(start = 16.dp, end = 16.dp, top = 24.dp) // Content padding increased
+                        .navigationBarsPadding() // Push content up above nav bar
+                        .padding(bottom = 32.dp) // Extra bottom padding for visuals increased
                 ) {
-                    // 1. 상단 헤더 영역
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = headerText,
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp
-                            ),
-                            color = androidx.compose.ui.graphics.Color.White
-                        )
+                    // 1. 상단 헤더 영역 (캘린더 보기 버튼이 있을 때만 표시 = 앨범 모드일 때만)
+                    if (showCalendarButton) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = headerText,
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 22.sp
+                                ),
+                                color = androidx.compose.ui.graphics.Color.White
+                            )
 
-                        FillWrapButton(
-                            text = "캘린더 보기",
-                            onClick = onCalendarClick,
-                        )
+                            FillWrapButton(
+                                text = "캘린더 보기",
+                                onClick = onCalendarClick,
+                            )
+                        }
                     }
 
                     // Grid Area
                     Box(modifier = Modifier.weight(1f)) {
-                        GalleryGridPolaroid(
+                        GalleryGridFrameless(
                             medias = medias,
                             onClick = onMediaClick,
                         )

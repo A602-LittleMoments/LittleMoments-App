@@ -245,10 +245,10 @@ fun CameraContent(
                  // Placeholder for Gallery Icon/Thumbnail
                Box(
                      modifier = Modifier
-                         .size(48.dp)
-                         .clip(RoundedCornerShape(8.dp))
+                         .size(64.dp)
+                         .clip(RoundedCornerShape(12.dp))
                          .background(Color.Black.copy(alpha = 0.5f))
-                         .border(1.dp, Color.White, RoundedCornerShape(8.dp)),
+                         .border(1.dp, Color.White, RoundedCornerShape(12.dp)),
                      contentAlignment = Alignment.Center
                  ) {
                       // TODO: Show latest image thumbnail if possible
@@ -309,7 +309,7 @@ fun CameraContent(
             }
 
             // Right: Spacer to balance layout
-            Box(modifier = Modifier.size(48.dp))
+            Box(modifier = Modifier.size(64.dp))
         }
 
         // Camera Binding Logic (Same as before)

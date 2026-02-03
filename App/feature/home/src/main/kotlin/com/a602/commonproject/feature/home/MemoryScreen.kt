@@ -13,6 +13,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,7 +32,7 @@ import com.a602.commonproject.designsystem.R
 @Composable
 fun MemoryScreen(
     items: List<Collection>,
-    onPlanetClick: (String) -> Unit,
+    onPlanetClick: (String, String) -> Unit, // id, label
     onCameraClick: () -> Unit,
     onMakeSlideshowClick: () -> Unit,
     onNotificationClick: () -> Unit,
@@ -51,25 +53,32 @@ fun MemoryScreen(
         // 2. 행성 스크롤 영역
         // 하단 캐릭터/버튼 영역(흰색 배경)과 겹치지 않게 위쪽(남색 배경)에만 배치
         val bottomReservedSpace = 260.dp
-        
-        val layout = remember(items, maxWidth, maxHeight) {
-            buildPlanetsUiLaneLayout(
-                items = items,
-                viewportWidth = maxWidth,
-                viewportHeight = maxHeight - bottomReservedSpace, // 뷰포트 높이 자체를 줄임
-                bottomSafeArea = 60.dp, // 스크롤 끝부분 여백 (이제 캐릭터 높이만큼 줄 필요 없음)
-                topSafeArea = 80.dp
-            )
+
+        // 5. Layout Calculation on Background Thread
+        // 계산량이 많아짐(Best Fit, Box Collision 등)에 따라 UI 스레드에서 돌면 버벅일 수 있음.
+        // Background 스레드에서 계산 후 결과만 UI로 전달.
+        val layout by produceState<PlanetLayoutResult?>(initialValue = null, items, maxWidth, maxHeight) {
+            value = withContext(Dispatchers.Default) {
+                buildPlanetsUiLaneLayout(
+                    items = items,
+                    viewportWidth = maxWidth,
+                    viewportHeight = maxHeight - bottomReservedSpace,
+                    bottomSafeArea = 60.dp,
+                    topSafeArea = 80.dp
+                )
+            }
         }
 
-        PlanetsScrollContent(
-            planets = layout.planets,
-            canvasHeight = layout.canvasHeight,
-            onPlanetClick = onPlanetClick,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = bottomReservedSpace) // 하단 영역 침범 금지
-        )
+        if (layout != null) {
+             PlanetsScrollContent(
+                planets = layout!!.planets,
+                canvasHeight = layout!!.canvasHeight,
+                onPlanetClick = onPlanetClick,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = bottomReservedSpace)
+            )
+        }
 
         // 3. 상단 아이콘 (알림, 도움말)
         Row(
@@ -110,8 +119,8 @@ fun MemoryScreen(
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp), // Side padding reduced to allow centering
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp), // Side padding reduced to allow centering
                 horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally), // Centered with spacing
                 verticalAlignment = Alignment.Bottom
             ) {
@@ -143,7 +152,7 @@ fun MemoryScreen(
 private fun PlanetsScrollContent(
     planets: List<KeywordPlanetUi>,
     canvasHeight: Dp,
-    onPlanetClick: (String) -> Unit,
+    onPlanetClick: (String, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -165,7 +174,7 @@ private fun PlanetsScrollContent(
                         modifier = Modifier
                             .offset(x = x, y = p.y)
                             .width(p.size)
-                            .clickable { onPlanetClick(p.keywordId) },
+                            .clickable { onPlanetClick(p.keywordId, p.label) }, // Pass label too
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(modifier = Modifier.size(p.size)) {
@@ -213,7 +222,9 @@ private fun Preview_Memory_Planets() {
     LMTheme {
         MemoryScreen(
             items = items,
-            onPlanetClick = {},
+            onPlanetClick = { _,_ ->
+
+            },
             onCameraClick = {},
             onMakeSlideshowClick = {},
             onNotificationClick = {},

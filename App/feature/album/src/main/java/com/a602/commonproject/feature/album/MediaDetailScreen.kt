@@ -1,46 +1,33 @@
 package com.a602.commonproject.feature.album
+
 import Polaroid
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.draw.shadow
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import coil.compose.AsyncImage
-import java.time.Instant
-import java.time.ZoneId
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -51,8 +38,8 @@ import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.feature.album.viewmodel.MediaDetailViewModel
 import com.a602.commonproject.model.data.SharedMedia
-import androidx.compose.foundation.layout.Row
-import com.a602.commonproject.designsystem.R
+import com.a602.commonproject.designsystem.R as DesignR
+// import com.a602.coommonproject.ui.SharedMediaDetailScreen // REMOVED
 
 @Composable
 fun MediaDetailRoute(
@@ -104,7 +91,7 @@ fun MediaDetailRoute(
                 uiState.isLoading -> Text("불러오는 중…")
                 uiState.media != null -> {
                     MediaDetailScreen(
-                        title = "상세보기",
+                        title = "자세히 보기",
                         media = uiState.media!!,
                         onBack = onBack,
                         onDelete = viewModel::deleteCurrent,
@@ -130,10 +117,9 @@ fun MediaDetailScreen(
     onDownload: () -> Unit,
     onEdit: () -> Unit,
 ) {
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    // SharedMediaDetailScreen Code INLINED here per user request to reuse Album directly without intermediate shared file.
 
-    val backgroundImage = R.drawable.gallery_background
-
+    // START INLINED CODE
     Scaffold(
         topBar = {
             LMTopAppBar(
@@ -142,193 +128,118 @@ fun MediaDetailScreen(
             )
         }
     ) { innerPadding ->
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Background
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // Background Image
             Image(
-                painter = painterResource(id = backgroundImage),
+                painter = painterResource(id = DesignR.drawable.gallery_background),
                 contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
 
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                // Main Content Wrapper (Centered)
-                Box(
-                    contentAlignment = Alignment.Center
-                ) {
-                    // 1. Polaroid Frame (The Anchor)
-                    Column(
-                        modifier = Modifier
-                            .width(300.dp)
-                            .shadow(12.dp, RoundedCornerShape(2.dp))
-                            .background(Color.White)
-                            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp) // Specific padding for Polaroid visual
-                    ) {
-                        // Main Photo Area
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(1f) // Square
-                                .background(Color.LightGray)
-                        ) {
-                            AsyncImage(
-                                model = media.remoteUrl,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                // 폴라로이드 + 꾸미기 요소
+                Box(contentAlignment = Alignment.Center) {
+                    Polaroid(
+                        media = media,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                            // Sub Image (Small inset at bottom right)
-                            if (media.subRemoteUrl != null || media.subThumbnailUrl != null) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(8.dp)
-                                        .size(80.dp)
-                                        .border(1.dp, Color.Black)
-                                        .background(Color.Gray)
-                                ) {
-                                    AsyncImage(
-                                        model = media.subRemoteUrl ?: media.subThumbnailUrl,
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(Modifier.height(16.dp))
-
-                        // Text Area
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            val date = Instant.ofEpochMilli(media.dateTaken)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                            Text(
-                                text = "${date.year}.${String.format("%02d", date.monthValue)}.${String.format("%02d", date.dayOfMonth)}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            )
-
-                            Spacer(Modifier.height(4.dp))
-
-                            Text(
-                                text = media.caption ?: "코멘트가 없습니다.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.DarkGray
-                            )
-                        }
-
-                        Spacer(Modifier.height(16.dp)) // Expands bottom of polaroid slightly
-                    }
-
-                    // 2. Decorations (Absolute positioning relative to the frame)
-                    val purpleStarColor = Color(0xFFEDBDFF)
-                    val yellowStarColor = Color(0xFFFFF5BA)
-
-                    // Purple Star - Top Left
+                    // Decorations
+                    // 1. Top Left - Pastel Purple Star
                     Icon(
-                        imageVector = Icons.Rounded.Star,
+                        painter = painterResource(id = DesignR.drawable.star),
                         contentDescription = null,
-                        tint = purpleStarColor,
                         modifier = Modifier
                             .align(Alignment.TopStart)
-                            .offset(x = (-32).dp, y = (-32).dp)
-                            .size(80.dp)
-                            .graphicsLayer(rotationZ = -25f)
+                            .padding(top = 20.dp)
+                            .offset(x = (-10).dp)
+                            .size(50.dp)
+                            .rotate(-15f),
+                        tint = Color(0xFFE1BEE7) // Pastel Purple
                     )
 
-                     // Small Yellow Star - Top Right (Inner)
+                    // 2. Top Right - Pastel Yellow Star
                     Icon(
-                        imageVector = Icons.Rounded.Star,
+                        painter = painterResource(id = DesignR.drawable.star),
                         contentDescription = null,
-                        tint = yellowStarColor,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .offset(x = (-64).dp, y = (-24).dp)
-                            .size(40.dp)
-                            .graphicsLayer(rotationZ = 15f)
+                            .padding(top = 10.dp)
+                            .offset(x = 15.dp)
+                            .size(60.dp)
+                            .rotate(20f),
+                        tint = Color(0xFFFFF176) // Pastel Yellow
                     )
 
-                    // Large Yellow Star - Top Right (Outer)
+                     // 3. Top Right Small - Cream Star
                     Icon(
-                        imageVector = Icons.Rounded.Star,
+                        painter = painterResource(id = DesignR.drawable.star),
                         contentDescription = null,
-                        tint = yellowStarColor,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .offset(x = (28).dp, y = (-28).dp)
-                            .size(72.dp)
-                            .graphicsLayer(rotationZ = 25f)
+                            .padding(top = 40.dp, end = 50.dp)
+                            .size(30.dp)
+                            .rotate(-10f),
+                        tint = Color(0xFFFFF9C4) // Cream
                     )
 
-                    // Extra Large Yellow Star - Bottom Left
+
+                    // 4. Bottom Left - Big Yellow Star
                     Icon(
-                        imageVector = Icons.Rounded.Star,
+                        painter = painterResource(id = DesignR.drawable.star),
                         contentDescription = null,
-                        tint = yellowStarColor,
                         modifier = Modifier
                             .align(Alignment.BottomStart)
-                            .offset(x = (-42).dp, y = (42).dp)
-                            .size(110.dp)
-                            .graphicsLayer(rotationZ = -15f)
+                            .offset(x = (-20).dp, y = 20.dp)
+                            .size(90.dp)
+                            .rotate(-30f),
+                        tint = Color(0xFFFFF59D) // Pastel Yellow
                     )
-                }
 
-                // 3. Three White Stars (Below the frame)
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 120.dp), // Positioned clearly below frame
-                    horizontalArrangement = Arrangement.spacedBy(24.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    repeat(3) {
-                         Icon(
-                            imageVector = Icons.Rounded.Star, // Using Rounded for softer look
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(56.dp)
-                        )
+                    // 5. Bottom Center/Right - White Stars Row
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(bottom = 10.dp, end = 40.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        repeat(3) {
+                             Icon(
+                                painter = painterResource(id = DesignR.drawable.star),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .rotate(10f * (it + 1)),
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
-            }
 
-            // Action Bar (Bottom Overlay)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp)
-            ) {
-                 IconActionBar(
-                    onDelete = { showDeleteDialog = true },
+                Spacer(Modifier.height(16.dp))
+
+                // 액션바
+                IconActionBar(
+                    modifier = Modifier.fillMaxWidth(),
+                    onDelete = onDelete,
                     onDownload = onDownload,
                     onEdit = onEdit,
                 )
             }
         }
     }
-
-    if (showDeleteDialog) {
-        ConfirmDeleteDialog(
-            onConfirm = {
-                showDeleteDialog = false
-                onDelete()
-            },
-            onDismiss = { showDeleteDialog = false }
-        )
-    }
+    // END INLINED CODE
 }
 
 
@@ -366,4 +277,3 @@ private fun Preview_Detail_Content() {
         )
     }
 }
-
