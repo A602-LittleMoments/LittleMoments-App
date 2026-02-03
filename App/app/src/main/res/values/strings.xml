@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">Little Moments</string>
-    <string name="home">메인</string>
+    <string name="home">홈</string>
     <string name="gallery">앨범</string>
     <string name="memory">추억</string>
     <string name="my_page">마이페이지</string>
+    <string name="baby">아이</string>
 </resources>

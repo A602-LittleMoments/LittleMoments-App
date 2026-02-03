@@ -5,8 +5,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.compose.ui.graphics.toArgb
 
 //private val LightColorScheme = lightColorScheme(
 //    // --- Primary (주요 강조색) ---
@@ -72,6 +74,8 @@ private val LightColorScheme = lightColorScheme(
 */
 
 
+
+
 private val LightColorScheme = lightColorScheme(
     primary = main,                   // 주요 버튼 및 핵심 브랜드 색상 (파란색)
     onPrimary = lightbackground,      // 파란 버튼 위의 텍스트/아이콘 색상
@@ -98,12 +102,47 @@ private val LightColorScheme = lightColorScheme(
     outlineVariant = gray2,           // 좀 더 옅은 구분선
 )
 
+
+
+private val LightColorScheme_new = lightColorScheme(
+    // 1. 메인 브랜드 컬러 (파란색)
+    primary = NavyBlue,                  // 0C337F: 주요 버튼, 활성 아이콘
+    onPrimary = OffWhite,                // FFFCF3: 파란 버튼 위의 텍스트 (흰색 계열)
+    primaryContainer = OffWhite,         // 연한 컨테이너 (필요시 IvoryCream 사용 가능)
+    onPrimaryContainer = NavyBlue,       // 컨테이너 위의 짙은 파란 텍스트
+
+    // 2. 포인트 컬러 (노란색)
+    secondary = PointYellow,             // FFC800: 별점, 강조 FAB 등
+    onSecondary = NavyBlue,              // 노란색 배경 위에는 짙은 파란색 글씨가 가독성이 좋음
+    secondaryContainer = IvoryCream,     // 보조 컨테이너
+    onSecondaryContainer = PointYellow,  // 보조 컨테이너 위 텍스트
+
+    // 3. 배경 (아이보리)
+    background = IvoryCream,             // FFFAEB: 앱의 전체 기본 배경
+    onBackground = NavyBlue,             // 0C337F: 배경 위의 기본 텍스트 (짙은 파랑)
+
+    // 4. 표면 (다이얼로그, 카드, 시트) - ✨ 요청하신 부분
+    // 배경이 아이보리이므로, 튀어나온 요소는 더 밝은 'OffWhite'나 'White'를 씁니다.
+    surface = Color.White,               // or OffWhite (FFFCF3). 다이얼로그가 배경보다 밝게 뜸
+    onSurface = NavyBlue,                // 다이얼로그 위의 텍스트
+    surfaceVariant = OffWhite,           // 조금 다른 톤의 표면
+    onSurfaceVariant = NavyBlue,
+
+    // 5. 에러 및 기타
+    error = errorRed,
+    onError = Color.White,
+
+    outline = GrayOutline,               // 테두리 색상
+)
+
 @Composable
 fun LMTheme(
     content: @Composable () -> Unit
 ) {
     // 1. 색상 테마를 항상 Light로 고정
-    val colorScheme = LightColorScheme
+    val colorScheme = LightColorScheme_new
+
+
 
     // 2. 상태바(Status Bar) 색상 및 아이콘 설정
     val view = LocalView.current
@@ -111,12 +150,12 @@ fun LMTheme(
         SideEffect {
             val window = (view.context as Activity).window
 
-            // ✅ 수정됨: android.graphics.Color 대신 Compose Color 사용
-            // (배경색을 테마의 배경색과 일치시키려면 colorScheme.background.toArgb() 사용)
-            window.isNavigationBarContrastEnforced = true
+            // [Fix] 전체 앱 상태바 색상: NavyBlue
+            window.statusBarColor = NavyBlue.toArgb()
 
-            // 상태바 아이콘(시간, 배터리)을 검은색으로 강제 (Light Mode 스타일)
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            // [Fix] 상태바 아이콘 색상: 밝은색 (White)
+            // isAppearanceLightStatusBars = false -> 배경이 어두우므로 아이콘을 밝게 설정
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 

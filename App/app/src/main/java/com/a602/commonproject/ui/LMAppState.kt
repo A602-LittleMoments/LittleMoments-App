@@ -5,7 +5,8 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.runtime.NavKey
-import com.a602.commonproject.feature.gallery.GridNavKey
+import com.a602.commonproject.feature.album.GridNavKey
+import com.a602.commonproject.feature.home.navigation.MemoryNavKey
 import com.a602.commonproject.feature.login.navigation.SplashNavKey
 import com.a602.commonproject.navigation.NavigationState
 import com.a602.commonproject.navigation.Navigator
@@ -16,7 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 @Composable
 fun rememberLMAppState(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    // 1. [변경] Start destination set to Splash
+    // 1. [변경] Start destination set to SplashNavKey (Login/Check)
     startDestination: NavKey = SplashNavKey,
     // 2. [변경] 맵에서 키 목록(Set<NavKey>)을 가져와서 설정 + GridNavKey 추가 (탑레벨 취급)
     topLevelDestinations: Set<NavKey> = TOP_LEVEL_NAV_ITEMS.keys + GridNavKey

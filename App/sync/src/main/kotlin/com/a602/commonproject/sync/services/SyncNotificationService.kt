@@ -52,18 +52,17 @@ class SyncNotificationService : FirebaseMessagingService() {
         // ==========================================
         // CASE B: 새 앨범 알림 (NEW_ALBUM)
         // ==========================================
-        else if (message.data["type"] == "NEW_ALBUM") {
+        else if (message.data["type"] == "CLUSTERING_COMPLETED") {
             val albumTitle = message.data["title"] ?: "새 앨범"
             val msgBody = message.data["message"] ?: "새로운 앨범이 도착했습니다."
-            val albumId = message.data["albumId"]
-            val deepLink = if (albumId != null) "littlemoments://album/$albumId" else null
+//            val albumId = message.data["albumId"]
+//            val deepLink = if (albumId != null) "littlemoments://album/$albumId" else null
 
             // 1. 알림 띄우기
             notifier.postNotification(
-                id = albumId?.hashCode() ?: System.currentTimeMillis().toInt(),
+                id =  System.currentTimeMillis().toInt(),
                 title = albumTitle,
                 content = msgBody,
-                deepLinkUri = deepLink,
             )
             // 2. 내 그룹 데이터 갱신 요청 (Worker가 돕니다)
             syncManager.requestSync()
@@ -72,7 +71,6 @@ class SyncNotificationService : FirebaseMessagingService() {
             saveNotificationToDb(
                 title = albumTitle,
                 body = msgBody,
-                deepLink = deepLink,
                 type = "NEW_ALBUM"
             )
         }

@@ -5,17 +5,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold // 표준 Scaffold 사용
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
@@ -23,20 +20,23 @@ import androidx.navigation3.runtime.entryProvider
 import com.a602.commonproject.feature.login.navigation.loginEntries
 import com.a602.commonproject.designsystem.component.LMNavigationBar
 import com.a602.commonproject.designsystem.component.LMNavigationBarItem
-import com.a602.commonproject.feature.home.navigation.HomeNavKey
-import com.a602.commonproject.feature.home.navigation.homeEntries
+import com.a602.commonproject.feature.baby.navigation.BabyNavKey // NEW
+import com.a602.commonproject.feature.baby.navigation.babyEntries // NEW
 import com.a602.commonproject.navigation.TOP_LEVEL_NAV_ITEMS
 import com.a602.commonproject.navigation.toEntries
 import com.a602.commonproject.designsystem.component.CameraButton
 import com.a602.commonproject.designsystem.theme.background
-import com.a602.commonproject.feature.gallery.GalleryNavKey
-import com.a602.commonproject.feature.gallery.navigation.galleryEntries
-import com.a602.commonproject.feature.memory.navigation.MemoryNavKey
-import com.a602.commonproject.feature.memory.navigation.memoryEntries
+import com.a602.commonproject.feature.album.GalleryNavKey // UPDATED
+import com.a602.commonproject.feature.album.navigation.galleryEntries // UPDATED
+import com.a602.commonproject.feature.home.navigation.MemoryNavKey // UPDATED
+import com.a602.commonproject.feature.home.navigation.memoryEntries // UPDATED
 import com.a602.commonproject.feature.mypage.navigation.myPageEntries
 import com.a602.commonproject.feature.camera.navigation.CameraNavKey
 import com.a602.commonproject.feature.camera.navigation.cameraEntries
-import com.a602.commonproject.feature.gallery.GridNavKey
+import com.a602.commonproject.feature.album.GridNavKey // UPDATED from gallery.GridNavKey
+
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.statusBarsPadding
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -44,7 +44,10 @@ fun LMApp() {
     val appState = rememberLMAppState()
     // 1. NavigationSuiteScaffold 대신 표준 Scaffold 사용
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding()
+            .statusBarsPadding(), // ✨ Global Status Bar Padding
         containerColor = background,
         floatingActionButtonPosition = FabPosition.Center,
         bottomBar = {
@@ -61,7 +64,7 @@ fun LMApp() {
                             onClick = { appState.navigator.navigate(navKey) },
                             icon = {
                                 Icon(
-                                    imageVector = if (isSelected) navItem.selectedIcon else navItem.unselectedIcon,
+                                    painter = painterResource(id = if (isSelected) navItem.selectedIcon else navItem.unselectedIcon),
                                     contentDescription = stringResource(navItem.iconTextId),
                                 )
                             },
@@ -90,12 +93,7 @@ fun LMApp() {
                         LMNavigationBarItem(
                             selected = isSelected,
                             onClick = { appState.navigator.navigate(navKey) },
-                            icon = {
-                                Icon(
-                                    imageVector = if (isSelected) navItem.selectedIcon else navItem.unselectedIcon,
-                                    contentDescription = stringResource(navItem.iconTextId),
-                                )
-                            },
+                            painter = painterResource(id = if (isSelected) navItem.selectedIcon else navItem.unselectedIcon),
                             label = stringResource(navItem.iconTextId),
                         )
                     }
@@ -105,20 +103,11 @@ fun LMApp() {
         floatingActionButton = {
             // ✨ 홈, 앨범, 추억 탭에서만 FAB 표시
             // [Fix] currentTopLevelKey 대신 currentKey를 사용하여, 현재 '화면'이 탑 레벨일 때만 버튼이 나오도록 수정
-            val currentKey = appState.navigationState.currentKey
-            val isTopLevelTab = currentKey == HomeNavKey || currentKey == GalleryNavKey || currentKey == MemoryNavKey
-
             /*
-            // [Backup] 애니메이션 없이 즉시 표시
-            if (isTopLevelTab) {
-                CameraButton(
-                    onClick = { appState.navigator.navigate(CameraNavKey) },
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
-            }
-            */
+            val currentKey = appState.navigationState.currentKey
+            val isTopLevelTab = currentKey == MemoryNavKey || currentKey == GalleryNavKey || currentKey == BabyNavKey
 
-          AnimatedVisibility(
+            AnimatedVisibility(
                 visible = isTopLevelTab,
                 enter = fadeIn(
                     animationSpec = tween(durationMillis = 300, delayMillis = 200)
@@ -130,6 +119,7 @@ fun LMApp() {
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
             }
+             */
         }
     ) { _ ->
 
@@ -138,17 +128,16 @@ fun LMApp() {
             loginEntries(
                 navigator = appState.navigator,
                 onLoginSuccess = {
-                    // 로그인 성공 시 홈으로 이동하고, 백스택을 정리합니다 (뒤로가기 시 로그인 화면 안 나오게)
-                    // replaceRoot를 사용하여 스택을 초기화하고 홈을 새로운 루트로 설정합니다.
-                    appState.navigator.replaceRoot(HomeNavKey)
+                    // 로그인 성공 시 홈(New Home = Memory)으로 이동
+                    appState.navigator.replaceRoot(MemoryNavKey)
                 }
             )
-            homeEntries(appState.navigator)
+            babyEntries(appState.navigator) // 구 Home -> Baby
             // Fallback / Placeholder for unimplemented features
 
-            galleryEntries(appState.navigator)
+            galleryEntries(appState.navigator) // 구 Gallery -> Album
 
-            memoryEntries(appState.navigator)
+            memoryEntries(appState.navigator) // 구 Memory -> Home
 
             myPageEntries(appState.navigator)
 

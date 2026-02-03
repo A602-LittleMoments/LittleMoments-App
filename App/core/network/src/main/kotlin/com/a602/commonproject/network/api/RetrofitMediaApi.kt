@@ -35,7 +35,9 @@ internal interface RetrofitMediaApi {
         @Query("limit") limit: Int = 1000,
         @Query("cursor") cursor: String? = null,
         @Query("startDate") startDate: String? = null, // "YYYY-MM-DD"
-        @Query("endDate") endDate: String? = null      // "YYYY-MM-DD"
+        @Query("endDate") endDate: String? = null,     // "YYYY-MM-DD"
+        @Query("babyId") babyId: String? = null,
+        @Query("filterByUserId") filterByUserId: String? = null
     ): MediaListResponse
 
     // 4.4 미디어 상세 조회

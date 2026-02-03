@@ -1,0 +1,134 @@
+package com.a602.commonproject.feature.album.navigation
+
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
+import com.a602.commonproject.navigation.Navigator
+import com.a602.commonproject.feature.album.CalendarRoute
+import com.a602.commonproject.feature.album.CommentEditNavKey
+import com.a602.commonproject.feature.album.CommentEditRoute
+import com.a602.commonproject.feature.album.GalleryNavKey
+import com.a602.commonproject.feature.album.GridNavKey
+import com.a602.commonproject.feature.album.GridRoute
+import com.a602.commonproject.feature.album.HighlightCalendarNavKey
+import com.a602.commonproject.feature.album.HighlightCalendarRoute
+import com.a602.commonproject.feature.album.HighlightLoadingNavKey
+import com.a602.commonproject.feature.album.HighlightLoadingRoute
+import com.a602.commonproject.feature.album.HighlightResultNavKey
+import com.a602.commonproject.feature.album.HighlightResultRoute
+//import com.a602.commonproject.feature.gallery.HighlightLoadingRoute
+//import com.a602.commonproject.feature.gallery.HighlightResult
+//import com.a602.commonproject.feature.gallery.HighlightResultNavKey
+//import com.a602.commonproject.feature.gallery.HighlightResultScreen
+import com.a602.commonproject.feature.album.MediaDetailNavKey
+import com.a602.commonproject.feature.album.MediaDetailRoute
+import com.a602.commonproject.feature.album.MultiPhotoUploadNavKey
+import com.a602.commonproject.feature.album.MultiPhotoUploadScreen
+import com.a602.commonproject.feature.album.TempAlbumNavKey
+import com.a602.commonproject.feature.album.TempGridGalleryRoute
+
+fun EntryProviderScope<NavKey>.galleryEntries(
+    navigator: Navigator,
+) {
+    // 1. 메인화면 - 캘린더 뷰
+    entry<GalleryNavKey> {
+        CalendarRoute(
+            onBack = navigator::goBack,
+            onDateClick = { navigator.navigate(GridNavKey) },
+            onGridClick = { navigator.navigate(GridNavKey) },
+            onTempAlbumClick = { navigator.navigate(TempAlbumNavKey) },
+            onHighLightClick = { navigator.navigate(HighlightCalendarNavKey) }
+        )
+    }
+    // 2. 그리드 보기
+    entry<GridNavKey> {
+        GridRoute(
+            onBackClick = navigator::goBack,
+            onCalendarClick = { navigator.navigate(GalleryNavKey) },
+            onMediaClick = { media ->
+                navigator.navigate(MediaDetailNavKey(mediaId = media.id))
+            }
+        )
+    }
+
+    // 3. 사진 상세보기
+    entry<MediaDetailNavKey> { key ->
+        MediaDetailRoute(
+            mediaId = key.mediaId,
+            onBack = navigator::goBack,
+            onEdit = { navigator.navigate(CommentEditNavKey(key.mediaId)) },
+            onDeleted = navigator::goBack
+        )
+    }
+
+    // 4. 코멘트 수정
+    entry<CommentEditNavKey> { key ->
+        CommentEditRoute(
+            mediaId = key.mediaId,
+            onBack = navigator::goBack,
+            onDone = navigator::goBack
+        )
+    }
+// 5. 임시 앨범
+    entry<TempAlbumNavKey> {
+        TempGridGalleryRoute(
+            onMediaClick = { media ->
+                // TODO: 임시 앨범의 상세보기 화면 정의 필요
+                // 현재는 PhotoDetailNavKey 재사용
+            },
+            onBackClick = navigator::goBack,
+            onNavigateToUpload = { ids ->
+                navigator.navigate(MultiPhotoUploadNavKey(mediaIds = ids))
+            }
+        )
+    }
+
+
+
+    // 6. 멀티 포토 업로드
+    entry<MultiPhotoUploadNavKey> { key ->
+        MultiPhotoUploadScreen(
+            mediaIds = key.mediaIds,
+            onBackClick = { navigator.goBack() },
+            onUploadSuccess = {
+                // 1. 현재 탭의 스택 정리 (카메라/업로드 화면 제거)
+                navigator.navigate(navigator.state.currentTopLevelKey)
+                // 2. 갤러리 화면으로 이동
+                navigator.navigate(GalleryNavKey)
+            }
+        )
+    }
+
+    // 7. 하이라이트 캘린더
+    entry<HighlightCalendarNavKey> {
+        HighlightCalendarRoute(
+            onDateRangeSelected = { start, end ->
+                navigator.navigate(HighlightLoadingNavKey(start, end))
+            },
+            onBack = navigator::goBack
+        )
+    }
+
+    // 7. 하이라이트 로딩
+    entry<HighlightLoadingNavKey> { key ->
+        HighlightLoadingRoute(
+            startMillis = key.startMillis,
+            endMillis = key.endMillis,
+            onSuccess = { slideshowId ->
+                navigator.navigate(HighlightResultNavKey(slideshowId))
+            },
+            onFailure = { error ->
+                // TODO: 에러 토스트 또는 스낵바
+                navigator.goBack()
+            }
+        )
+    }
+
+    // 8. 하이라이트 결과
+    entry<HighlightResultNavKey> { key ->
+        HighlightResultRoute(
+            slideshowId = key.slideshowId,
+            onBack = navigator::goBack
+        )
+    }
+
+}

@@ -37,8 +37,6 @@ val gray2 = Color(0xFF616160)   // 회색2
 // 구분선 진하게 넣을 때
 val shadow = Color(0xFF3F3F3F)
 
-// 아이디/비밀번호 변경 시 나오는 빨간색 글씨
-val errorRed = Color(0xFFE53935) // 빨간색상
 
 // ai 하이라이트 생성 로딩 화면에 들어가는 colors
 
@@ -55,3 +53,14 @@ val purple5 = Color(0xFFBEA6EB)
 val purple6 = Color(0xFFCBB2F9)
 
 val purple7 = Color(0xFFE8D5FF)
+
+
+// 팔레트 이미지 기반 색상 추출
+val NavyBlue = Color(0xFF0C337F)   // BACKGROUND 밝은 바탕 글씨 (메인 컬러)
+val IvoryCream = Color(0xFFFFFAEB) // 네비바 배경, 버튼 배경 (메인 배경)
+val OffWhite = Color(0xFFFFFCF3)   // 어두운 배경 글씨 (가장 밝은 색)
+val PointYellow = Color(0xFFFFC800)// 포인트 (별 색상)
+
+// 추가적으로 필요한 색상 (에러 등)
+val errorRed = Color(0xFFBA1A1A)
+val GrayOutline = Color(0xFFE0E0E0) // 구분선용 임의 색상

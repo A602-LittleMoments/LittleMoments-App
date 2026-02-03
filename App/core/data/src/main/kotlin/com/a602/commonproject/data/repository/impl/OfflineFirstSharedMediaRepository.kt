@@ -23,10 +23,12 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import com.a602.commonproject.database.dao.BabyDao
 
 
 class OfflineFirstSharedMediaRepository @Inject constructor(
     private val mediaDao: MediaDao,
+    private val babyDao: BabyDao, // Direct Access (Repository might be better but circular dependency concerns)
     private val networkDataSource: MediaNetworkDataSource,
     private val userPreferences: UserPreferencesDataSource,
     @ApplicationContext private val context: Context,
@@ -45,7 +47,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
     // =================================================================
     // 📱 1-1. UI용: 목록 관찰 (Paging 3) - Optimized for Home
     // =================================================================
-    override fun getSharedAlbumPagingStream(): Flow<PagingData<SharedMedia>> {
+    override fun getSharedAlbumPagingStream(babyId: String?): Flow<PagingData<SharedMedia>> {
         // Paging 3: Pager 구성
         return Pager(
             config = PagingConfig(
@@ -53,7 +55,13 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                 enablePlaceholders = false,  // null placeholder 사용 안 함
                 initialLoadSize = 90        // 처음 로딩 시 3배수 정도 로드
             ),
-            pagingSourceFactory = { mediaDao.getSharedMediaPagingSource() }
+            pagingSourceFactory = {
+                if (babyId != null) {
+                    mediaDao.getSharedMediaPagingSourceByBaby(babyId)
+                } else {
+                    mediaDao.getSharedMediaPagingSource()
+                }
+            }
         ).flow.map { pagingData ->
             // Entity -> Model 변환
             pagingData.map { it.asExternalModel() }
@@ -121,7 +129,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                 caption = caption,
                 type = "PHOTO",
 
-                takenAt = System.currentTimeMillis(),
+                takenAt = java.time.Instant.now().toEpochMilli(),
                 uploaderName = "Me", // 아직 서버에 안 갔으니 '나'라고 표시
 
                 syncStatus = "NOT_UPLOADED", // ✨ 업로드 대기 상태
@@ -290,60 +298,85 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
     }
 
     // =================================================================
-    // ☁️ 6. Worker용: 다운로드 동기화
+    // ☁️ 6. Worker용: 다운로드 동기화 (아기 별 순회)
     // =================================================================
-    override suspend fun syncWithServer(groupId: String): Boolean {
+    override suspend fun syncWithServer(groupId: String, filterByUserId: String?): Boolean {
         return try {
-            val response = networkDataSource.getAlbums(groupId = groupId, limit = 1000)
+            // 1. 아기 목록 조회
+            val babies = babyDao.getAllBabies().first() // Flow -> List
 
-            val entities = response.medias.map { remote ->
-                ShareMediaEntity(
-                    mediaId = remote.mediaId,
-                    localUri = null,
+            // 2. 전체 조회 (기존 로직 - 안전망) + 아기 별 조회
+            // 우선, "전체"를 한 번 긁을지 말지 고민.
+            // 일단 아기 별로 API가 있으니, 각 아기 순회하며 매핑 테이블 채워넣어야 함.
+            // 아기 없으면? 전체라도 긁어야 하나? -> 아기가 없으면 사진도 없을 확률 높음(기획상).
 
-                    remoteUrl = remote.storageUrl,
-                    thumbnailUrl = remote.thumbUrl,
+            // 전체 사진 (babyId = null) 조회 -> 전체 사진 리스트 update (기본)
+             val globalResponse = networkDataSource.getAlbums(groupId = groupId, limit = 1000, filterByUserId = filterByUserId)
+             processAndSave(globalResponse.medias)
 
-                    subLocalUri = null,
-                    subRemoteUrl = remote.subStorageUrl,
-                    subThumbnailUrl = remote.subThumbUrl,
+            // 3. 각 아기 별로 순회
+            babies.forEach { baby ->
+                val response = networkDataSource.getAlbums(groupId = groupId, limit = 1000, babyId = baby.babyId, filterByUserId = filterByUserId)
 
-                    cameraFacing = remote.cameraFacing,
-                    orientation = remote.orientation,
-                    caption = remote.caption,
-                    type = remote.mediaType,
+                // 3-1. 미디어 저장 (중복처리는 Dao upsert가 함)
+                val entities = processAndSave(response.medias)
 
-                    // 날짜 변환 (String -> Long)
-                    takenAt = try {
-                        // 1. 숫자(Timestamp)일 경우 처리 (소수점 포함 대비)
-                        val numeric = remote.takenAt.trim().toDoubleOrNull()
-                        if (numeric != null) {
-                            numeric.toLong()
-                        } else {
-                            // 2. ISO-8601 문자열 Parsing (User suggestion: OffsetDateTime)
-                            // 예: "2026-01-30T01:49:05.894517Z"
-                            java.time.OffsetDateTime.parse(remote.takenAt).toInstant().toEpochMilli()
-                        }
-                    } catch (e: Exception) {
-                        // 3. 파싱 실패 시 로그 출력 및 현재 시간 사용
-                        android.util.Log.e("SharedMediaRepo", "Date parsing failed for value: '${remote.takenAt}'. Defaulting to NOW.", e)
-                        System.currentTimeMillis()
-                    },
-
-                    uploaderName = remote.uploadedBy.nickname,
-
-                    syncStatus = "SYNCED",
-                )
+                // 3-2. 매핑 테이블 저장
+                val crossRefs = entities.map {  media ->
+                    com.a602.commonproject.database.model.MediaBabyCrossRefEntity(
+                        mediaId = media.mediaId,
+                        babyId = baby.babyId
+                    )
+                }
+                if (crossRefs.isNotEmpty()) {
+                    mediaDao.upsertMediaBabyCrossRefs(crossRefs)
+                }
             }
 
-            // DAO의 스마트 동기화 (Chunking + Dirty Checking)
-            mediaDao.syncSharedList(entities)
             true
         } catch (e: Exception) {
             e.printStackTrace()
             false
         }
     }
+
+    // 응답 -> 엔티티 변환 및 저장 헬퍼
+    private suspend fun processAndSave(remoteList: List<com.a602.commonproject.network.model.MediaResponse>): List<ShareMediaEntity> {
+        val entities = remoteList.map { remote ->
+            ShareMediaEntity(
+                mediaId = remote.mediaId,
+                localUri = null,
+
+                remoteUrl = remote.storageUrl,
+                thumbnailUrl = remote.thumbUrl,
+
+                subLocalUri = null,
+                subRemoteUrl = remote.subStorageUrl,
+                subThumbnailUrl = remote.subThumbUrl,
+
+                cameraFacing = remote.cameraFacing,
+                orientation = remote.orientation,
+                caption = remote.caption,
+                type = remote.mediaType,
+
+                takenAt = try {
+                    val numeric = remote.takenAt.trim().toDoubleOrNull()
+                    numeric?.toLong() ?: java.time.OffsetDateTime.parse(remote.takenAt).toInstant().toEpochMilli()
+                } catch (e: Exception) {
+                    android.util.Log.e("SharedMediaRepo", "Date parsing failed.", e)
+                    System.currentTimeMillis()
+                },
+
+                uploaderName = remote.uploadedBy.nickname,
+                syncStatus = "SYNCED",
+            )
+        }
+        if (entities.isNotEmpty()) {
+            mediaDao.syncSharedList(entities)
+        }
+        return entities
+    }
+
 
 //        캡션
     override suspend fun updateCaption(mediaId: String, caption: String): Result<Unit> {

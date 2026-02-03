@@ -36,10 +36,10 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.navigation)
 
-    implementation(projects.feature.gallery)
-    implementation(projects.feature.memory)
-    implementation(projects.feature.mypage)
+    implementation(projects.feature.album)
     implementation(projects.feature.home)
+    implementation(projects.feature.mypage)
+    implementation(projects.feature.baby)
     implementation(projects.feature.login)
     implementation(projects.feature.camera)
 
