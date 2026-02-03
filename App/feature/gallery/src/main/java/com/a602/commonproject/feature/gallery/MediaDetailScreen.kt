@@ -1,17 +1,37 @@
 package com.a602.commonproject.feature.gallery
-import Polaroid
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import coil.compose.AsyncImage
+import java.time.Instant
+import java.time.ZoneId
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +50,8 @@ import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.feature.gallery.viewmodel.MediaDetailViewModel
 import com.a602.commonproject.model.data.SharedMedia
+import androidx.compose.foundation.layout.Row
+import com.a602.commonproject.designsystem.R
 
 @Composable
 fun MediaDetailRoute(
@@ -96,6 +118,8 @@ fun MediaDetailRoute(
 }
 
 
+
+
 @Composable
 fun MediaDetailScreen(
     title: String,
@@ -107,6 +131,8 @@ fun MediaDetailScreen(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    val backgroundImage = R.drawable.gallery_background
+
     Scaffold(
         topBar = {
             LMTopAppBar(
@@ -115,26 +141,181 @@ fun MediaDetailScreen(
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Polaroid(
-                media = media,
-                modifier = Modifier.fillMaxWidth()
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Background
+            Image(
+                painter = painterResource(id = backgroundImage),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
             )
 
-            Spacer(Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                // Main Content Wrapper (Centered)
+                Box(
+                    contentAlignment = Alignment.Center
+                ) {
+                    // 1. Polaroid Frame (The Anchor)
+                    Column(
+                        modifier = Modifier
+                            .width(300.dp)
+                            .shadow(12.dp, RoundedCornerShape(2.dp))
+                            .background(Color.White)
+                            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp) // Specific padding for Polaroid visual
+                    ) {
+                        // Main Photo Area
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f) // Square
+                                .background(Color.LightGray)
+                        ) {
+                            AsyncImage(
+                                model = media.remoteUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
 
-            IconActionBar(
-                onDelete = { showDeleteDialog = true },
-                onDownload = onDownload,
-                onEdit = onEdit,
-            )
+                            // Sub Image (Small inset at bottom right)
+                            if (media.subRemoteUrl != null || media.subThumbnailUrl != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(8.dp)
+                                        .size(80.dp)
+                                        .border(1.dp, Color.Black)
+                                        .background(Color.Gray)
+                                ) {
+                                    AsyncImage(
+                                        model = media.subRemoteUrl ?: media.subThumbnailUrl,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(Modifier.height(16.dp))
+
+                        // Text Area
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            val date = Instant.ofEpochMilli(media.dateTaken)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            Text(
+                                text = "${date.year}.${String.format("%02d", date.monthValue)}.${String.format("%02d", date.dayOfMonth)}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+
+                            Spacer(Modifier.height(4.dp))
+
+                            Text(
+                                text = media.caption ?: "코멘트가 없습니다.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.DarkGray
+                            )
+                        }
+
+                        Spacer(Modifier.height(16.dp)) // Expands bottom of polaroid slightly
+                    }
+
+                    // 2. Decorations (Absolute positioning relative to the frame)
+                    val purpleStarColor = Color(0xFFEDBDFF)
+                    val yellowStarColor = Color(0xFFFFF5BA)
+
+                    // Purple Star - Top Left
+                    Icon(
+                        imageVector = Icons.Rounded.Star,
+                        contentDescription = null,
+                        tint = purpleStarColor,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .offset(x = (-32).dp, y = (-32).dp)
+                            .size(80.dp)
+                            .graphicsLayer(rotationZ = -25f)
+                    )
+
+                     // Small Yellow Star - Top Right (Inner)
+                    Icon(
+                        imageVector = Icons.Rounded.Star,
+                        contentDescription = null,
+                        tint = yellowStarColor,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = (-64).dp, y = (-24).dp)
+                            .size(40.dp)
+                            .graphicsLayer(rotationZ = 15f)
+                    )
+
+                    // Large Yellow Star - Top Right (Outer)
+                    Icon(
+                        imageVector = Icons.Rounded.Star,
+                        contentDescription = null,
+                        tint = yellowStarColor,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = (28).dp, y = (-28).dp)
+                            .size(72.dp)
+                            .graphicsLayer(rotationZ = 25f)
+                    )
+
+                    // Extra Large Yellow Star - Bottom Left
+                    Icon(
+                        imageVector = Icons.Rounded.Star,
+                        contentDescription = null,
+                        tint = yellowStarColor,
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .offset(x = (-42).dp, y = (42).dp)
+                            .size(110.dp)
+                            .graphicsLayer(rotationZ = -15f)
+                    )
+                }
+
+                // 3. Three White Stars (Below the frame)
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 120.dp), // Positioned clearly below frame
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(3) {
+                         Icon(
+                            imageVector = Icons.Rounded.Star, // Using Rounded for softer look
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(56.dp)
+                        )
+                    }
+                }
+            }
+
+            // Action Bar (Bottom Overlay)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp)
+            ) {
+                 IconActionBar(
+                    onDelete = { showDeleteDialog = true },
+                    onDownload = onDownload,
+                    onEdit = onEdit,
+                )
+            }
         }
     }
 
