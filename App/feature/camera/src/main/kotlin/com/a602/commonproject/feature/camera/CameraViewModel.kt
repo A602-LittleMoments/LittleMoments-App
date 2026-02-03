@@ -32,7 +32,7 @@ class CameraViewModel @Inject constructor(
 
             // TODO: Orientation and Facing are hardcoded for now or need to be passed from Camera
             val orientation = 0 
-            val cameraFacing = "BACK" 
+            val cameraFacing = "DUAL" 
 
             tempMediaRepository.saveTempMedia(
                 tempId = id,

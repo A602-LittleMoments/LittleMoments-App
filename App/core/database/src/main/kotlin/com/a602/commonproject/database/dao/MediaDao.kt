@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import com.a602.commonproject.database.model.MediaBabyCrossRefEntity
 import com.a602.commonproject.database.model.ShareMediaEntity
 import com.a602.commonproject.database.model.TempMediaEntity
 import kotlinx.coroutines.flow.Flow
@@ -148,4 +149,22 @@ interface MediaDao {
         }
     }
 
+    // =================================================================
+    // 👶 아기별 필터링을 위한 추가 쿼리 (Join)
+    // =================================================================
+
+    // 매핑 테이블 저장
+    @Upsert
+    suspend fun upsertMediaBabyCrossRefs(crossRefs: List<MediaBabyCrossRefEntity>)
+
+    // 특정 아기의 사진만 조회 (Paging 3)
+    @Transaction
+    @Query("""
+        SELECT * FROM shared_media
+        INNER JOIN media_baby_cross_ref ON shared_media.mediaId = media_baby_cross_ref.mediaId
+        WHERE media_baby_cross_ref.babyId = :babyId
+        AND syncStatus != 'TO_BE_DELETE'
+        ORDER BY takenAt DESC
+    """)
+    fun getSharedMediaPagingSourceByBaby(babyId: String): PagingSource<Int, ShareMediaEntity>
 }

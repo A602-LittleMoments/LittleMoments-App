@@ -12,7 +12,7 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.ui)
     implementation(projects.core.designsystem)
-    implementation(projects.feature.gallery)
+    implementation(projects.feature.album)
     implementation(projects.core.navigation)
 
     implementation(libs.androidx.activity.compose)

@@ -27,12 +27,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons.Default
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Button
@@ -118,13 +120,42 @@ fun CameraScreen(
                     onNavigateToTempAlbum = onNavigateToTempAlbum
                 )
             } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                // 권한 없음 상태 UI
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("카메라 권한이 필요합니다.")
-                    Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) {
-                        Text("권한 요청")
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.PhotoCamera,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "카메라 권한이 필요합니다",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "아이와의 소중한 순간을 담기 위해\n권한을 허용해 주세요.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = { launcher.launch(Manifest.permission.CAMERA) },
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        )
+                    ) {
+                        Text("권한 허용하기")
                     }
                 }
             }
@@ -173,6 +204,9 @@ fun CameraContent(
     val frontImageCapture = remember { ImageCapture.Builder().build() }
     val mainExecutor = remember { ContextCompat.getMainExecutor(context) }
     var isDualMode by remember { mutableStateOf(false) }
+
+    // 셔터 효과 상태 (화면 깜빡임)
+    var showShutterEffect by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // 1. Back Camera View
@@ -235,6 +269,13 @@ fun CameraContent(
                     .clip(CircleShape)
                     .background(Color.White)
                     .clickable { // Click Logic
+                        // 셔터 효과 발동
+                         scope.launch {
+                             showShutterEffect = true
+                             delay(100) // 0.1초 동안 검은 화면 유지
+                             showShutterEffect = false
+                         }
+
                         // ... Same capture logic ...
                          val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.KOREA)
                          val timestamp = sdf.format(Date())
@@ -292,6 +333,15 @@ fun CameraContent(
                      isDualMode = false
                  }
              } catch (e: Exception) { isDualMode = false }
+        }
+
+        // 셔터 효과 오버레이 (가장 최상위에 그려짐)
+        if (showShutterEffect) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+            )
         }
     }
 }

@@ -17,7 +17,7 @@ interface SharedMediaRepository {
      * 🖼️ 공유 앨범 목록 관찰 (Paging 3)
      * - 최적화된 Paging 데이터 스트림
      */
-    fun getSharedAlbumPagingStream(): Flow<PagingData<SharedMedia>>
+    fun getSharedAlbumPagingStream(babyId: String? = null): Flow<PagingData<SharedMedia>>
 
     /**
      * ➕ 새로운 미디어 추가 (업로드 대기 상태로 저장)
@@ -57,7 +57,7 @@ interface SharedMediaRepository {
      * ☁️ 서버 동기화 (Download)
      * - 서버의 최신 목록을 받아와 로컬 DB를 갱신
      */
-    suspend fun syncWithServer(groupId: String): Boolean
+    suspend fun syncWithServer(groupId: String, filterByUserId: String? = null): Boolean
     /**
      * 🚀 미전송 미디어 업로드 (Upload)
      * - DB에서 'NOT_UPLOADED' 상태인 항목들을 찾아 서버로 전송

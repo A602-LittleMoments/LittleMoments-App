@@ -163,8 +163,8 @@ fun CameraButton(
         shape = RoundedCornerShape(22.dp),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = main,
-            contentColor = lightbackground,
+            containerColor = background,
+            contentColor = main,
             disabledContainerColor = main.copy(alpha = 0.35f),
             disabledContentColor = lightbackground.copy(alpha = 0.7f),
         ),
@@ -186,7 +186,7 @@ fun CameraButton(
                 Icon(
                     imageVector = LMicons.Camera,
                     contentDescription = null,
-                    tint = lightbackground,
+                    tint = main,
                     modifier = Modifier.size(18.dp)
                 )
 
@@ -195,6 +195,7 @@ fun CameraButton(
                 Text(
                     text = text,
                     style = MaterialTheme.typography.labelLarge,
+                    color = main
                 )
             }
         }

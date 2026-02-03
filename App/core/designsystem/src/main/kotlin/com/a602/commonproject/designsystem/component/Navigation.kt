@@ -30,6 +30,7 @@ import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.AppTypography
 import com.a602.commonproject.designsystem.theme.color3
 import com.a602.commonproject.designsystem.theme.lightbackground
+import com.a602.commonproject.designsystem.theme.main
 import java.time.format.TextStyle
 
 /**
@@ -42,6 +43,41 @@ import java.time.format.TextStyle
  * @param label 항목에 표시될 텍스트 라벨 컴포저블 콘텐츠입니다.
  * 이 항목이 선택되었을 때만 라벨이 표시됩니다.
  */
+
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.foundation.layout.size
+
+/**
+ * [Fix] PNG 아이콘 지원을 위한 오버로드 함수
+ * - painter: 원본 색상(Color.Unspecified)과 고정 크기(24dp)를 강제 적용합니다.
+ */
+@Composable
+fun RowScope.LMNavigationBarItem(
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    alwaysShowLabel: Boolean = true,
+    painter: Painter, // PNG나 Drawable Painter 직접 수신
+    label: String? = null,
+) {
+    LMNavigationBarItem(
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        alwaysShowLabel = alwaysShowLabel,
+        icon = {
+            Icon(
+                painter = painter,
+                contentDescription = label,
+                modifier = Modifier.size(52.dp), // [Fix] 32dp -> 40dp로 더 확대
+                tint = Color.Unspecified // 원본 색상 사용 (실루엣 방지)
+            )
+        },
+        label = label
+    )
+}
 
 @Composable
 fun RowScope.LMNavigationBarItem(
@@ -73,8 +109,7 @@ fun RowScope.LMNavigationBarItem(
                     Text(
                         text = label,
                         style = AppTypography.labelMedium, // 폰트 스타일
-                        color = if (selected) LMNavigationDefaults.navigationSelectedItemColor()
-                        else LMNavigationDefaults.navigationContentColor(), // 색상
+                        color = main // 색상
                     )
                 }
             }
@@ -83,8 +118,8 @@ fun RowScope.LMNavigationBarItem(
         enabled = enabled,
         alwaysShowLabel = alwaysShowLabel,
         colors = NavigationBarItemDefaults.colors(
-            selectedIconColor = LMNavigationDefaults.navigationSelectedItemColor(),
-            unselectedIconColor = LMNavigationDefaults.navigationContentColor(),
+            selectedIconColor =main,
+            unselectedIconColor = main,
             selectedTextColor = LMNavigationDefaults.navigationSelectedItemColor(),
             unselectedTextColor = LMNavigationDefaults.navigationContentColor(),
             indicatorColor = LMNavigationDefaults.navigationIndicatorColor(),

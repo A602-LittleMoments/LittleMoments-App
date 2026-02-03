@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Surface
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.padding
+import com.a602.commonproject.designsystem.theme.PointYellow
 import com.a602.commonproject.designsystem.theme.lightbackground
 
 
@@ -58,7 +59,7 @@ fun ProfileHead(
     // --- 외형 설정 ---
     size: Dp = 154.dp,               // 얼굴 크기
     borderWidth: Dp = 10.dp,          // 테두리 두께
-    borderColor: Color = color5,      // 테두리 색
+    borderColor: Color = PointYellow,      // 테두리 색
     placeholderColor: Color = gray2,  // 이미지 없을 때 배경색
 
     // --- 상호작용 제어 ---

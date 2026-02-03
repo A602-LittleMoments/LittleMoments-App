@@ -43,6 +43,8 @@ interface MediaNetworkDataSource {
         cursor: String? = null,
         startDate: String? = null,
         endDate: String? = null,
+        babyId: String? = null,
+        filterByUserId: String? = null,
     ): MediaListResponse
 
     // 4.4 미디어 상세 조회
@@ -107,6 +109,8 @@ internal class RetrofitMediaNetwork @Inject constructor(
         cursor: String?,
         startDate: String?,
         endDate: String?,
+        babyId: String?,
+        filterByUserId: String?,
     ): MediaListResponse {
         return mediaApi.getAlbums(
             groupId = groupId,
@@ -114,6 +118,8 @@ internal class RetrofitMediaNetwork @Inject constructor(
             cursor = cursor,
             startDate = startDate,
             endDate = endDate,
+            babyId = babyId,
+            filterByUserId = filterByUserId,
         )
     }
 

@@ -60,6 +60,29 @@ fun NotificationScreen(
         },
         containerColor = background
     ) { paddingValues ->
+        // Status Bar Customization for this screen
+        val view = androidx.compose.ui.platform.LocalView.current
+        if (!view.isInEditMode) {
+            androidx.compose.runtime.DisposableEffect(Unit) {
+                val window = (view.context as android.app.Activity).window
+                val insetsController = androidx.core.view.WindowCompat.getInsetsController(window, view)
+
+                // Save original values
+                val originalStatusBarColor = window.statusBarColor
+                val originalAppearanceLightStatusBars = insetsController.isAppearanceLightStatusBars
+
+                // Set new values for NotificationScreen: Light background (Ivory/White) + Dark Icons
+                window.statusBarColor = android.graphics.Color.parseColor("#FFFAEB") // IvoryCream
+                insetsController.isAppearanceLightStatusBars = true
+
+                onDispose {
+                    // Restore original values (Global Theme: NavyBlue + Light Icons)
+                    window.statusBarColor = originalStatusBarColor
+                    insetsController.isAppearanceLightStatusBars = originalAppearanceLightStatusBars
+                }
+            }
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
