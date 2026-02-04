@@ -63,8 +63,10 @@ import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
+import com.a602.commonproject.designsystem.theme.color5
 import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.designsystem.theme.lightblue
+import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.feature.album.viewmodel.TempAlbumViewModel
 import com.a602.commonproject.model.data.TempMedia
 import kotlinx.coroutines.launch
@@ -144,34 +146,22 @@ fun TempGridGallery(
                 onNavigationClick = onBackClick,
             )
 
-            Spacer(Modifier.height(56.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // 상단 설명 탭
-            Surface(
+            // 상단 설명 텍스트 (이미지와 유사하게)
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp, horizontal = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = Color(0xFF001229).copy(alpha = 0.8f),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)),
-                shadowElevation = 4.dp
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.padding(end = 12.dp)
-                    )
-                    Text(
-                        text = "임시 앨범의 사진은 30일 후 사라져요.\n소중한 사진은 저장해주세요!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White
-                    )
-                }
+                Text(
+                    text = "30일 뒤 사라질 우리들의 순간을 담아봐요",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = background.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
             }
 
             Column(
@@ -179,19 +169,45 @@ fun TempGridGallery(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
-                // 상단 버튼
+                // 상단 버튼 (전체 선택 / 선택)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp, horizontal = 10.dp),
+                        .padding(vertical = 16.dp, horizontal = 4.dp),
                 ) {
                     if (medias.isNotEmpty()) {
-                        FillWrapButton(
-                            onClick = onClearAll,
-                            text = "전체비우기",
-                            modifier = Modifier.align(Alignment.CenterStart),
-                        )
+                        // 전체 선택 / 해제 버튼
+                        if (isSelectMode) {
+                            FillWrapButton(
+                                onClick = {
+                                    if (selectedIds.size == medias.size) {
+                                        selectedIds.clear() // 전체 해제
+                                    } else {
+                                        selectedIds.clear()
+                                        selectedIds.addAll(medias.map { it.id }) // 전체 선택
+                                    }
+                                },
+                                text = if (selectedIds.size == medias.size) "선택해제" else "전체선택",
+                                modifier = Modifier.align(Alignment.CenterStart),
+                            )
+                        } else {
+                            // 일반 모드일 때는 전체 선택 버튼 (Design Guide image 1 - Left button seems to be '전체선택' even in normal mode?
+                            // Or maybe it's cleaner to show it only when relevant.
+                            // The user said "임의의 사진 하나를 꾹 누르면...".
+                            // Let's keep "전체선택" visible if desired, or maybe just "Select" button.
+                            // Image 1 shows "전체선택" on left and "선택" on right.
+                             FillWrapButton(
+                                onClick = {
+                                    isSelectMode = true
+                                    selectedIds.clear()
+                                    selectedIds.addAll(medias.map { it.id })
+                                },
+                                text = "전체선택",
+                                modifier = Modifier.align(Alignment.CenterStart),
+                            )
+                        }
 
+                        // 선택 / 취소 버튼
                         FillWrapButton(
                             onClick = {
                                 isSelectMode = !isSelectMode
@@ -218,9 +234,15 @@ fun TempGridGallery(
                         onClick = { media ->
                             if (isSelectMode) {
                                 if (selectedIds.contains(media.id)) selectedIds.remove(media.id)
-                                 else selectedIds.add(media.id)
+                                else selectedIds.add(media.id)
                             } else {
                                 onMediaClick(media)
+                            }
+                        },
+                        onLongClick = { media ->
+                            if (!isSelectMode) {
+                                isSelectMode = true
+                                selectedIds.add(media.id)
                             }
                         },
                         modifier = Modifier.fillMaxSize()
@@ -239,34 +261,40 @@ fun TempGridGallery(
             Surface(
                 tonalElevation = 8.dp,
                 modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFF001229).copy(alpha = 0.95f),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)),
+                color = Color.White,
+                border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.2f)),
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 40.dp)
+                        .padding(vertical = 12.dp, horizontal = 20.dp)
                         .navigationBarsPadding(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    FooterActionItem(
-                        icon = LMicons.Delete,
+                    // 삭제 버튼 (NavyBlue 배경)
+                    FillWrapButton(
                         text = "삭제",
-                        color = Color.White,
                         onClick = { showDeleteDialog = true },
+                        modifier = Modifier.weight(1f).padding(end = 8.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1B2430) // NavyBlue
+                        )
                     )
 
-                    FooterActionItem(
-                        icon = LMicons.Download,
+                    // 저장 버튼 (NavyBlue 배경)
+                    FillWrapButton(
                         text = "저장",
-                        color = Color.White,
                         onClick = {
                             val ids = selectedIds.toList()
                             onSaveSelected(ids)
                             selectedIds.clear()
                             isSelectMode = false
                         },
+                        modifier = Modifier.weight(1f).padding(start = 8.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1B2430) // NavyBlue
+                        )
                     )
                 }
             }
@@ -336,22 +364,12 @@ fun TempAlbumEmptyState(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = LMicons.Camera,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.9f),
-                modifier = Modifier
-                    .padding(bottom = 20.dp)
-                    .size(80.dp)
-                    .shadow(12.dp, CircleShape)
-            )
-
             Text(
                 text = "임시 앨범이 비어있어요",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.ExtraBold,
                     shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.6f),
+                        color = color5.copy(alpha = 0.6f),
                         offset = Offset(2f, 4f),
                         blurRadius = 8f
                     )
@@ -370,7 +388,7 @@ fun TempAlbumEmptyState(
                 text = "촬영한 사진이 임시로 저장되며\n가족 앨범에 고스란히 공유할 수 있어요.",
                 style = MaterialTheme.typography.bodyLarge.copy(
                     shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.5f),
+                        color = main.copy(alpha = 0.5f),
                         offset = Offset(1f, 2f),
                         blurRadius = 6f
                     )

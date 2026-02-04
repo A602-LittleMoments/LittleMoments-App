@@ -61,7 +61,7 @@ fun GridRoute(
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
     viewModel: GridGalleryViewmodel = hiltViewModel(),
-    ) {
+) {
     LaunchedEffect(keywordId, title, babyId, year) {
         viewModel.setFilter(keywordId, title, babyId, year)
     }

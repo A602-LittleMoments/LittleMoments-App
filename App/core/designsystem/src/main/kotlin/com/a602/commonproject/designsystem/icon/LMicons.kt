@@ -26,6 +26,10 @@ import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.ModeEdit
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.runtime.Composable
@@ -90,6 +94,11 @@ object LMicons {
     val Add = Icons.Outlined.Add // +
 
     val Heart = Icons.Rounded.Favorite
+
+    val logout = Icons.AutoMirrored.Outlined.Logout
+    val edit_outline = Icons.Outlined.ModeEdit
+    val edit_note = Icons.Outlined.EditNote
+    val person_add = Icons.Outlined.PersonAdd
 
     // 알림 타입 정하고 사용
 //    fun notification(type: LMNotificationType): ImageVector {

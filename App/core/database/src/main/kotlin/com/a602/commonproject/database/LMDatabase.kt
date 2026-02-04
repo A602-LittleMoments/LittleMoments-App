@@ -22,7 +22,7 @@ import com.a602.commonproject.database.model.NotificationEntity
         NotificationEntity::class,
         MediaBabyCrossRefEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 internal abstract class LMDatabase : RoomDatabase(){

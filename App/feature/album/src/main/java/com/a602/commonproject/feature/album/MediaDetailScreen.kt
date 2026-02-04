@@ -182,7 +182,7 @@ fun MediaDetailScreen(
                         tint = Color(0xFFFFF176) // Pastel Yellow
                     )
 
-                     // 3. Top Right Small - Cream Star
+                    // 3. Top Right Small - Cream Star
                     Icon(
                         painter = painterResource(id = DesignR.drawable.star),
                         contentDescription = null,
@@ -215,7 +215,7 @@ fun MediaDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         repeat(3) {
-                             Icon(
+                            Icon(
                                 painter = painterResource(id = DesignR.drawable.star),
                                 contentDescription = null,
                                 modifier = Modifier
