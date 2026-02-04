@@ -41,6 +41,22 @@ fun MultiPhotoUploadScreen(
     val captions = remember { mutableStateMapOf<String, String>() }
 
     val pagerState = rememberPagerState(pageCount = { selectedMedias.size })
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Handle success/error state
+    LaunchedEffect(uploadState) {
+        when (uploadState) {
+            is UploadState.Success -> {
+                snackbarHostState.showSnackbar("공유 앨범에 저장되었습니다!")
+                kotlinx.coroutines.delay(800) // Give user time to see it
+                onUploadSuccess()
+            }
+            is UploadState.Error -> {
+                snackbarHostState.showSnackbar((uploadState as UploadState.Error).message)
+            }
+            else -> {}
+        }
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -50,7 +66,8 @@ fun MultiPhotoUploadScreen(
                 navigationIcon = LMicons.Back,
                 onNavigationClick = onBackClick
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
@@ -114,7 +131,8 @@ fun MultiPhotoUploadScreen(
                     Button(
                         onClick = {
                             viewModel.upload(captions) {
-                                onUploadSuccess()
+                                // ViewModel's onComplete handles basic navigation, 
+                                // but we use LaunchedEffect for better UX with snackbar.
                             }
                         },
                         modifier = Modifier

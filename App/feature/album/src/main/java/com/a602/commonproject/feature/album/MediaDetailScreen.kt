@@ -69,6 +69,8 @@ fun MediaDetailRoute(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val scope = rememberCoroutineScope()
+
     // 삭제 성공 → 뒤로가기
     LaunchedEffect(uiState.deleteSuccess) {
         if (uiState.deleteSuccess) {
@@ -81,14 +83,18 @@ fun MediaDetailRoute(
     LaunchedEffect(uiState.downloadSuccess, uiState.saveBitmapSuccess) {
         if (uiState.downloadSuccess || uiState.saveBitmapSuccess) {
             viewModel.onDownloadSuccessConsumed()
-            snackbarHostState.showSnackbar("사진을 저장했어요")
+            scope.launch {
+                snackbarHostState.showSnackbar("사진을 저장했어요")
+            }
         }
     }
 
     // 에러 스낵바
     LaunchedEffect(uiState.errorMessage) {
         val msg = uiState.errorMessage ?: return@LaunchedEffect
-        snackbarHostState.showSnackbar(msg)
+        scope.launch {
+            snackbarHostState.showSnackbar(msg)
+        }
         viewModel.clearError()
     }
 
