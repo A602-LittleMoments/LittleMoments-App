@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.feature.baby)
     implementation(projects.feature.login)
     implementation(projects.feature.camera)
+    implementation(libs.androidx.ui)
 
     ksp(libs.hilt.compiler)
 

@@ -167,4 +167,44 @@ interface MediaDao {
         ORDER BY takenAt DESC
     """)
     fun getSharedMediaPagingSourceByBaby(babyId: String): PagingSource<Int, ShareMediaEntity>
+
+    // 특정 아기 + 날짜 범위 조회 (년도별 필터링용)
+    @Transaction
+    @Query("""
+        SELECT * FROM shared_media
+        INNER JOIN media_baby_cross_ref ON shared_media.mediaId = media_baby_cross_ref.mediaId
+        WHERE media_baby_cross_ref.babyId = :babyId
+        AND syncStatus != 'TO_BE_DELETE'
+        AND takenAt >= :startMillis AND takenAt <= :endMillis
+        ORDER BY takenAt DESC
+    """)
+    fun getSharedMediaPagingSourceByBabyAndDateRange(babyId: String, startMillis: Long, endMillis: Long): PagingSource<Int, ShareMediaEntity>
+
+
+    // =================================================================
+    // 👶 UI List Filtering Methods (Non-Paging)
+    // =================================================================
+
+    // 특정 아기의 사진만 조회 (Flow List)
+    @Transaction
+    @Query("""
+        SELECT * FROM shared_media
+        INNER JOIN media_baby_cross_ref ON shared_media.mediaId = media_baby_cross_ref.mediaId
+        WHERE media_baby_cross_ref.babyId = :babyId
+        AND syncStatus != 'TO_BE_DELETE'
+        ORDER BY takenAt DESC
+    """)
+    fun getSharedMediaFlowByBaby(babyId: String): Flow<List<ShareMediaEntity>>
+
+    // 특정 아기 + 날짜 범위 조회 (Flow List)
+    @Transaction
+    @Query("""
+        SELECT * FROM shared_media
+        INNER JOIN media_baby_cross_ref ON shared_media.mediaId = media_baby_cross_ref.mediaId
+        WHERE media_baby_cross_ref.babyId = :babyId
+        AND syncStatus != 'TO_BE_DELETE'
+        AND takenAt >= :startMillis AND takenAt <= :endMillis
+        ORDER BY takenAt DESC
+    """)
+    fun getSharedMediaFlowByBabyAndDateRange(babyId: String, startMillis: Long, endMillis: Long): Flow<List<ShareMediaEntity>>
 }

@@ -18,7 +18,9 @@ data object CalendarNavKey : NavKey*/
 @Serializable
 data class GridNavKey(
     val keywordId: String? = null,
-    val title: String? = null
+    val title: String? = null,
+    val babyId: String? = null,
+    val year: Int? = null
 ) : NavKey
 data class DayGridNavKey(val date: LocalDate) : NavKey
 

@@ -1,8 +1,11 @@
 package com.a602.commonproject.feature.baby
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -48,7 +52,6 @@ import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.feature.baby.components.MemorableMoments
-import com.a602.commonproject.feature.baby.components.timelineSection
 import com.a602.commonproject.model.data.Baby
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.PagerState
@@ -59,7 +62,14 @@ import com.a602.commonproject.designsystem.theme.color6
 import com.a602.commonproject.designsystem.theme.main
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
 
 
 /**
@@ -82,6 +92,9 @@ fun BabyRoute(
     viewModel: HomeViewModel = hiltViewModel(),
     onNotificationClick: () -> Unit,
     onNavigateToUpload: () -> Unit,
+    onNavigateToAddBaby: () -> Unit,
+    onNavigateToEditBaby: (String) -> Unit,
+    onNavigateToGallery: (String, Int) -> Unit,
 ) {
     // CollectAsState: Flow 데이터를 Compose State로 변환하여, 데이터 변경 시 리컴포지션(Recomposition)을 유발합니다.
     val uiState by viewModel.uiState.collectAsState()
@@ -107,6 +120,9 @@ fun BabyRoute(
                 uiState = state,
                 onNotificationClick = onNotificationClick,
                 onNavigateToUpload = onNavigateToUpload,
+                onNavigateToAddBaby = onNavigateToAddBaby,
+                onNavigateToEditBaby = onNavigateToEditBaby,
+                onNavigateToGallery = onNavigateToGallery,
                 // ViewModel 함수는 여기서 직접 전달하거나 람다로 래핑해서 전달할 수 있습니다.
                 // 여기서는 탭 변경 로직 등을 위해 ViewModel 인스턴스를 주입했습니다.
             )
@@ -134,197 +150,315 @@ fun BabyRoute(
  * @param viewModel 탭 변경(아기 선택) 시 상태 업데이트를 위해 사용
  */
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BabyScreen(
     uiState: HomeUiState.Success,
     onNotificationClick: () -> Unit,
     onNavigateToUpload: () -> Unit,
+    onNavigateToAddBaby: () -> Unit,
+    onNavigateToEditBaby: (String) -> Unit,
+    onNavigateToGallery: (String, Int) -> Unit, // babyId, year
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     // region [UI State Definitions]
-
-    // PagerState: 아기 프로필 슬라이더의 현재 페이지 및 스크롤 상태 관리
-    // initialPage: ViewModel에서 관리하는 선택된 인덱스로 초기화
     val pagerState = rememberPagerState(
         initialPage = uiState.selectedBabyIndex,
         pageCount = { uiState.babies.size },
     )
-
-    // CoroutineScope: 비동기 작업(예: 스크롤 애니메이션)을 시작하기 위한 스코프
     val coroutineScope = rememberCoroutineScope()
     // endregion
 
-    val pagingItems = viewModel.mediaPagingFlow.collectAsLazyPagingItems()
     val currentBaby = if (uiState.babies.isNotEmpty()) {
         uiState.babies.getOrNull(pagerState.currentPage)
     } else null
 
-    // region [Side Effects - State Synchronization]
 
-    // 1. Pager -> ViewModel 동기화
-    // 사용자가 손으로 Pager를 스크롤했을 때, 뷰모델의 현재 선택된 아기 인덱스를 업데이트합니다.
+
+    // region [Side Effects - State Synchronization]
     LaunchedEffect(pagerState.currentPage) {
         if (pagerState.currentPage != uiState.selectedBabyIndex) {
             viewModel.updateSelectedBaby(pagerState.currentPage)
         }
     }
 
-
     // region [Layout Structure]
     Scaffold(
-        contentColor = background,
+        containerColor = Color.Transparent, // 배경 이미지를 위해 투명
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = NavigationBarHeight)
-            .navigationBarsPadding()
-            .statusBarsPadding()
+            // .padding(bottom = NavigationBarHeight) // [Fix] Removed to allow background behind nav bar
+            // .navigationBarsPadding() // [Fix] Removed to allow background behind nav bar
+            // .statusBarsPadding() // [Fix] Removed to allow background behind status bar
     ) { paddingValues ->
 
-        // [Main Content: Scrollable List]
-        // LazyColumn을 사용하여 성능 최적화된 스크롤 목록 구현
-        LazyColumn(
-            contentPadding = paddingValues, // Scaffold가 제공하는 padding 적용 (TopBar 등에 가려지지 않게)
-            modifier = Modifier.fillMaxSize(),
-        ) {
+        // Background Image
+        Box(Modifier.fillMaxSize()) {
+             Image(
+                painter = painterResource(id = R.drawable.baby_background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop // 꽉 차게
+            )
 
-            // 1. [아기 프로필 섹션] (Pager)
-            item {
-                TopTabSection(
-                    uiState = uiState,
-                    onNotificationClick = onNotificationClick,
-                    pagerState = pagerState,
-                    coroutineScope = coroutineScope,
-                )
-                if (uiState.babies.isNotEmpty()) {
+            // Main Content
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .padding(bottom = NavigationBarHeight + 16.dp) // Ensure content clears Nav Bar
+            ) {
+                // 1. [아기 프로필 섹션] (Edit 버튼 포함)
+                Box(modifier = Modifier.fillMaxWidth()) {
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier.fillMaxWidth(),
                     ) { page ->
-                        // 각 페이지에 해당하는 아기 정보를 전달하여 프로필 카드 렌더링
                         BabyProfileSection(baby = uiState.babies[page])
                     }
-                } else {
-                    // 등록된 아기가 없을 경우 표시되는 Empty State
+
+                    // Edit Button (Top Right)
+                    // [Fix] Enhanced visibility with background and border because user said it's hard to see
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .size(48.dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape)
+                            .background(Color.White.copy(alpha = 0.2f)) // Semi-transparent glass effect
+                            .border(1.dp, Color.White.copy(alpha = 0.5f), androidx.compose.foundation.shape.CircleShape)
+                            .clickable { currentBaby?.let { onNavigateToEditBaby(it.babyId) } },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = LMicons.Edit, // Keeping same icon but now framing it
+                            contentDescription = "Edit Baby",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp) // adjusted inner icon size
+                        )
+                    }
+                }
+
+                if (uiState.babies.isEmpty()) {
                     EmptyBabyState()
                 }
-            }
 
-            // [Divider] 섹션 구분선
-            item {
-                HorizontalDivider(
-                    thickness = 0.5.dp,
-                    color = Color.LightGray,
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
-                )
-            }
-
-
-            // 2. [기억하고 싶은 순간 섹션] (Collection Slider)
-            // 컬렉션 데이터가 있을 때만 영역을 표시합니다.
-            if (uiState.collections.isNotEmpty()) {
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    MemorableMoments(collections = uiState.collections)
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-            }
-
-            // 3. [타임라인 섹션] (Photo List)
-
-
-                timelineSection(
-                    pagingItems = pagingItems,
-                    birthDate = currentBaby?.birthDate ?: "",
-                    onPhotoClick = {},
+                // 2. [아기 선택 & 추가 섹션] (Tabs + Add Button)
+                BabySelectionSection(
+                    uiState = uiState,
+                    pagerState = pagerState,
+                    coroutineScope = coroutineScope,
+                    onAddBabyClick = onNavigateToAddBaby
                 )
 
-            // [Empty Timeline Handling]
-            if (pagingItems.itemCount == 0) {
-                item {
-                    EmptyTimelineState()
-                }
-            } else {
-                item {
-                    // 리스트 하단 여백 확보
-                    Spacer(modifier = Modifier.height(32.dp))
-                }
+                // [Fix] Added Spacer below TabRow as requested
+                Spacer(modifier = Modifier.height(60.dp)) // Increased spacing (24dp -> 60dp) to prevent overlap
+
+                // 3. [발자국 필터 섹션]
+                // Spacer(Modifier.weight(1f)) // Optional: Push footprints to bottom if needed, but user didn't specify.
+                FootprintFilterSection(
+                    onYearSelected = { yearOffset ->
+                        val currentYear = java.time.LocalDate.now().year
+                        val targetYear = currentYear - yearOffset
+                        currentBaby?.let { baby ->
+                             onNavigateToGallery(baby.babyId, targetYear)
+                        }
+                    }
+                )
             }
         }
+
     }
-// endregion
 }
 
-
 @Composable
-fun TopTabSection(
+fun BabySelectionSection(
     uiState: HomeUiState.Success,
     pagerState: PagerState,
     coroutineScope: CoroutineScope,
-    onNotificationClick: () -> Unit,
+    onAddBabyClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 8.dp), // 좌우 여백 디테일,
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (uiState.babies.size >= 2) {
+        if (uiState.babies.size >= 1) { // 1명 이상이면 탭 표시
             SecondaryScrollableTabRow(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    // [Fix] Added outline border as requested for better visibility
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(24.dp)),
                 selectedTabIndex = uiState.selectedBabyIndex,
-                edgePadding = 0.dp,
-                containerColor = Color.Transparent, // 탭 배경을 투명하게 처리 (깔끔한 디자인)
-                contentColor = Color.Black, // 텍스트 및 아이콘 기본 색상
-                divider = {}, // 기본 하단 구분선(Divider) 제거하여 심플하게 표현
+                edgePadding = 12.dp, // Added padding inside the border
+                containerColor = Color.White.copy(alpha = 0.1f), // Slight background for glass effect
+                contentColor = Color.White,
+                divider = {},
+                indicator = {}
             ) {
-                // 각 아기별 탭 생성
                 uiState.babies.forEachIndexed { index, baby ->
                     Tab(
                         modifier = Modifier
-                            .padding(horizontal = 4.dp) // 1. 탭끼리 너무 붙지 않게 약간 띄움
-                            .clip(RoundedCornerShape(80))
-                            .background(Color.Transparent)// 2. 🚨 핵심: 탭 모양을 둥근 알약으로 깎음 -> 리플도 둥글게 나옴!
-                            .wrapContentWidth(), // 내용만큼만 크기 잡기
+                            .padding(end = 12.dp)
+                            .wrapContentWidth(),
                         selected = uiState.selectedBabyIndex == index,
-                        // 🚨 핵심 1: 탭에게 "내용물 색(=리플 색)은 노란색(main)이야"라고 선언
-                        selectedContentColor = background,
-                        unselectedContentColor = background,
                         onClick = {
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(index)
                             }
                         },
                         text = {
-                            Text(
-                                text = baby.babyName,
-                                // 선택 여부에 따라 텍스트 색상과 굵기 변경 (가독성 향상)
-                                color = if (uiState.selectedBabyIndex == index) main else color6,
-                                fontWeight = if (uiState.selectedBabyIndex == index) FontWeight.Bold else FontWeight.Normal,
-                                fontSize = 16.sp,
-                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = baby.babyName,
+                                    // [Fix] Make unselected text visible (LightGray instead of Gray)
+                                    color = if (uiState.selectedBabyIndex == index) Color.White else Color.White.copy(alpha = 0.6f),
+                                    fontWeight = if (uiState.selectedBabyIndex == index) FontWeight.Bold else FontWeight.Normal,
+                                    fontSize = 18.sp,
+                                )
+                                if (uiState.selectedBabyIndex == index) {
+                                    Spacer(modifier = Modifier.height(4.dp)) // Increased spacing
+                                    Box(
+                                        modifier = Modifier
+                                            .width(40.dp)   // [Fix] Increased width (20 -> 40)
+                                            .height(4.dp)   // [Fix] Increased height (2 -> 4) for visibility
+                                            .clip(RoundedCornerShape(2.dp)) // Rounded for niceness
+                                            .background(Color.White)
+                                    )
+                                }
+                            }
                         },
                     )
                 }
             }
         } else {
-            Spacer(Modifier.weight(1f)) // 탭과 알림 사이 빈 공간 채우기
+            Spacer(Modifier.weight(1f))
         }
 
-
-        IconButton(
-            onClick = onNotificationClick,
-            modifier = Modifier.padding(end = 8.dp).size(48.dp),
+        // Add Baby Button
+        // [Fix] Applied outline frame style to match TabRow
+        Box(
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .size(56.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color.White.copy(alpha = 0.1f))
+                .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                .clickable(onClick = onAddBabyClick),
+            contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = LMicons.Notifications,
-                contentDescription = null,
-                tint = main,
+                imageVector = androidx.compose.material.icons.Icons.Outlined.PersonAdd,
+                contentDescription = "Add Baby",
+                tint = Color.White,
                 modifier = Modifier.size(32.dp)
             )
         }
     }
 }
+
+@Composable
+fun FootprintFilterSection(
+    onYearSelected: (Int) -> Unit // 0: All, 1: 1year ago...
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp) // Adjusted height for horizontal layout
+            .padding(bottom = 20.dp)
+    ) {
+        // 배경은 상위에서 처리됨 (Moon surface included in baby_background)
+
+        // 발자국 배치 (Walking Trail Pattern: Horizontal Left -> Right)
+        // [Fix] Removed Rotation
+        // [Fix] Adjusted Vertical Spacing (Y offsets)
+
+        // 4년 전 (Far Left)
+        FootprintItem(
+            resId = R.drawable.fourth_footprint,
+            label = "4년 전",
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(x = (-130).dp, y = (-20).dp), // Y Adjusted
+            onClick = { onYearSelected(4) }
+        )
+
+        // 3년 전 (Mid Left)
+        FootprintItem(
+            resId = R.drawable.third_footprint,
+            label = "3년 전",
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(x = (-50).dp, y = (-100).dp), // Y Adjusted
+            onClick = { onYearSelected(3) }
+        )
+
+        // 2년 전 (Mid Right)
+        FootprintItem(
+            resId = R.drawable.second_footprint,
+            label = "2년 전",
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(x = 30.dp, y = (-20).dp), // Y Adjusted (Matches 4yr)
+            onClick = { onYearSelected(2) }
+        )
+
+         // 1년 전 (Far Right)
+        FootprintItem(
+            resId = R.drawable.first_footprint,
+            label = "1년 전",
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(x = 110.dp, y = (-100).dp), // Y Adjusted (Matches 3yr)
+            onClick = { onYearSelected(1) }
+        )
+    }
+}
+
+@Composable
+fun FootprintItem(
+    resId: Int,
+    label: String,
+    modifier: Modifier = Modifier,
+    // [Fix] Removed rotation parameter
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier, // [Fix] Removed clickable from Column (prevents wide hit box)
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = resId),
+            contentDescription = null,
+            modifier = Modifier
+                .size(100.dp) // [Fix] Reduced size (130 -> 100) for tighter touch target
+                .clip(androidx.compose.foundation.shape.CircleShape)
+                .clickable { onClick() }, // [Fix] Click only on Image
+            contentScale = ContentScale.Fit,
+            alpha = 1f
+        )
+        // [Fix] Reduced gap with text closer (Adjusted for new image size)
+        Text(
+            text = label,
+            modifier = Modifier.offset(y = (-25).dp), // Adjusted text offset (-35 -> -25) relative to smaller image
+            style = MaterialTheme.typography.titleMedium.copy(
+                shadow = androidx.compose.ui.graphics.Shadow(
+                    color = Color.Black.copy(alpha = 0.3f),
+                    offset = androidx.compose.ui.geometry.Offset(1f, 1f),
+                    blurRadius = 2f
+                )
+            ),
+            color = Color.White,
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 18.sp
+        )
+    }
+}
+
+
 
 
 /**
@@ -341,7 +475,8 @@ fun BabyProfileSection(baby: Baby)
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 24.dp),
+            // [Fix] Increased top padding to lower profile, reduced bottom to avoid pushing layout down
+            .padding(top = 50.dp, bottom = 10.dp), // was vertical = 24.dp,
         contentAlignment = Alignment.Center,
     ) {
         // region [Background Decoration - Stars]
@@ -417,6 +552,7 @@ fun BabyProfileSection(baby: Baby)
                 text = baby.babyName,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
+                color = Color.White // Text Color Changed
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -426,7 +562,7 @@ fun BabyProfileSection(baby: Baby)
                 Text(
                     text = "D+${calculateDaysSince(baby.birthDate)}",
                     fontSize = 18.sp,
-                    color = Color.Gray,
+                    color = Color.White.copy(alpha = 0.8f), // Text Color Changed
                 )
             }
 
@@ -441,7 +577,7 @@ fun BabyProfileSection(baby: Baby)
                     .width(180.dp)
                     .height(14.dp)
                     .clip(RoundedCornerShape(7.dp)) // 둥근 모서리 처리
-                    .background(Color.LightGray.copy(alpha = 0.5f)), // 배경색 (반투명 회색)
+                    .background(Color.White.copy(alpha = 0.3f)), // 배경색 (반투명 흰색)
             ) {
                 // 진행률(Value) 표시바
 
@@ -458,7 +594,7 @@ fun BabyProfileSection(baby: Baby)
             Text(
                 text = "생일까지 D-${birthdayInfo.daysUntil}",
                 fontSize = 12.sp,
-                color = Color.Gray
+                color = Color.White.copy(alpha = 0.7f) // Text Color Changed
             )
         }
         // endregion
@@ -561,25 +697,7 @@ fun EmptyBabyState() {
     }
 }
 
-/**
- * [Empty State] EmptyTimelineState
- * 타임라인(사진)이 비어있을 때 사용자에게 업로드를 유도하는 안내 문구를 표시합니다.
- */
-@Composable
-fun EmptyTimelineState() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = "사진 속에 자라는 우리 아이,\nAI가 성장의 기록을\n앨범으로 담아드려요.",
-            textAlign = TextAlign.Center,
-            color = Color.Gray,
-        )
-    }
-}
+
 
 
 

@@ -27,50 +27,96 @@ import com.a602.commonproject.feature.album.GalleryNavKey // UPDATED // UPDATED
 import com.a602.commonproject.feature.home.navigation.MemoryNavKey // UPDATED
 import com.a602.commonproject.feature.home.navigation.memoryEntries // UPDATED
 import com.a602.commonproject.feature.mypage.navigation.myPageEntries
+import com.a602.commonproject.feature.mypage.navigation.MyPageNavKey
+import com.a602.commonproject.feature.baby.navigation.BabyNavKey
+import com.a602.commonproject.feature.camera.navigation.CameraNavKey
 import com.a602.commonproject.feature.camera.navigation.cameraEntries
-import com.a602.commonproject.feature.album.GridNavKey // UPDATED from gallery.GridNavKey
-
-import androidx.compose.ui.res.painterResource
-import androidx.compose.foundation.layout.statusBarsPadding
+import com.a602.commonproject.feature.album.GridNavKey
 import com.a602.commonproject.feature.album.navigation.galleryEntries
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import com.a602.commonproject.designsystem.component.ChangeStatusBarColor
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LMApp() {
     val appState = rememberLMAppState()
-    // 1. NavigationSuiteScaffold 대신 표준 Scaffold 사용
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding()
-            .statusBarsPadding(), // ✨ Global Status Bar Padding
-        containerColor = background,
-        floatingActionButtonPosition = FabPosition.Center,
-        bottomBar = {
-            // 2. ✨ 사용자님이 만든 LMNavigationBar 적용
 
-            /*
-            // [Backup] 애니메이션 없이 즉시 표시 (문제 발생 시 주석 해제하여 복구)
-            if (appState.shouldShowBottomBar) {
-                LMNavigationBar {
-                    TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
-                        val isSelected = appState.navigationState.currentTopLevelKey == navKey
-                        LMNavigationBarItem(
-                            selected = isSelected,
-                            onClick = { appState.navigator.navigate(navKey) },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(id = if (isSelected) navItem.selectedIcon else navItem.unselectedIcon),
-                                    contentDescription = stringResource(navItem.iconTextId),
-                                )
-                            },
-                            label = stringResource(navItem.iconTextId),
-                        )
-                    }
-                }
+    // [Fix] Dynamic Status Bar Icon Color based on Route
+    // Dark Background Screens (Home, Gallery, Baby, Camera) -> White Icons (isAppearanceLightStatusBars = false)
+    // Light Background Screens (MyPage, Login, etc.) -> Black Icons (isAppearanceLightStatusBars = true)
+    val currentKey = appState.navigationState.currentKey
+    val useDarkIcons = when (currentKey) {
+        MemoryNavKey, GalleryNavKey, GridNavKey, BabyNavKey, CameraNavKey, MyPageNavKey -> false
+        else -> true
+    }
+
+    ChangeStatusBarColor(
+        color = Color.Transparent,
+        isAppearanceLightStatusBars = useDarkIcons
+    )
+
+    // [Fix] Layout Refactor: Use Box to overlay NavigationBar over content
+    Box(modifier = Modifier.fillMaxSize()) {
+        // 1. NavigationSuiteScaffold 대신 표준 Scaffold 사용
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize(),
+                // .navigationBarsPadding() // [Fix] Removed to allow content behind nav bar
+                // .statusBarsPadding(), // [Fix] Removed to allow content behind status bar (Edge-to-Edge)
+            containerColor = background,
+            floatingActionButtonPosition = FabPosition.Center,
+            // bottomBar = { ... } // [Fix] Removed from Scaffold, moved to Box alignment
+            floatingActionButton = {
+                // ✨ 홈, 앨범, 추억 탭에서만 FAB 표시
+                // ... (existing commented out code)
             }
-            */
+        ) { _ ->
 
+            // 5. 모듈별 EntryProvider 연결
+            val provider = entryProvider {
+                loginEntries(
+                    navigator = appState.navigator,
+                    onLoginSuccess = {
+                        // 로그인 성공 시 홈(New Home = Memory)으로 이동
+                        appState.navigator.replaceRoot(MemoryNavKey)
+                    }
+                )
+                babyEntries(appState.navigator) // 구 Home -> Baby
+                // Fallback / Placeholder for unimplemented features
+
+                galleryEntries(appState.navigator) // 구 Gallery -> Album
+
+                memoryEntries(appState.navigator) // 구 Memory -> Home
+
+                myPageEntries(appState.navigator)
+
+                cameraEntries(appState.navigator)
+            }
+
+            val combinedEntryProvider: (NavKey) -> NavEntry<NavKey> = { key ->
+                provider.invoke(key)
+            }
+
+            val entries = appState.navigationState.toEntries(combinedEntryProvider)
+
+            // 4. 화면 표시 영역 (하단 바 높이만큼 padding 적용)
+            NavDisplay(
+                entries = entries,
+                modifier = Modifier
+                    .fillMaxSize(),
+
+                    // 💡 [Fix] Global padding removed. Padding is applied via wrapper above.
+                onBack = { appState.navigator.goBack() },
+            )
+        }
+
+        // [Fix] Navigation Bar overlaid at bottom
+        Box(
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
             // 애니메이션: 스플래시 화면이 사라질 때까지 100ms 기다렸다가 300ms 동안 서서히 나타남 (겹침 방지)
             AnimatedVisibility(
                 visible = appState.shouldShowBottomBar,
@@ -95,66 +141,7 @@ fun LMApp() {
                     }
                 }
             }
-        },
-        floatingActionButton = {
-            // ✨ 홈, 앨범, 추억 탭에서만 FAB 표시
-            // [Fix] currentTopLevelKey 대신 currentKey를 사용하여, 현재 '화면'이 탑 레벨일 때만 버튼이 나오도록 수정
-            /*
-            val currentKey = appState.navigationState.currentKey
-            val isTopLevelTab = currentKey == MemoryNavKey || currentKey == GalleryNavKey || currentKey == BabyNavKey
-
-            AnimatedVisibility(
-                visible = isTopLevelTab,
-                enter = fadeIn(
-                    animationSpec = tween(durationMillis = 300, delayMillis = 200)
-                ) + scaleIn(initialScale = 0.8f),
-                exit = fadeOut() + scaleOut()
-            ) {
-                CameraButton(
-                    onClick = { appState.navigator.navigate(CameraNavKey) },
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
-            }
-             */
         }
-    ) { _ ->
-
-        // 5. 모듈별 EntryProvider 연결
-        val provider = entryProvider {
-            loginEntries(
-                navigator = appState.navigator,
-                onLoginSuccess = {
-                    // 로그인 성공 시 홈(New Home = Memory)으로 이동
-                    appState.navigator.replaceRoot(MemoryNavKey)
-                }
-            )
-            babyEntries(appState.navigator) // 구 Home -> Baby
-            // Fallback / Placeholder for unimplemented features
-
-            galleryEntries(appState.navigator) // 구 Gallery -> Album
-
-            memoryEntries(appState.navigator) // 구 Memory -> Home
-
-            myPageEntries(appState.navigator)
-
-            cameraEntries(appState.navigator)
-        }
-
-        val combinedEntryProvider: (NavKey) -> NavEntry<NavKey> = { key ->
-            provider.invoke(key)
-        }
-
-        val entries = appState.navigationState.toEntries(combinedEntryProvider)
-
-        // 4. 화면 표시 영역 (하단 바 높이만큼 padding 적용)
-        NavDisplay(
-            entries = entries,
-            modifier = Modifier
-                .fillMaxSize(),
-
-                // 💡 [Fix] Global padding removed. Padding is applied via wrapper above.
-            onBack = { appState.navigator.goBack() },
-        )
     }
 }
 

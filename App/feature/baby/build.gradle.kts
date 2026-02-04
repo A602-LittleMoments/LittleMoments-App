@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.feature.camera)
     implementation(projects.feature.home)
+    implementation(projects.feature.album)
 
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)
@@ -23,5 +24,8 @@ dependencies {
 
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
+
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
 
 }

@@ -30,8 +30,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons.Default
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoCamera
@@ -124,7 +126,8 @@ fun CameraScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black),
+                        .background(Color.Black)
+                        .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -145,9 +148,10 @@ fun CameraScreen(
                         text = "아이와의 소중한 순간을 담기 위해\n권한을 허용해 주세요.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
                     )
-                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(24.dp))
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(48.dp))
                     Button(
                         onClick = { launcher.launch(Manifest.permission.CAMERA) },
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(

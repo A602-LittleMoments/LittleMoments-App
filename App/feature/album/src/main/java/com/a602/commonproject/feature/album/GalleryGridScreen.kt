@@ -55,13 +55,15 @@ fun GridRoute(
     date: LocalDate? = null,
     keywordId: String? = null,
     title: String? = null,
+    babyId: String? = null,
+    year: Int? = null,
     onBackClick: () -> Unit,
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
     viewModel: GridGalleryViewmodel = hiltViewModel(),
     ) {
-    LaunchedEffect(keywordId, title) {
-        viewModel.setFilter(keywordId, title)
+    LaunchedEffect(keywordId, title, babyId, year) {
+        viewModel.setFilter(keywordId, title, babyId, year)
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -138,7 +140,7 @@ fun GridGalleryScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = innerPadding.calculateTopPadding()) // Top padding from Scaffold (AppBar)
-                    .padding(horizontal = 8.dp), // Side margin only
+                    .padding(horizontal = 8.dp, vertical = 16.dp), // Side margin only
 
             ) {
                 // Main Container (Glass-like with Dark Theme)
@@ -151,7 +153,7 @@ fun GridGalleryScreen(
                         .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
                         .padding(start = 16.dp, end = 16.dp, top = 24.dp) // Content padding increased
                         .navigationBarsPadding() // Push content up above nav bar
-                        .padding(bottom = 32.dp) // Extra bottom padding for visuals increased
+                        .padding(bottom = 24.dp) // Extra bottom padding for visuals increased
                 ) {
                     // 1. 상단 헤더 영역 (캘린더 보기 버튼이 있을 때만 표시 = 앨범 모드일 때만)
                     if (showCalendarButton) {
