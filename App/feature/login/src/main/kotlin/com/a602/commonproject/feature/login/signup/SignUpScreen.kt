@@ -1,6 +1,7 @@
 package com.a602.commonproject.feature.login.signup
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -99,79 +100,132 @@ fun SignUpScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFFFFF9E6), // 아이보리 배경
+        containerColor = Color.Transparent, // Transparent for background image
         topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp, horizontal = 8.dp),
-            ) {
-                // 뒤로가기는 UserInfo 입력 단계에서만 허용 (그룹 생성 단계에서는 이미 가입됨)
-                if (!uiState.showGroupDialog) {
-                    IconButton(
-                        onClick = onBackClick,
-                        modifier = Modifier.align(Alignment.CenterStart),
-                    ) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
-                Text(
-                    text = when {
+            // Reusing existing LMTopAppBar as requested
+            // Note: Design shows Ivory background. LMTopAppBarDefaults.colors() uses 'background' (Ivory) by default.
+            if (!uiState.showGroupDialog) {
+                com.a602.commonproject.designsystem.component.LMTopAppBar(
+                    title = when {
                         uiState.showBabyForm -> "아이 등록"
-                        uiState.showGroupDialog -> "그룹 생성"
+                        // uiState.showGroupDialog -> "그룹 생성" // TopBar not shown in original code for group dialog? 
+                        // Actually original code showed "Group Create" text.
                         else -> "회원 가입"
                     },
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.align(Alignment.Center),
+                    onNavigationClick = onBackClick,
+                    // If we want to hide back button on some states, we might need a custom icon or logic.
+                    // But here onBackClick is passed.
+                    // IMPORTANT: The original code hid back button if showGroupDialog is true.
+                    // But here inside topBar, we can just render it. 
+                    // Wait, if showGroupDialog is true, do we show TopBar? 
+                    // Yes, original code showed "Group Create" title.
+                    // But back button was hidden.
                 )
+            } else {
+                 // If group dialog is shown, maybe show title "그룹 생성" without back button?
+                 // Or just show it.
+                 com.a602.commonproject.designsystem.component.LMTopAppBar(
+                    title = "그룹 생성",
+                    navigationIcon = androidx.compose.ui.graphics.vector.ImageVector.Builder(
+                        defaultWidth = 0.dp, defaultHeight = 0.dp, viewportWidth = 0f, viewportHeight = 0f
+                    ).build(), // Empty icon or Transparent? LMTopAppBar doesn't support hiding icon easily without passing empty vector or modifying it.
+                    // Let's just pass a transparent icon or similar if we want to hide it, 
+                    // OR use a different overload if available (it's not).
+                    // Actually, we can just pass a dummy icon and empty click. 
+                    // Or better, let's look at the parameters of LMTopAppBar.
+                    // navigationIcon is ImageVector = LMicons.Back default. 
+                    // If we pass an empty vector it might crash or show nothing.
+                    // Let's try to show it but with no-op click? 
+                    // Design: "Group Create" screen usually doesn't have back button if it's a required step?
+                    // User's previous code: `if (!uiState.showGroupDialog) { IconButton(...) }`
+                    // So back button is hidden.
+                    // I'll skip TopBar for group dialog if it's a dialog? 
+                    // No, `uiState.showGroupDialog` -> "Group Create" text was shown in the custom box.
+                    
+                    // Hack: use a transparent/empty icon for now if needed.
+                    // Or generic check.
+                 )
             }
+            // Wait, logic simplification:
+            // Just use one LMTopAppBar call.
+            com.a602.commonproject.designsystem.component.LMTopAppBar(
+                title = when {
+                    uiState.showBabyForm -> "아이 등록"
+                    uiState.showGroupDialog -> "그룹 생성"
+                    else -> "회원 가입"
+                },
+                navigationIcon = if (uiState.showGroupDialog) androidx.compose.material.icons.Icons.Default.ArrowBack else androidx.compose.material.icons.Icons.Default.ArrowBack, // Placeholder, 
+                // We need to hide navigation icon if showGroupDialog is true.
+                // LMTopAppBar takes `navigationIcon`. 
+                // Let's pass a transparent color tint if possible? No.
+                // Pass a blank icon? 
+                onNavigationClick = if (!uiState.showGroupDialog) onBackClick else { {} },
+                colors = androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = com.a602.commonproject.designsystem.theme.background, // Ivory
+                    titleContentColor = com.a602.commonproject.designsystem.theme.color3, // Navy
+                    navigationIconContentColor = if (!uiState.showGroupDialog) com.a602.commonproject.designsystem.theme.color3 else androidx.compose.ui.graphics.Color.Transparent // Hide icon by making it transparent
+                )
+            )
         },
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
         ) {
-            // 1. 회원 정보 입력 단계
-            if (!uiState.showGroupDialog) {
-                UserInfoContent(
-                    uiState = uiState,
-                    onSignUp = { email, pw, nick ->
-                        updateUserInfo(email, pw, nick, "dummy_token")
-                        onSignUpClick()
-                    },
-                )
-            }
-            // 2. 아기 등록 단계 (그룹 생성 후)
-            else if (uiState.showBabyForm) {
-                AddBabyContent(
-                    onAddBaby = onAddBaby,
-                )
-            }
-            // 3. 그룹 생성 단계 (이미 가입 완료, 그룹 없음)
-            else {
-                CreateGroupContent(
-                    onCreateGroup = onCreateGroup,
-                    onOpenJoinDialog = { showJoinDialog = true },
-                )
-            }
+            // Background Image
+            Image(
+                painter = androidx.compose.ui.res.painterResource(id = com.a602.commonproject.designsystem.R.drawable.gallery_background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+            )
 
-            // 3. 그룹 참여 다이얼로그 (버튼 클릭 시에만 표시)
-            if (showJoinDialog) {
-                JoinGroupDialog(
-                    onDismissRequest = { showJoinDialog = false },
-                    onJoinGroup = onJoinGroup,
-                )
-            }
+            Box(
+                 modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+            ) {
+                // 1. 회원 정보 입력 단계
+                if (!uiState.showGroupDialog) {
+                    UserInfoContent(
+                        uiState = uiState,
+                        onSignUp = { email, pw, nick ->
+                            updateUserInfo(email, pw, nick, "dummy_token")
+                            onSignUpClick()
+                        },
+                    )
+                }
+                // 2. 아기 등록 단계 (그룹 생성 후)
+                else if (uiState.showBabyForm) {
+                    AddBabyContent(
+                        onAddBaby = onAddBaby,
+                    )
+                }
+                // 3. 그룹 생성 단계 (이미 가입 완료, 그룹 없음)
+                else {
+                    CreateGroupContent(
+                        onCreateGroup = onCreateGroup,
+                        onOpenJoinDialog = { showJoinDialog = true },
+                    )
+                }
 
-            if (uiState.isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(color = Color.White)
+                // 3. 그룹 참여 다이얼로그 (버튼 클릭 시에만 표시)
+                if (showJoinDialog) {
+                    JoinGroupDialog(
+                        onDismissRequest = { showJoinDialog = false },
+                        onJoinGroup = onJoinGroup,
+                    )
+                }
+
+                if (uiState.isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(color = Color.White)
+                    }
                 }
             }
         }

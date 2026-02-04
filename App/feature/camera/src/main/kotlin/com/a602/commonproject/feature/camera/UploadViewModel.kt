@@ -24,8 +24,8 @@ class UploadViewModel @Inject constructor(
             try {
                 val tempId = UUID.randomUUID().toString()
                 val takenAt = System.currentTimeMillis()
-                val backFile = File(backUri)
-                val subFile = if (subLocalUri.isNotBlank()) File(subLocalUri) else null
+                val backFile = File(java.net.URLDecoder.decode(backUri, "UTF-8"))
+                val subFile = if (subLocalUri.isNotBlank()) File(java.net.URLDecoder.decode(subLocalUri, "UTF-8")) else null
 
                 tempMediaRepository.saveTempMedia(
                     tempId = tempId,
@@ -33,7 +33,7 @@ class UploadViewModel @Inject constructor(
                     subFile = subFile,
                     takenAt = takenAt,
                     orientation = 0, // 기본값
-                    cameraFacing = "BACK_AND_FRONT"
+                    cameraFacing = "DUAL"
                 ).onSuccess {
                     onSuccess()
                 }.onFailure {

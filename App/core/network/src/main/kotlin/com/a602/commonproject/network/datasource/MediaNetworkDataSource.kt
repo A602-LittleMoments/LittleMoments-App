@@ -84,7 +84,7 @@ internal class RetrofitMediaNetwork @Inject constructor(
             val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
 
             // 1-2. 서버 약속: "files[]" 라는 이름의 배열로 보냅니다.
-            MultipartBody.Part.createFormData("files[]", file.name, requestFile)
+            MultipartBody.Part.createFormData("files", file.name, requestFile)
         }
 
         // [Step 2] 메타데이터 변환 (Object -> JSON RequestBody)

@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.ui)
     implementation(projects.core.designsystem)
+    implementation(projects.sync)
 
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)

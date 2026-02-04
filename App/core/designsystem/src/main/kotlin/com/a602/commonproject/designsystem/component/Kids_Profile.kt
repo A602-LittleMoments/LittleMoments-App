@@ -34,6 +34,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Surface
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.shadow
 import com.a602.commonproject.designsystem.theme.PointYellow
 import com.a602.commonproject.designsystem.theme.lightbackground
 
@@ -80,12 +82,18 @@ fun ProfileHead(
             Modifier
         }
 
-    Box(
+        Box(
         modifier = modifier
             .size(size)
+            .shadow(
+                elevation = 10.dp, // 띄우는 높이
+                shape = RoundedCornerShape(16.dp),
+                clip = false
+            )
             .clip(CircleShape)
             .background(placeholderColor)
             .border(BorderStroke(borderWidth, borderColor), CircleShape)
+
             .then(clickModifier),
         contentAlignment = Alignment.Center
     ) {
@@ -98,7 +106,13 @@ fun ProfileHead(
                 contentDescription = "profile head",
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(CircleShape),
+                    .shadow(
+                        elevation = 10.dp, // 띄우는 높이
+                        shape = RoundedCornerShape(16.dp),
+                        clip = false
+                    )
+                    .clip(CircleShape)
+                    ,
                 contentScale = ContentScale.Crop
             )
         } else {
@@ -118,6 +132,11 @@ fun ProfileHead(
                     .align(Alignment.BottomEnd)
                     .size(badgeSize)
                     .clip(CircleShape)
+                    .shadow(
+                        elevation = 10.dp, // 띄우는 높이
+                        shape = RoundedCornerShape(16.dp),
+                        clip = false
+                    )
                     .background(borderColor)
                     .border(
                         BorderStroke(2.dp, lightbackground),
