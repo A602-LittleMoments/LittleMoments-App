@@ -3,6 +3,7 @@ package com.a602.commonproject.feature.album
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -50,6 +51,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.shadow
@@ -137,16 +139,7 @@ fun CommentEditScreen(
         topBar = {
             LMTopAppBar(
                 title = "코멘트 수정",
-                onNavigationClick = onBack,
-                actionIcon = LMicons.Download,
-                actionIconContentDescription = "저장",
-                onActionClick = {
-                    if (uiState.isLoading) return@LMTopAppBar
-                    if (uiState.error != null) return@LMTopAppBar
-                    if (uiState.media == null) return@LMTopAppBar
-                    if (uiState.isSaving) return@LMTopAppBar
-                    onDone()
-                }
+                onNavigationClick = onBack
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -297,39 +290,62 @@ fun CommentEditScreen(
                             color = Color.Black
                         )
 
-                        Spacer(Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextField(
+                                value = uiState.caption,
+                                onValueChange = onCaptionChange,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .focusRequester(focusRequester),
+                                textStyle = MaterialTheme.typography.bodyLarge,
+                                placeholder = {
+                                    Text(
+                                        text = "소중한 추억을 기록해보세요",
+                                        color = Color.Gray
+                                    )
+                                },
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color(0xFFF5F5F5),
+                                    unfocusedContainerColor = Color(0xFFF5F5F5),
+                                    focusedIndicatorColor = com.a602.commonproject.designsystem.theme.main,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    cursorColor = com.a602.commonproject.designsystem.theme.main
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                maxLines = 5
+                            )
 
-                        TextField(
-                            value = uiState.caption,
-                            onValueChange = onCaptionChange,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester),
-                            textStyle = MaterialTheme.typography.bodyLarge,
-                            placeholder = {
-                                Text(
-                                    text = "소중한 추억을 기록해보세요",
-                                    color = Color.Gray
-                                )
-                            },
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFF5F5F5),
-                                unfocusedContainerColor = Color(0xFFF5F5F5),
-                                focusedIndicatorColor = com.a602.commonproject.designsystem.theme.main,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                cursorColor = com.a602.commonproject.designsystem.theme.main
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            maxLines = 5
-                        )
+                            Spacer(Modifier.width(12.dp))
 
-                        Spacer(Modifier.height(8.dp))
-                        
-                        Text(
-                            text = "수정 후 상단의 체크 버튼을 눌러주세요",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray
-                        )
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .shadow(4.dp, RoundedCornerShape(12.dp))
+                                    .background(com.a602.commonproject.designsystem.theme.main, RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        if (!uiState.isSaving) onDone()
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (uiState.isSaving) {
+                                    androidx.compose.material3.CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = androidx.compose.material.icons.Icons.Default.Check,
+                                        contentDescription = "저장",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
