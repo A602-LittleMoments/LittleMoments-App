@@ -22,6 +22,7 @@ import javax.inject.Inject
 data class MediaDetailUiState(
     val mediaId: String? = null,
     val media: SharedMedia? = null,
+    val allMedias: List<SharedMedia> = emptyList(),
 
     val isLoading: Boolean = true,
     val isDeleting: Boolean = false,
@@ -67,20 +68,22 @@ class MediaDetailViewModel @Inject constructor(
                 media != null -> action.copy(
                     mediaId = mediaId,
                     media = media,
+                    allMedias = medias,
                     isLoading = false,
-                    // error
                     errorMessage = null
                 )
 
                 medias.isEmpty() -> action.copy(
                     mediaId = mediaId,
                     media = null,
+                    allMedias = emptyList(),
                     isLoading = true
                 )
 
                 else -> action.copy(
                     mediaId = mediaId,
                     media = null,
+                    allMedias = medias,
                     isLoading = false,
                     errorMessage = "사진을 불러오지 못했어요"
                 )
@@ -137,7 +140,11 @@ class MediaDetailViewModel @Inject constructor(
         }
 
         val url = media.remoteUrl ?: run {
-            actionState.update { it.copy(errorMessage = "다운로드 URL이 없어요") }
+            if (!media.localUri.isNullOrEmpty()) {
+                actionState.update { it.copy(errorMessage = "이미 기기에 저장되어 있는 사진입니다.") }
+            } else {
+                actionState.update { it.copy(errorMessage = "다운로드 URL이 없어요") }
+            }
             return
         }
 

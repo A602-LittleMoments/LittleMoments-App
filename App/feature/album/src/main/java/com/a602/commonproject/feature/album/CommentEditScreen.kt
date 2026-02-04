@@ -1,12 +1,16 @@
 package com.a602.commonproject.feature.album
 
-import Polaroid
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -24,9 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.a602.commonproject.designsystem.component.LMTopAppBar
@@ -35,8 +44,21 @@ import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.feature.album.viewmodel.CommentEditUiState
 import com.a602.commonproject.feature.album.viewmodel.CommentEditViewModel
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
 import com.a602.commonproject.model.data.SharedMedia
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
 
 @Composable
 fun CommentEditRoute(
@@ -111,7 +133,7 @@ fun CommentEditScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = background,
+        containerColor = Color.Transparent,
         topBar = {
             LMTopAppBar(
                 title = "코멘트 수정",
@@ -136,6 +158,12 @@ fun CommentEditScreen(
                 .padding(innerPadding),
             contentAlignment = Alignment.Center
         ) {
+            Image(
+                painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.gallery_background),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
+            )
             when {
                 uiState.isLoading -> {
                     Text("불러오는 중…")
@@ -146,57 +174,165 @@ fun CommentEditScreen(
                 }
 
                 else -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .imePadding()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                // 1. Background Visuals (Same as Detail Screen)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(Modifier.height(80.dp))
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.padding(horizontal = 40.dp)
                     ) {
-                        Box(
+                        // Polaroid Frame
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            contentAlignment = Alignment.Center
+                                .width(300.dp)
+                                .shadow(12.dp, RoundedCornerShape(2.dp))
+                                .background(Color.White)
+                                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp)
                         ) {
-                            Polaroid(
-                                media = uiState.media,
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(8.dp)
-                            )
-
-                            TextField(
-                                value = uiState.caption,
-                                onValueChange = onCaptionChange,
-                                modifier = Modifier
-                                    .fillMaxWidth(0.7f)
-                                    .align(Alignment.Center)
-                                    .padding(bottom = 80.dp)
-                                    .focusRequester(focusRequester),
-                                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                                    textAlign = TextAlign.Center
-                                ),
-                                placeholder = {
-                                    Text(
-                                        text = "코멘트를 입력하세요",
-                                        style = MaterialTheme.typography.bodyLarge.copy(
-                                            textAlign = TextAlign.Center
-                                        ),
-                                        modifier = Modifier.fillMaxWidth(),
-                                        color = Color.Gray
-                                    )
-                                },
-                                colors = TextFieldDefaults.colors(
-                                    focusedContainerColor = lightbackground,
-                                    unfocusedContainerColor = lightbackground,
-                                    focusedIndicatorColor = Color.Transparent,
-                                    unfocusedIndicatorColor = Color.Transparent,
-                                    cursorColor = Color.Gray
+                                    .aspectRatio(1f)
+                                    .background(Color.LightGray)
+                            ) {
+                                AsyncImage(
+                                    model = uiState.media.remoteUrl,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
                                 )
+
+                                if (uiState.media.subRemoteUrl != null || uiState.media.subThumbnailUrl != null) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(8.dp)
+                                            .size(80.dp)
+                                            .border(1.dp, Color.Black)
+                                            .background(Color.Gray)
+                                    ) {
+                                        AsyncImage(
+                                            model = uiState.media.subRemoteUrl ?: uiState.media.subThumbnailUrl,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(Modifier.height(16.dp))
+
+                            // Date Info
+                            val date = Instant.ofEpochMilli(uiState.media.dateTaken)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            Text(
+                                text = "${date.year}.${String.format("%02d", date.monthValue)}.${String.format("%02d", date.dayOfMonth)}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
                             )
+                            Spacer(Modifier.height(20.dp))
                         }
+
+                        // Decorations (Stars)
+                        val purpleStarColor = Color(0xFFEDBDFF)
+                        val yellowStarColor = Color(0xFFFFF5BA)
+
+                        Icon(
+                            imageVector = Icons.Rounded.Star,
+                            contentDescription = null,
+                            tint = purpleStarColor,
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(x = (-32).dp, y = (-32).dp)
+                                .size(80.dp)
+                                .graphicsLayer(rotationZ = -25f)
+                        )
+
+                        Icon(
+                            imageVector = Icons.Rounded.Star,
+                            contentDescription = null,
+                            tint = yellowStarColor,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = (28).dp, y = (-28).dp)
+                                .size(72.dp)
+                                .graphicsLayer(rotationZ = 25f)
+                        )
                     }
+                }
+
+                // 2. Popup Input Overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f)) // Semi-transparent dimming
+                        .imePadding(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(0.85f)
+                            .shadow(16.dp, RoundedCornerShape(24.dp))
+                            .background(Color.White, RoundedCornerShape(24.dp))
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "코멘트 수정",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+
+                        Spacer(Modifier.height(16.dp))
+
+                        TextField(
+                            value = uiState.caption,
+                            onValueChange = onCaptionChange,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester),
+                            textStyle = MaterialTheme.typography.bodyLarge,
+                            placeholder = {
+                                Text(
+                                    text = "소중한 추억을 기록해보세요",
+                                    color = Color.Gray
+                                )
+                            },
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFF5F5F5),
+                                unfocusedContainerColor = Color(0xFFF5F5F5),
+                                focusedIndicatorColor = com.a602.commonproject.designsystem.theme.main,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                cursorColor = com.a602.commonproject.designsystem.theme.main
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            maxLines = 5
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+                        
+                        Text(
+                            text = "수정 후 상단의 체크 버튼을 눌러주세요",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray
+                        )
+                    }
+                }
+            }
                 }
             }
         }

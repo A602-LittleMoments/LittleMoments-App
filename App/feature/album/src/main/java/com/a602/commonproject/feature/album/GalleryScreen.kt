@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -81,6 +82,15 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import kotlinx.coroutines.launch
 
 @Composable
@@ -111,7 +121,8 @@ fun CalendarRoute(
 
 data class CalendarDay(
     val date: LocalDate?,
-    val representativeThumbUrl: String? = null
+    val representativeThumbUrl: String? = null,
+    val representativeMediaId: String? = null
 )
 
 private fun weekRowCount(yearMonth: YearMonth): Int {
@@ -146,8 +157,9 @@ fun mapToCalendarDays(
 
         // remoteUrl을 대표 이미지로 사용
         val imageUrl = representative?.remoteUrl
+        val mediaId = representative?.id
 
-        days.add(CalendarDay(date, imageUrl))
+        days.add(CalendarDay(date, imageUrl, mediaId))
     }
 
     // 그 달이 필요한 "주(행)" 만큼까지만 채우기 (35 or 42)
@@ -171,16 +183,16 @@ fun GalleryToggleRow(
 ) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         // Toggle Group: [Calendar | Grid]
         Row(
             modifier = Modifier
-                .background(Color.White.copy(alpha = 0.9f), CircleShape)
-                .padding(4.dp), // Padding between container and buttons
+                .height(48.dp)
+                .background(com.a602.commonproject.designsystem.theme.background.copy(alpha = 0.9f), CircleShape)
+                .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Calendar Button
@@ -191,7 +203,7 @@ fun GalleryToggleRow(
                 description = "캘린더"
             )
 
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(2.dp))
 
             // Grid Button
             GalleryToggleButton(
@@ -205,16 +217,18 @@ fun GalleryToggleRow(
         // Right Action Buttons
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             // Temp Album Button
-            IconButton(
-                onClick = onTempAlbum,
+            Box(
                 modifier = Modifier
-                    .background(Color.White.copy(alpha = 0.9f), CircleShape)
                     .size(48.dp)
+                    .background(com.a602.commonproject.designsystem.theme.background.copy(alpha = 0.9f), CircleShape)
+                    .clickable(onClick = onTempAlbum),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.temporary),
                     contentDescription = "임시 앨범",
-                    tint = main // Accent color
+                    tint = com.a602.commonproject.designsystem.theme.main,
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }
@@ -228,15 +242,15 @@ fun GalleryToggleButton(
     icon: ImageVector,
     description: String
 ) {
-    val backgroundColor = if (isActive) main else Color.Transparent
+    val backgroundColor = if (isActive) com.a602.commonproject.designsystem.theme.main else Color.Transparent
     val iconColor = if (isActive) Color.White else Color.Gray
 
     Box(
         modifier = Modifier
+            .size(40.dp)
             .clip(CircleShape)
             .background(backgroundColor)
-            .clickable(onClick = onClick)
-            .padding(10.dp), // Comfortable tap area padding
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -270,10 +284,14 @@ fun CalendarScreen(
     var isCalendarMode by rememberSaveable { mutableStateOf(true) }
 
     // 배경 이미지 리소스
-    // 배경 이미지 리소스
     val backgroundImage = R.drawable.gallery_background
 
-    Column(modifier = Modifier.fillMaxSize().background(background)) {
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
 
         // 2. Body with Starry Background
         Box(
@@ -305,7 +323,8 @@ fun CalendarScreen(
                     .statusBarsPadding()
                     .padding(horizontal = 16.dp)
             ) {
-                Spacer(Modifier.height(48.dp)) // Lowered further for better balance
+                // 상단 버튼과 위의 거리
+                Spacer(Modifier.height(30.dp))
 
                 GalleryToggleRow(
                     isCalendarMode = isCalendarMode,
@@ -402,7 +421,13 @@ fun CalendarScreen(
                                     days = days,
                                     rows = rows,
                                     modifier = Modifier.fillMaxSize(),
-                                    onDateClick = onDateClick
+                                    onDateClick = { date, mediaId ->
+                                        if (mediaId != null) {
+                                            onMediaClick(medias.first { it.id == mediaId })
+                                        } else {
+                                            onDateClick(date)
+                                        }
+                                    }
                                 )
                             }
                         }
@@ -415,6 +440,7 @@ fun CalendarScreen(
                     }
                 }
             }
+        }
         }
     }
 }
@@ -434,9 +460,14 @@ fun DateGroupedGridView(
         }
     }
 
+    val listState = rememberLazyGridState()
+
     LazyVerticalGrid(
+        state = listState,
         columns = GridCells.Fixed(3),
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .simpleVerticalScrollbar(listState),
         verticalArrangement = Arrangement.spacedBy(2.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp)
@@ -482,7 +513,7 @@ fun CalendarPhotoViewFill(
     days: List<CalendarDay>,
     rows: Int,
     modifier: Modifier = Modifier,
-    onDateClick: (LocalDate) -> Unit) {
+    onDateClick: (LocalDate, String?) -> Unit) {
     Column(modifier = modifier.fillMaxWidth()) {
         DayOfWeekHeader()
         Spacer(modifier = Modifier.height(8.dp))
@@ -520,7 +551,7 @@ fun CalendarPhotoViewFill(
                         CalendarDayChip(
                             day = day,
                             chipSize = ChipSize,
-                            onClick = { day.date?.let(onDateClick) }
+                            onClick = { day.date?.let { onDateClick(it, day.representativeMediaId) } }
                         )
                     }
                 }
@@ -642,5 +673,43 @@ fun CalendarScreenPreview() {
             onHighLightClick = {},
             onMediaClick = {}
         )
+    }
+}
+
+fun Modifier.simpleVerticalScrollbar(
+    state: LazyGridState,
+    width: Dp = 4.dp
+): Modifier = composed {
+    val targetAlpha = if (state.isScrollInProgress) 1f else 0f
+    val duration = if (state.isScrollInProgress) 150 else 500
+
+    val alpha by animateFloatAsState(
+        targetValue = targetAlpha,
+        animationSpec = tween(durationMillis = duration),
+        label = "ScrollbarAlpha"
+    )
+
+    drawWithContent {
+        drawContent()
+
+        val firstVisibleElementIndex = state.layoutInfo.visibleItemsInfo.firstOrNull()?.index
+        val elementCount = state.layoutInfo.totalItemsCount
+        val visibleCount = state.layoutInfo.visibleItemsInfo.size
+
+        if (alpha > 0f && elementCount > visibleCount && firstVisibleElementIndex != null) {
+            val scrollbarHeight = size.height * (visibleCount.toFloat() / elementCount.toFloat())
+            val scrollbarOffsetY = size.height * (firstVisibleElementIndex.toFloat() / elementCount.toFloat())
+
+            val minScrollbarHeight = 20.dp.toPx()
+            val finalHeight = scrollbarHeight.coerceAtLeast(minScrollbarHeight)
+
+            drawRoundRect(
+                color = Color.White.copy(alpha = 0.8f),
+                topLeft = Offset(size.width - width.toPx(), scrollbarOffsetY),
+                size = Size(width.toPx(), finalHeight),
+                alpha = alpha,
+                cornerRadius = CornerRadius(width.toPx())
+            )
+        }
     }
 }

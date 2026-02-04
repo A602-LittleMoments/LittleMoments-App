@@ -1,8 +1,9 @@
 package com.a602.commonproject.feature.album
-import Polaroid
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,9 +22,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
@@ -52,7 +56,12 @@ import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.feature.album.viewmodel.MediaDetailViewModel
 import com.a602.commonproject.model.data.SharedMedia
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.draw.clip
 import com.a602.commonproject.designsystem.R
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import com.a602.commonproject.designsystem.icon.LMicons
 
 @Composable
 fun MediaDetailRoute(
@@ -65,7 +74,6 @@ fun MediaDetailRoute(
     LaunchedEffect(mediaId) { viewModel.setMediaId(mediaId) }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     // 삭제 성공 → 뒤로가기
@@ -91,29 +99,34 @@ fun MediaDetailRoute(
         viewModel.clearError()
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center
-        ) {
-            when {
-                uiState.isLoading -> Text("불러오는 중…")
-                uiState.media != null -> {
-                    MediaDetailScreen(
-                        title = "상세보기",
-                        media = uiState.media!!,
-                        onBack = onBack,
-                        onDelete = viewModel::deleteCurrent,
-                        onDownload = viewModel::downloadCurrent,
-                        onEdit = onEdit,
-                    )
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            uiState.isLoading -> Text("불러오는 중…")
+            uiState.allMedias.isNotEmpty() -> {
+                val initialIndex = remember(uiState.allMedias, mediaId) {
+                    val idx = uiState.allMedias.indexOfFirst { it.id == mediaId }
+                    if (idx == -1) 0 else idx
                 }
-                else -> Text("사진을 불러오지 못했어요")
+
+                MediaDetailPagerScreen(
+                    medias = uiState.allMedias,
+                    initialIndex = initialIndex,
+                    onBack = onBack,
+                    onPageChanged = { index ->
+                        viewModel.setMediaId(uiState.allMedias[index].id)
+                    },
+                    onDelete = viewModel::deleteCurrent,
+                    onDownload = viewModel::downloadCurrent,
+                    onEdit = onEdit,
+                    isDownloading = uiState.isDownloading,
+                    isDeleting = uiState.isDeleting,
+                    snackbarHostState = snackbarHostState
+                )
             }
+            else -> Text("사진을 불러오지 못했어요")
         }
     }
 }
@@ -122,199 +135,80 @@ fun MediaDetailRoute(
 
 
 @Composable
-fun MediaDetailScreen(
-    title: String,
-    media: SharedMedia,
+fun MediaDetailPagerScreen(
+    medias: List<SharedMedia>,
+    initialIndex: Int,
     onBack: () -> Unit,
+    onPageChanged: (Int) -> Unit,
     onDelete: () -> Unit,
     onDownload: () -> Unit,
     onEdit: () -> Unit,
+    isDownloading: Boolean = false,
+    isDeleting: Boolean = false,
+    snackbarHostState: SnackbarHostState
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val pagerState = rememberPagerState(initialPage = initialIndex, pageCount = { medias.size })
 
-    val backgroundImage = R.drawable.gallery_background
+    LaunchedEffect(pagerState.currentPage) {
+        onPageChanged(pagerState.currentPage)
+    }
 
     Scaffold(
+        containerColor = Color.Transparent,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
+            val date = Instant.ofEpochMilli(medias[pagerState.currentPage].dateTaken)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
             LMTopAppBar(
-                title = title,
+                title = "${date.monthValue}월 ${date.dayOfMonth}일",
                 onNavigationClick = onBack,
             )
         }
     ) { innerPadding ->
-
         Box(modifier = Modifier.fillMaxSize()) {
-            // Background
+            // Background (Fixed)
             Image(
-                painter = painterResource(id = backgroundImage),
+                painter = painterResource(id = R.drawable.gallery_background),
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier.fillMaxSize()
             )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                // Main Content Wrapper (Centered)
-                Box(
-                    contentAlignment = Alignment.Center
-                ) {
-                    // 1. Polaroid Frame (The Anchor)
-                    Column(
-                        modifier = Modifier
-                            .width(300.dp)
-                            .shadow(12.dp, RoundedCornerShape(2.dp))
-                            .background(Color.White)
-                            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp) // Specific padding for Polaroid visual
-                    ) {
-                        // Main Photo Area
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(1f) // Square
-                                .background(Color.LightGray)
-                        ) {
-                            AsyncImage(
-                                model = media.remoteUrl,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-
-                            // Sub Image (Small inset at bottom right)
-                            if (media.subRemoteUrl != null || media.subThumbnailUrl != null) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(8.dp)
-                                        .size(80.dp)
-                                        .border(1.dp, Color.Black)
-                                        .background(Color.Gray)
-                                ) {
-                                    AsyncImage(
-                                        model = media.subRemoteUrl ?: media.subThumbnailUrl,
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(Modifier.height(16.dp))
-
-                        // Text Area
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            val date = Instant.ofEpochMilli(media.dateTaken)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                            Text(
-                                text = "${date.year}.${String.format("%02d", date.monthValue)}.${String.format("%02d", date.dayOfMonth)}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            )
-
-                            Spacer(Modifier.height(4.dp))
-
-                            Text(
-                                text = media.caption ?: "코멘트가 없습니다.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.DarkGray
-                            )
-                        }
-
-                        Spacer(Modifier.height(16.dp)) // Expands bottom of polaroid slightly
-                    }
-
-                    // 2. Decorations (Absolute positioning relative to the frame)
-                    val purpleStarColor = Color(0xFFEDBDFF)
-                    val yellowStarColor = Color(0xFFFFF5BA)
-
-                    // Purple Star - Top Left
-                    Icon(
-                        imageVector = Icons.Rounded.Star,
-                        contentDescription = null,
-                        tint = purpleStarColor,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .offset(x = (-32).dp, y = (-32).dp)
-                            .size(80.dp)
-                            .graphicsLayer(rotationZ = -25f)
-                    )
-
-                     // Small Yellow Star - Top Right (Inner)
-                    Icon(
-                        imageVector = Icons.Rounded.Star,
-                        contentDescription = null,
-                        tint = yellowStarColor,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = (-64).dp, y = (-24).dp)
-                            .size(40.dp)
-                            .graphicsLayer(rotationZ = 15f)
-                    )
-
-                    // Large Yellow Star - Top Right (Outer)
-                    Icon(
-                        imageVector = Icons.Rounded.Star,
-                        contentDescription = null,
-                        tint = yellowStarColor,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = (28).dp, y = (-28).dp)
-                            .size(72.dp)
-                            .graphicsLayer(rotationZ = 25f)
-                    )
-
-                    // Extra Large Yellow Star - Bottom Left
-                    Icon(
-                        imageVector = Icons.Rounded.Star,
-                        contentDescription = null,
-                        tint = yellowStarColor,
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .offset(x = (-42).dp, y = (42).dp)
-                            .size(110.dp)
-                            .graphicsLayer(rotationZ = -15f)
-                    )
-                }
-
-                // 3. Three White Stars (Below the frame)
-                Row(
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.Top
+            ) { page ->
+                val media = medias.getOrNull(page) ?: return@HorizontalPager
+                Column(
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 120.dp), // Positioned clearly below frame
-                    horizontalArrangement = Arrangement.spacedBy(24.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    repeat(3) {
-                         Icon(
-                            imageVector = Icons.Rounded.Star, // Using Rounded for softer look
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(56.dp)
-                        )
-                    }
+                    Spacer(Modifier.height(100.dp))
+                    MediaDetailContent(media = media)
+                    Spacer(Modifier.height(100.dp)) // Action bar space
                 }
             }
 
-            // Action Bar (Bottom Overlay)
+            // Action Bar (Fixed at bottom)
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 80.dp)
             ) {
-                 IconActionBar(
+                IconActionBar(
                     onDelete = { showDeleteDialog = true },
                     onDownload = onDownload,
                     onEdit = onEdit,
+                    enabledDelete = !isDeleting && !isDownloading,
+                    enabledDownload = !isDownloading && !isDeleting,
+                    enabledEdit = !isDeleting && !isDownloading
                 )
             }
         }
@@ -328,6 +222,151 @@ fun MediaDetailScreen(
             },
             onDismiss = { showDeleteDialog = false }
         )
+    }
+}
+
+@Composable
+fun MediaDetailContent(
+    media: SharedMedia,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.padding(horizontal = 40.dp)
+    ) {
+        // 1. Polaroid Frame
+        Column(
+            modifier = Modifier
+                .width(300.dp)
+                .shadow(12.dp, RoundedCornerShape(2.dp))
+                .background(Color.White)
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp)
+        ) {
+            // Main Photo Area
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .background(Color.LightGray)
+            ) {
+                AsyncImage(
+                    model = media.remoteUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                // Sub Image
+                if (media.subRemoteUrl != null || media.subThumbnailUrl != null) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(8.dp)
+                            .size(80.dp)
+                            .border(1.dp, Color.Black)
+                            .background(Color.Gray)
+                    ) {
+                        AsyncImage(
+                            model = media.subRemoteUrl ?: media.subThumbnailUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Text Area
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.Start
+            ) {
+                val date = Instant.ofEpochMilli(media.dateTaken)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                Text(
+                    text = "${date.year}.${String.format("%02d", date.monthValue)}.${String.format("%02d", date.dayOfMonth)}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Text(
+                    text = media.caption ?: "코멘트가 없습니다.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.DarkGray
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // Decorations (Stars)
+        val purpleStarColor = Color(0xFFEDBDFF)
+        val yellowStarColor = Color(0xFFFFF5BA)
+
+        Icon(
+            imageVector = Icons.Rounded.Star,
+            contentDescription = null,
+            tint = purpleStarColor,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = (-32).dp, y = (-32).dp)
+                .size(80.dp)
+                .graphicsLayer(rotationZ = -25f)
+        )
+
+        Icon(
+            imageVector = Icons.Rounded.Star,
+            contentDescription = null,
+            tint = yellowStarColor,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = (-64).dp, y = (-24).dp)
+                .size(40.dp)
+                .graphicsLayer(rotationZ = 15f)
+        )
+
+        Icon(
+            imageVector = Icons.Rounded.Star,
+            contentDescription = null,
+            tint = yellowStarColor,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = (28).dp, y = (-28).dp)
+                .size(72.dp)
+                .graphicsLayer(rotationZ = 25f)
+        )
+
+        Icon(
+            imageVector = Icons.Rounded.Star,
+            contentDescription = null,
+            tint = yellowStarColor,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .offset(x = (-60).dp, y = (60).dp)
+                .size(100.dp)
+                .graphicsLayer(rotationZ = -15f)
+        )
+    }
+
+    Spacer(Modifier.height(24.dp))
+
+    // 3. Three White Stars
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(24.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(3) {
+            Icon(
+                imageVector = Icons.Rounded.Star,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(56.dp)
+            )
+        }
     }
 }
 
@@ -352,17 +391,19 @@ private fun fakePhotoMedia(): SharedMedia {
         syncStatus = SharedMedia.SyncStatus.SYNCED
     )
 }
-@Preview(showBackground = true, widthDp = 360, heightDp = 760, name = "Detail - Content")
+@Preview(showBackground = true, widthDp = 360, heightDp = 760, name = "Detail - Pager")
 @Composable
-private fun Preview_Detail_Content() {
+private fun Preview_Detail_Pager() {
     LMTheme {
-        MediaDetailScreen(
-            title = "자세히 보기",
-            media = fakePhotoMedia(),
+        MediaDetailPagerScreen(
+            medias = listOf(fakePhotoMedia()),
+            initialIndex = 0,
             onBack = {},
+            onPageChanged = {},
             onDelete = {},
             onDownload = {},
-            onEdit = {}
+            onEdit = {},
+            snackbarHostState = remember { SnackbarHostState() }
         )
     }
 }

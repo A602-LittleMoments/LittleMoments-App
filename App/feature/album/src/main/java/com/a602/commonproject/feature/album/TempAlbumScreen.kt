@@ -63,8 +63,10 @@ import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.color3
+import com.a602.commonproject.designsystem.theme.color5
 import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.designsystem.theme.lightblue
+import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.feature.album.viewmodel.TempAlbumViewModel
 import com.a602.commonproject.model.data.TempMedia
 import kotlinx.coroutines.launch
@@ -144,20 +146,20 @@ fun TempGridGallery(
                 onNavigationClick = onBackClick,
             )
 
-            Spacer(Modifier.height(56.dp))
+            Spacer(Modifier.height(12.dp))
 
             // 상단 설명 텍스트 (이미지와 유사하게)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFFF9E6)) // Ivory/Cream background
+                    .background(Color.Black.copy(alpha = 0.5f))
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "30일 뒤 사라질 우리들의 순간을 담아봐요",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.Black.copy(alpha = 0.8f),
+                    color = background.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
                 )
             }
@@ -189,9 +191,9 @@ fun TempGridGallery(
                                 modifier = Modifier.align(Alignment.CenterStart),
                             )
                         } else {
-                            // 일반 모드일 때는 전체 선택 버튼 (Design Guide image 1 - Left button seems to be '전체선택' even in normal mode? 
-                            // Or maybe it's cleaner to show it only when relevant. 
-                            // The user said "임의의 사진 하나를 꾹 누르면...". 
+                            // 일반 모드일 때는 전체 선택 버튼 (Design Guide image 1 - Left button seems to be '전체선택' even in normal mode?
+                            // Or maybe it's cleaner to show it only when relevant.
+                            // The user said "임의의 사진 하나를 꾹 누르면...".
                             // Let's keep "전체선택" visible if desired, or maybe just "Select" button.
                             // Image 1 shows "전체선택" on left and "선택" on right.
                              FillWrapButton(
@@ -362,22 +364,12 @@ fun TempAlbumEmptyState(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = LMicons.Camera,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.9f),
-                modifier = Modifier
-                    .padding(bottom = 20.dp)
-                    .size(80.dp)
-                    .shadow(12.dp, CircleShape)
-            )
-
             Text(
                 text = "임시 앨범이 비어있어요",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.ExtraBold,
                     shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.6f),
+                        color = color5.copy(alpha = 0.6f),
                         offset = Offset(2f, 4f),
                         blurRadius = 8f
                     )
@@ -396,7 +388,7 @@ fun TempAlbumEmptyState(
                 text = "촬영한 사진이 임시로 저장되며\n가족 앨범에 고스란히 공유할 수 있어요.",
                 style = MaterialTheme.typography.bodyLarge.copy(
                     shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.5f),
+                        color = main.copy(alpha = 0.5f),
                         offset = Offset(1f, 2f),
                         blurRadius = 6f
                     )
