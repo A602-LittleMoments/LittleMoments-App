@@ -52,6 +52,8 @@ import com.a602.commonproject.designsystem.theme.color4
 import com.a602.commonproject.designsystem.theme.lightbackground
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.LaunchedEffect
 
 
@@ -78,8 +80,19 @@ fun GridRoute(
     val showCalendarButton = keywordId == null
     val topBarTitle = title ?: uiState.title
 
-    // Logic switch: If we have a specific date, we enable Pager Mode.
-    if (date != null) {
+    // [New] Year History Mode Check
+    val isYearHistoryMode = babyId != null && year != null
+
+    if (isYearHistoryMode) {
+        // --- Special UI for Year History ---
+        YearHistoryLayout(
+            title = uiState.title, // ViewModel sets this to "Namw와의 Year년 추억"
+            medias = uiState.medias,
+            onBackClick = onBackClick,
+            onMediaClick = onMediaClick
+        )
+    } else if (date != null) {
+        // ... (Existing Date Pager Logic) ...
         // 1. Group all available media by Date
         val grouped = remember(uiState.medias) {
             uiState.medias.groupBy {
@@ -174,6 +187,122 @@ private fun SharedMedia.isSameDay(target: LocalDate): Boolean {
         .toLocalDate()
     return day == target
 }
+
+// 🚀 [NEW] Year History Layout Component
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+fun YearHistoryLayout(
+    title: String,
+    medias: List<SharedMedia>,
+    onBackClick: () -> Unit,
+    onMediaClick: (SharedMedia) -> Unit
+) {
+    // 1. Group by Date
+    val groupedFn = remember(medias) {
+        medias.groupBy {
+            Instant.ofEpochMilli(it.dateTaken)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+        }.toSortedMap(compareByDescending { it }) // Recent first
+    }
+
+    Scaffold(
+        topBar = {
+            LMTopAppBar(
+                title = title,
+                onNavigationClick = onBackClick, // This handles the "Back" arrow
+            )
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Background
+            Image(
+                painter = painterResource(id = R.drawable.gallery_background),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // Content Container (Dark Glass card - Matched with GridGalleryContent)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .padding(16.dp)
+                    .padding(bottom = 16.dp) // Extra bottom padding
+                    .shadow(8.dp, RoundedCornerShape(16.dp))
+                    .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+                    .padding(16.dp) // Padding inside the card
+            ) {
+                 if (medias.isEmpty()) {
+                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                         Text("아직 추억이 없어요.", color = androidx.compose.ui.graphics.Color.White)
+                     }
+                 } else {
+                     androidx.compose.foundation.lazy.LazyColumn(
+                         modifier = Modifier.fillMaxSize(),
+                         verticalArrangement = Arrangement.spacedBy(24.dp)
+                     ) {
+                         groupedFn.forEach { (date, dailyMedias) ->
+                             // Header (Sticky-like behavior within list)
+                             // [Design Match] Removed light gray, added transparent/dark style
+                             // Header
+                             // [Design Match] Changed from stickyHeader to item (scrolls with content)
+                             // Removed background to show just text, matching main Gallery Grid style.
+                             item {
+                                 Box(
+                                     modifier = Modifier
+                                         .fillMaxWidth()
+                                         .padding(start = 4.dp, top = 16.dp, bottom = 8.dp)
+                                 ) {
+                                     Text(
+                                         text = "${date.year}.${String.format("%02d", date.monthValue)}.${String.format("%02d", date.dayOfMonth)}",
+                                         style = MaterialTheme.typography.bodyLarge.copy(
+                                             fontWeight = FontWeight.Bold,
+                                             fontSize = 16.sp
+                                         ),
+                                         color = androidx.compose.ui.graphics.Color.White
+                                     )
+                                 }
+                             }
+
+                             // Grid Items for this date
+                             // using flow row or simple chunking since LazyColumn can't nest LazyVerticalGrid easily without fixed height
+                             item {
+                                 // Simple Flow Layout
+                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                     dailyMedias.chunked(3).forEach { rowMedias ->
+                                         Row(
+                                             horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                             modifier = Modifier.fillMaxWidth()
+                                         ) {
+                                             rowMedias.forEach { media ->
+                                                 // [Fix] Changed aspect ratio from 1f (Square) to 3f/4f (Polaroid/Portrait)
+                                                 // to match the main Gallery Grid style as requested.
+                                                 Box(modifier = Modifier.weight(1f).aspectRatio(3f/4f)) {
+                                                     com.a602.coommonproject.ui.FramelessPhotoItem(
+                                                         media = media,
+                                                         onClick = { onMediaClick(media) }
+                                                     )
+                                                 }
+                                             }
+                                             // Fill empty slots if last row has < 3 items
+                                             repeat(3 - rowMedias.size) {
+                                                 Spacer(modifier = Modifier.weight(1f))
+                                             }
+                                         }
+                                     }
+                                 }
+                             }
+                         }
+                     }
+                 }
+            }
+        }
+    }
+}
+
 
 // 격자 보기
 @Composable

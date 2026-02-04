@@ -31,6 +31,7 @@ data class GridGalleryUiState(
 class GridGalleryViewmodel @Inject constructor(
     private val sharedMediaRepository: SharedMediaRepository,
     private val collectionRepository: CollectionRepository,
+    private val babyRepository: com.a602.commonproject.data.repository.BabyRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -48,24 +49,40 @@ class GridGalleryViewmodel @Inject constructor(
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<GridGalleryUiState> = filterState
         .flatMapLatest { filter ->
-            val flow = if (filter.keywordId != null) {
-                // Keyword Filtered (One-shot -> Flow)
+            val mediaFlow = if (filter.keywordId != null) {
+                // Keyword Filtered
                 flow {
                     emit(collectionRepository.getCollectionDetail(filter.keywordId).getOrElse { emptyList() })
                 }
             } else {
-                // All Photos or Filtered by Baby/Year (Stream)
+                // Stream
                 sharedMediaRepository.getSharedAlbumStream(
                     babyId = filter.babyId,
                     year = filter.year
                 )
             }
-            
-            flow.map { medias ->
+
+            // Combine with Baby Name if needed
+            val babyNameFlow = if (filter.babyId != null) {
+                babyRepository.getBabyStream().map { babies ->
+                    babies.find { it.babyId == filter.babyId }?.babyName
+                }
+            } else {
+                flow { emit(null) }
+            }
+
+            kotlinx.coroutines.flow.combine(mediaFlow, babyNameFlow) { medias, babyName ->
+                // Determine Title
+                val displayTitle = when {
+                    filter.title != null -> filter.title // Passed title has priority
+                    babyName != null && filter.year != null -> "${babyName}와의 ${filter.year}년 추억"
+                    else -> "갤러리"
+                }
+
                 GridGalleryUiState(
                     medias = medias,
                     isLoading = false,
-                    title = filter.title ?: "갤러리",
+                    title = displayTitle,
                     showCalendarButton = filter.keywordId == null
                 )
             }
