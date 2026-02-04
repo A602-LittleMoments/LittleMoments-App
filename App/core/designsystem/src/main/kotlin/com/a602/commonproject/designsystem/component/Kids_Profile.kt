@@ -86,9 +86,11 @@ fun ProfileHead(
         modifier = modifier
             .size(size)
             .shadow(
-                elevation = 10.dp, // 띄우는 높이
-                shape = RoundedCornerShape(16.dp),
-                clip = false
+                elevation = 20.dp, // 띄우는 높이
+                shape = CircleShape,
+                clip = false,
+                spotColor = Color.Black,
+                ambientColor = Color.Black
             )
             .clip(CircleShape)
             .background(placeholderColor)
@@ -107,12 +109,13 @@ fun ProfileHead(
                 modifier = Modifier
                     .fillMaxSize()
                     .shadow(
-                        elevation = 10.dp, // 띄우는 높이
-                        shape = RoundedCornerShape(16.dp),
-                        clip = false
+                        elevation = 20.dp, // 띄우는 높이
+                        shape = CircleShape,
+                        clip = false,
+                        spotColor = Color.Black,
+                        ambientColor = Color.Black
                     )
-                    .clip(CircleShape)
-                    ,
+                    .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
         } else {
@@ -133,9 +136,11 @@ fun ProfileHead(
                     .size(badgeSize)
                     .clip(CircleShape)
                     .shadow(
-                        elevation = 10.dp, // 띄우는 높이
-                        shape = RoundedCornerShape(16.dp),
-                        clip = false
+                        elevation = 20.dp, // 띄우는 높이
+                        shape = CircleShape,
+                        clip = false,
+                        spotColor = Color.Black,
+                        ambientColor = Color.Black
                     )
                     .background(borderColor)
                     .border(

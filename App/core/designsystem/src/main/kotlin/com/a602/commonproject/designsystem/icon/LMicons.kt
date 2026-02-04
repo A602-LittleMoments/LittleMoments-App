@@ -8,6 +8,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AddCircle
@@ -99,6 +101,9 @@ object LMicons {
     val edit_outline = Icons.Outlined.ModeEdit
     val edit_note = Icons.Outlined.EditNote
     val person_add = Icons.Outlined.PersonAdd
+
+    val Notifications_Filled = Icons.Filled.Notifications
+    val New_Badge = Icons.Filled.NewReleases
 
     // 알림 타입 정하고 사용
 //    fun notification(type: LMNotificationType): ImageVector {
