@@ -26,8 +26,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -84,118 +90,119 @@ fun GroupCodeDialog(
     val minutes = remainingSeconds / 60
     val seconds = remainingSeconds % 60
     val timerText = "%02d:%02d".format(minutes, seconds)
-    val badgeSize = 56.dp
-    val badgeRadius = badgeSize / 2
-    val shape = RoundedCornerShape(24.dp)
 
     Dialog(onDismissRequest = onDismissRequest) {
-        Box(
-            modifier = Modifier.padding(top = 14.dp),
-            contentAlignment = Alignment.TopCenter
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = OffWhite,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Card(
-                modifier = Modifier
-                    .padding(top = badgeRadius / 2)
-                    .widthIn(min = 328.dp)
-                    .wrapContentHeight(),
-                shape = shape,
-                colors = CardDefaults.cardColors(containerColor = lightbackground),
-                border = BorderStroke(width = 4.dp, color = color2)
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "초대 코드",
+                        style = AppTypography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = NavyBlue,
+                            fontSize = 24.sp
+                        ),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                     IconButton(
                         onClick = onDismissRequest,
-                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
-                    ) {
-                        Icon(imageVector = LMicons.Close, contentDescription = "닫기", tint = color4)
-                    }
-
-                    Column(
                         modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(horizontal = 24.dp, vertical = 32.dp)
-                            .padding(top = 12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .align(Alignment.CenterEnd)
+                            .offset(x = 12.dp)
                     ) {
-                        Text(
-                            text = "그룹 코드",
-                            style = MaterialTheme.typography.headlineLarge,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        CodeDisplay(code = initialCode)
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        // 5. 실시간 타이머 표시 컴포넌트 호출
-                        TimerDisplay(time = timerText)
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        // 하단 안내 메시지 및 복사 버튼 영역
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(color = color2.copy(alpha = 0.1f), shape = RoundedCornerShape(12.dp))
-                                .border(width = 1.dp, color = color2.copy(alpha = 0.7f), shape = RoundedCornerShape(12.dp))
-                                .padding(horizontal = 16.dp, vertical = 4.dp), // 내부 패딩 조정
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "이 코드를 초대할 구성원에게 공유하세요",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = color4,
-                                modifier = Modifier.weight(1f) // 텍스트가 남은 공간을 채우도록
-                            )
-                            IconButton(onClick = {
-                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clip = ClipData.newPlainText("Invite Code", initialCode)
-                                clipboard.setPrimaryClip(clip)
-                                Toast.makeText(context, "코드가 복사되었습니다.", Toast.LENGTH_SHORT).show()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Outlined.ContentCopy,
-                                    contentDescription = "복사하기",
-                                    tint = color3
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // 6. 새로고침 버튼: 클릭 시 번호 랜덤 생성 및 시간 초기화
-                        FilledButton(
-                            text = "새로고침",
-                            onClick = onRefreshClick, // ViewModel에 코드 재요청을 위임
-                            modifier = Modifier.fillMaxWidth(),
-                            size = ButtonSize.Medium,
-                            leadingIcon = Icons.Outlined.Refresh
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "닫기",
+                            tint = NavyBlue
                         )
                     }
                 }
-            }
-            // 상단 아이콘 박스
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .align(Alignment.TopCenter)
-                    .offset(y = -(badgeRadius / 2))
-                    .clip(CircleShape)
-                    .background(color = color2),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.groupdialog),
-                    contentDescription = "그룹 코드 아이콘",
-                    tint = lightbackground,
-                    modifier = Modifier.size(32.dp)
-                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // 코드 표시 영역
+                CodeDisplay(code = initialCode)
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 타이머
+                TimerDisplay(time = timerText)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 안내 및 복사
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = NavyBlue.copy(alpha = 0.05f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "그룹원에게 코드를 공유하세요",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center
+                        )
+                        IconButton(onClick = {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            val clip = ClipData.newPlainText("Invite Code", initialCode)
+                            clipboard.setPrimaryClip(clip)
+                            Toast.makeText(context, "코드가 복사되었습니다.", Toast.LENGTH_SHORT).show()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.ContentCopy,
+                                contentDescription = "복사하기",
+                                tint = NavyBlue
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 새로고침 버튼
+                Button(
+                    onClick = onRefreshClick,
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NavyBlue
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "새로고침",
+                            style = AppTypography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -208,22 +215,22 @@ fun GroupCodeDialog(
 @Composable
 private fun CodeDisplay(code: String) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp) // 칸 사이 간격 유지
+        horizontalArrangement = Arrangement.spacedBy(2.dp) // 칸 사이 간격 유지
     ) {
         repeat(6) { index ->
             val char = code.getOrNull(index)?.toString() ?: ""
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .border(width = 1.dp, color = color4, shape = RoundedCornerShape(8.dp)),
+                    .background(Color.White, RoundedCornerShape(8.dp))
+                    .border(width = 1.dp, color = NavyBlue, shape = RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = char,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        lineHeight = TextUnit.Unspecified,
-                        lineHeightStyle = null,
-                        letterSpacing = 0.sp
+                    style = AppTypography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = NavyBlue
                     ),
                     textAlign = TextAlign.Center
                 )

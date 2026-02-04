@@ -1,8 +1,8 @@
 package com.a602.commonproject.designsystem.component
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -11,16 +11,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.zIndex
-import com.a602.commonproject.designsystem.R
-import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.designsystem.theme.AppTypography
+import com.a602.commonproject.designsystem.theme.NavyBlue
+import com.a602.commonproject.designsystem.theme.OffWhite
 import androidx.compose.ui.tooling.preview.Preview
+import com.a602.commonproject.designsystem.theme.LMTheme
+import com.a602.commonproject.designsystem.R
 
 @Composable
 fun GroupRoleChangeDialog(
@@ -33,125 +36,161 @@ fun GroupRoleChangeDialog(
     var isMemberSelected by remember { mutableStateOf(currentRole != "MEMBER") }
 
     Dialog(onDismissRequest = onDismiss) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(top = 28.dp),
-            contentAlignment = Alignment.TopCenter
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = OffWhite,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // 원형 아이콘 (zIndex를 주어 맨 위로 올림)
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .offset(y = (-28).dp)
-                    .zIndex(2f)
-                    .background(LMGroupDialogDefaults.iconBackgroundColor(), CircleShape)
-                    .border(BorderStroke(3.dp, LMGroupDialogDefaults.borderColor()), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.groupdialog),
-                    contentDescription = null,
-                    tint = lightbackground
-                )
-            }
-
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(LMGroupDialogDefaults.containerColor(), RoundedCornerShape(28.dp))
-                    .border(BorderStroke(3.dp, LMGroupDialogDefaults.borderColor()), RoundedCornerShape(28.dp))
-                    .padding(20.dp),
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 상단 제목 레이아웃 (양 끝 배치)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Spacer(modifier = Modifier.size(48.dp)) // 왼쪽 여백
+                Box(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "권한 변경",
-                        style = MaterialTheme.typography.headlineLarge,
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center
+                        text = "권한 선택",
+                        style = AppTypography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = NavyBlue,
+                            fontSize = 24.sp
+                        ),
+                        modifier = Modifier.align(Alignment.Center)
                     )
-                    IconButton(onClick = onCloseClick) {
-                        Icon(imageVector = Icons.Default.Close,
+                    IconButton(
+                        onClick = onCloseClick,
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .offset(x = 12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
                             contentDescription = "닫기",
-                            tint = color3)
+                            tint = NavyBlue
+                        )
                     }
                 }
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // 💡 멤버 선택지 (현재 멤버면 흑백/흐림 처리)
+                // 💡 사진사 (멤버) 선택지
                 val isMemberDisabled = currentRole == "MEMBER"
-                Box(modifier = Modifier.alpha(if (isMemberDisabled) 0.4f else 1f)) {
-                    RoleItem(
-                        icon = Icons.Outlined.Lock,
-                        title = "멤버",
-                        desc = if (isMemberDisabled) "현재 권한입니다" else "편집 및 업로드 가능",
-                        selected = isMemberSelected,
-                        backgroundColor = LMGroupDialogDefaults.memberBackgroundColor()
-                    ) {
-                        if (!isMemberDisabled) isMemberSelected = true // 💡 클릭 방지
-                    }
-                }
+                SelectionCard(
+                    title = "사진사",
+                    description = "사진을 찍고 공유하는 역할",
+                    iconResId = R.drawable.camera,
+                    isSelected = isMemberSelected,
+                    onClick = { if (!isMemberDisabled) isMemberSelected = true }
+                )
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // 💡 뷰어 선택지 (현재 뷰어면 흑백/흐림 처리)
+                // 💡 관찰자 (뷰어) 선택지
                 val isViewerDisabled = currentRole == "VIEWER"
-                Box(modifier = Modifier.alpha(if (isViewerDisabled) 0.4f else 1f)) {
-                    RoleItem(
-                        icon = LMicons.Visibility,
-                        title = "뷰어",
-                        desc = if (isViewerDisabled) "현재 권한입니다" else "보기만 가능",
-                        selected = !isMemberSelected,
-                        backgroundColor = LMGroupDialogDefaults.viewerBackgroundColor()
-                    ) {
-                        if (!isViewerDisabled) isMemberSelected = false // 💡 클릭 방지
-                    }
-                }
+                SelectionCard(
+                    title = "관찰자",
+                    description = "공유된 사진을 보는 역할",
+                    iconResId = R.drawable.telescope,
+                    isSelected = !isMemberSelected,
+                    onClick = { if (!isViewerDisabled) isMemberSelected = false }
+                )
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                FilledButton(
-                    text = "변경하기",
+                Button(
                     onClick = { onConfirm(isMemberSelected) },
-                    modifier = Modifier.fillMaxWidth(),
-                    size = ButtonSize.Medium
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NavyBlue
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    Text(
+                        text = "변경하기",
+                        style = AppTypography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun SelectionCard(
+    title: String,
+    description: String,
+    iconResId: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White // 이미지가 흰 배경이 있을 수 있으므로 항상 흰색 유지
+        ),
+        border = BorderStroke(
+            width = if (isSelected) 2.dp else 1.dp,
+            color = if (isSelected) NavyBlue else Color.Gray.copy(alpha = 0.2f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(vertical = 20.dp, horizontal = 16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 아이콘 이미지
+            // 드로우블 이미지 (크기 조정)
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(id = iconResId),
+                contentDescription = null,
+                modifier = Modifier.size(56.dp)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(
+                    text = title,
+                    style = AppTypography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = NavyBlue,
+                        fontSize = 20.sp
+                    )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = description,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    style = AppTypography.bodyMedium.copy(
+                        color = NavyBlue.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Medium
+                    )
                 )
             }
         }
     }
 }
 
-
-
-
-@Preview(showBackground = true, widthDp = 411, heightDp = 640)
+@Preview(showBackground = true)
 @Composable
 fun GroupRoleChangeDialogPreview() {
     LMTheme {
-        // 실제 앱처럼 보이기 위해 배경색이 있는 Box로 감쌉니다.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = color2.copy(alpha = 0.1f))
-        ) {
-            GroupRoleChangeDialog(
-                // ✅ 테스트: 현재 권한이 "MEMBER"인 상황을 가정합니다.
-                // 결과: '멤버' 칸은 흐릿(alpha 0.4)해지고 클릭이 안 되어야 합니다.
-                currentRole = "MEMBER",
-                onDismiss = { /* 팝업 바깥 클릭 시 */ },
-                onCloseClick = { /* X 버튼 클릭 시 */ },
-                onConfirm = { isMemberSelected ->
-                    // 변경하기 버튼 클릭 시 로직
-                    println("새로 선택된 권한이 멤버인가요? : $isMemberSelected")
-                }
-            )
-        }
+        GroupRoleChangeDialog(
+            currentRole = "MEMBER",
+            onDismiss = { },
+            onCloseClick = { },
+            onConfirm = { }
+        )
     }
 }

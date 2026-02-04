@@ -64,16 +64,19 @@ fun MemberItem(name: String, role: String, icon: Int) {
         Text(
             text = name,
             style = AppTypography.headlineLarge.copy(color = NavyBlue, fontSize = 24.sp),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
         )
 
         // 역할
         Text(
             text = role,
             style = AppTypography.bodyMedium.copy(color = NavyBlue.copy(alpha = 0.6f)),
-            modifier = Modifier.padding(start = 8.dp)
+            modifier = Modifier.padding(end = 12.dp)
         )
     }
+
 }
 
 /**
@@ -86,19 +89,22 @@ fun MemberItem(name: String, role: String, icon: Int) {
 fun FamilyCard(
     groupName: String,
     groupMembers: List<com.a602.commonproject.model.data.GroupMember>,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    onAddNewMemberClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
         shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(containerColor = OffWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             // 헤더: "우리 가족"과 수정 버튼
             Box(modifier = Modifier.fillMaxWidth()) {
                 Column(
-                    modifier = Modifier.align(Alignment.Center),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .width(IntrinsicSize.Max),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -109,11 +115,12 @@ fun FamilyCard(
                             fontWeight = FontWeight.Bold
                         ),
                     )
+                    Spacer(modifier = Modifier.height(10.dp))
                     // 밑줄
                     Box(
                         modifier = Modifier
-                            .width(120.dp)
-                            .height(2.dp)
+                            .fillMaxWidth()
+                            .height(3.dp)
                             .background(NavyBlue)
                     )
                 }
@@ -131,7 +138,7 @@ fun FamilyCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // 멤버 리스트
             groupMembers.forEach { member ->
@@ -145,6 +152,21 @@ fun FamilyCard(
                     name = member.nickname,
                     role = member.relation, // role 대신 relation 사용 (아빠, 할아버지 등)
                     icon = iconRes
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = onAddNewMemberClick, // 새 멤버 추가 클릭 시 팝업 호출
+                modifier = Modifier.fillMaxWidth(0.6f).align(Alignment.CenterHorizontally).height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = NavyBlue),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+            ) {
+                Text(
+                    text = "새 멤버 추가",
+                    style = AppTypography.bodyLarge.copy(color = background)
                 )
             }
         }
@@ -207,8 +229,8 @@ fun ProfileInfoCard(
     Card(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
         shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(containerColor = OffWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
             Column(

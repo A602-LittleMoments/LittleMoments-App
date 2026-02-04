@@ -40,7 +40,16 @@ data class MyPageUiState(
     // 초대 다이얼로그 상태
     val showRoleSelectDialog: Boolean = false,
     val showInviteCodeDialog: Boolean = false,
-    val currentInviteCode: String = ""
+    val currentInviteCode: String = "",
+    // 내 정보 수정 다이얼로그 상태 (닉네임만)
+    val showProfileEditDialog: Boolean = false,
+    val editingNickname: String = "",
+    // 비밀번호 변경 다이얼로그 상태
+    val showPasswordChangeDialog: Boolean = false,
+    val currentPassword: String = "",
+    val newPassword: String = "",
+    val confirmPassword: String = "",
+    val passwordChangeError: String? = null
 )
 
 private data class MyPageDataState(
@@ -58,7 +67,15 @@ private data class MyPageLocalState(
     val showRoleSelectDialog: Boolean = false,
     val showInviteCodeDialog: Boolean = false,
     val currentInviteCode: String = "",
-    val selectedRoleIsMember: Boolean = true // true: Member, false: Viewer
+    val selectedRoleIsMember: Boolean = true, // true: Member, false: Viewer
+    val showProfileEditDialog: Boolean = false,
+    val editingNickname: String = "",
+    // 비밀번호 변경 다이얼로그 상태
+    val showPasswordChangeDialog: Boolean = false,
+    val currentPassword: String = "",
+    val newPassword: String = "",
+    val confirmPassword: String = "",
+    val passwordChangeError: String? = null
 )
 
 @HiltViewModel
@@ -129,7 +146,14 @@ class MyPageViewModel @Inject constructor(
             editingGroupName = local.editingGroupName,
             showRoleSelectDialog = local.showRoleSelectDialog,
             showInviteCodeDialog = local.showInviteCodeDialog,
-            currentInviteCode = local.currentInviteCode
+            currentInviteCode = local.currentInviteCode,
+            showProfileEditDialog = local.showProfileEditDialog,
+            editingNickname = local.editingNickname,
+            showPasswordChangeDialog = local.showPasswordChangeDialog,
+            currentPassword = local.currentPassword,
+            newPassword = local.newPassword,
+            confirmPassword = local.confirmPassword,
+            passwordChangeError = local.passwordChangeError
         )
     }.stateIn(
         scope = viewModelScope,
@@ -218,6 +242,113 @@ class MyPageViewModel @Inject constructor(
                 showRoleSelectDialog = false,
                 showInviteCodeDialog = false
             )
+        }
+    }
+
+    // --- 내 정보 수정(닉네임) 관련 로직 ---
+
+    fun openProfileEditDialog() {
+        val currentUser = uiState.value.user
+        _localState.update {
+            it.copy(
+                showProfileEditDialog = true,
+                editingNickname = currentUser?.nickname ?: ""
+            )
+        }
+    }
+
+    fun closeProfileEditDialog() {
+        _localState.update { it.copy(showProfileEditDialog = false) }
+    }
+    
+    // --- 비밀번호 변경 관련 로직 ---
+
+    fun openPasswordChangeDialog() {
+        _localState.update {
+            it.copy(
+                showPasswordChangeDialog = true,
+                currentPassword = "",
+                newPassword = "",
+                confirmPassword = "",
+                passwordChangeError = null
+            )
+        }
+    }
+
+    fun closePasswordChangeDialog() {
+        _localState.update { it.copy(showPasswordChangeDialog = false) }
+    }
+
+    fun onNicknameChange(newNickname: String) {
+        _localState.update { it.copy(editingNickname = newNickname) }
+    }
+
+    fun onCurrentPasswordChange(password: String) {
+        _localState.update { it.copy(currentPassword = password) }
+    }
+
+    fun onNewPasswordChange(password: String) {
+        _localState.update { it.copy(newPassword = password) }
+    }
+
+    fun onConfirmPasswordChange(password: String) {
+        _localState.update { it.copy(confirmPassword = password) }
+    }
+
+    // 닉네임만 저장 (그냥 닉네임 수정 팝업용)
+    fun saveNickname() {
+        val newNickname = _localState.value.editingNickname
+        if (newNickname.isBlank()) return
+
+        viewModelScope.launch {
+            userRepository.updateProfile(newNickname, null)
+            _refreshTrigger.value += 1
+            closeProfileEditDialog()
+        }
+    }
+
+    // 비밀번호만 저장 (설정 -> 비밀번호 변경 팝업용)
+    fun savePassword() {
+        val state = _localState.value
+        val currentPwd = state.currentPassword
+        val newPwd = state.newPassword
+        val confirmPwd = state.confirmPassword
+
+        // 비밀번호 변경 시도
+        if (newPwd != confirmPwd) {
+            _localState.update { it.copy(passwordChangeError = "새 비밀번호가 일치하지 않습니다.") }
+            return
+        }
+        
+        // 현재 비밀번호 입력 확인
+        if (currentPwd.isBlank()) {
+             _localState.update { it.copy(passwordChangeError = "현재 비밀번호를 입력해주세요.") }
+            return
+        }
+
+        viewModelScope.launch {
+             val pwdResult = userRepository.changePassword(currentPwd, newPwd, confirmPwd)
+             
+             pwdResult.onSuccess {
+                 closePasswordChangeDialog()
+                 // 상태 초기화
+                 _localState.update { 
+                     it.copy(
+                         currentPassword = "", newPassword = "", confirmPassword = "", 
+                         passwordChangeError = null
+                     ) 
+                 }
+                 // 필요하다면 토스트 메시지 등을 위한 이펙트 처리
+             }.onFailure { e ->
+                 // 서버 에러(500) 또는 기타 에러 발생 시 사용자 친화적인 메시지로 변환
+                 val rawMsg = e.message.orEmpty()
+                 val friendlyMsg = if (rawMsg.contains("500") || rawMsg.contains("invalid", ignoreCase = true)) {
+                     "현재 비밀번호가 일치하지 않습니다."
+                 } else {
+                     rawMsg.ifBlank { "비밀번호 변경에 실패했습니다." }
+                 }
+                 _localState.update { it.copy(passwordChangeError = friendlyMsg) }
+             }
         }
     }
 }
