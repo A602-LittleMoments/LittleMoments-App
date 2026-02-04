@@ -109,7 +109,10 @@ class MediaDetailViewModel @Inject constructor(
     /** ✅ 삭제 */
     fun deleteCurrent() {
         val id = uiState.value.mediaId ?: return
+        deleteMedia(id)
+    }
 
+    fun deleteMedia(id: String) {
         viewModelScope.launch {
             actionState.update { it.copy(isDeleting = true, errorMessage = null) }
 
@@ -138,7 +141,10 @@ class MediaDetailViewModel @Inject constructor(
             actionState.update { it.copy(errorMessage = "다운로드할 사진이 없어요") }
             return
         }
+        downloadMedia(media)
+    }
 
+    fun downloadMedia(media: SharedMedia) {
         val url = media.remoteUrl ?: run {
             if (!media.localUri.isNullOrEmpty()) {
                 actionState.update { it.copy(errorMessage = "이미 기기에 저장되어 있는 사진입니다.") }

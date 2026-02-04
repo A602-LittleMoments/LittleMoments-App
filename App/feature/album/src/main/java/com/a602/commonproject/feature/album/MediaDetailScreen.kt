@@ -2,6 +2,7 @@ package com.a602.commonproject.feature.album
 
 import Polaroid
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -23,6 +26,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -40,6 +45,8 @@ import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.feature.album.viewmodel.MediaDetailViewModel
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.designsystem.R as DesignR
+import kotlinx.coroutines.launch
+
 // import com.a602.coommonproject.ui.SharedMediaDetailScreen // REMOVED
 
 @Composable
@@ -87,12 +94,33 @@ fun MediaDetailRoute(
             when {
                 uiState.isLoading -> Text("불러오는 중…")
                 uiState.media != null -> {
+                    // Filter medias by date
+                    val currentMedia = uiState.media!!
+                    val dayMedias = remember(uiState.allMedias, currentMedia) {
+                        val targetDate = java.time.Instant.ofEpochMilli(currentMedia.dateTaken)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toLocalDate()
+
+                        uiState.allMedias.filter {
+                            val date = java.time.Instant.ofEpochMilli(it.dateTaken)
+                                .atZone(java.time.ZoneId.systemDefault())
+                                .toLocalDate()
+                            date == targetDate
+                        }.sortedBy { it.dateTaken }
+                    }
+
+                    val initialIndex = remember(dayMedias, currentMedia) {
+                        val idx = dayMedias.indexOfFirst { it.id == currentMedia.id }
+                        if (idx == -1) 0 else idx
+                    }
+
                     MediaDetailScreen(
                         title = "자세히 보기",
-                        media = uiState.media!!,
+                        initialIndex = initialIndex,
+                        medias = dayMedias,
                         onBack = onBack,
-                        onDelete = viewModel::deleteCurrent,
-                        onDownload = viewModel::downloadCurrent,
+                        onDelete = viewModel::deleteMedia,
+                        onDownload = viewModel::downloadMedia,
                         onEdit = onEdit,
                     )
                 }
@@ -115,15 +143,25 @@ fun MediaDetailRoute(
 @Composable
 fun MediaDetailScreen(
     title: String,
-    media: SharedMedia,
+    initialIndex: Int,
+    medias: List<SharedMedia>,
     onBack: () -> Unit,
-    onDelete: () -> Unit,
-    onDownload: () -> Unit,
+    onDelete: (String) -> Unit,
+    onDownload: (SharedMedia) -> Unit,
     onEdit: () -> Unit,
 ) {
-    // SharedMediaDetailScreen Code INLINED here per user request to reuse Album directly without intermediate shared file.
+    val pagerState = rememberPagerState(
+        initialPage = initialIndex,
+        pageCount = { medias.size }
+    )
 
-    // START INLINED CODE
+    // Fix: Ensure pager reflects the correct initial page when data loads asynchronously
+    LaunchedEffect(initialIndex, medias.size) {
+        if (medias.isNotEmpty() && pagerState.currentPage != initialIndex) {
+             pagerState.scrollToPage(initialIndex)
+        }
+    }
+
     Scaffold(
         topBar = {
             LMTopAppBar(
@@ -137,7 +175,7 @@ fun MediaDetailScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Background Image
+            // Background Image (Static)
             Image(
                 painter = painterResource(id = DesignR.drawable.gallery_background),
                 contentDescription = null,
@@ -145,101 +183,139 @@ fun MediaDetailScreen(
                 contentScale = ContentScale.Crop
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // 폴라로이드 + 꾸미기 요소
-                Box(contentAlignment = Alignment.Center) {
-                    Polaroid(
-                        media = media,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            // Content Area with Pager
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                key = { index -> medias.getOrNull(index)?.id ?: index }
+            ) { page ->
+                val media = medias.getOrNull(page)
 
-                    // Decorations
-
-                    // 1. Top Left - Pastel Purple Star
-                    Icon(
-                        painter = painterResource(id = DesignR.drawable.star),
-                        contentDescription = null,
+                if (media != null) {
+                    Column(
                         modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(top = 20.dp)
-                            .offset(x = (-10).dp)
-                            .size(50.dp)
-                            .rotate(-15f),
-                        tint = Color(0xFFE1BEE7) // Pastel Purple
-                    )
-
-                    // 2. Top Right - Pastel Yellow Star
-                    Icon(
-                        painter = painterResource(id = DesignR.drawable.star),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(top = 10.dp)
-                            .offset(x = 15.dp)
-                            .size(60.dp)
-                            .rotate(20f),
-                        tint = Color(0xFFFFF176) // Pastel Yellow
-                    )
-
-                    // 3. Top Right Small - Cream Star
-                    Icon(
-                        painter = painterResource(id = DesignR.drawable.star),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(top = 40.dp, end = 50.dp)
-                            .size(30.dp)
-                            .rotate(-10f),
-                        tint = Color(0xFFFFF9C4) // Cream
-                    )
-
-
-                    // 4. Bottom Left - Big Yellow Star
-                    Icon(
-                        painter = painterResource(id = DesignR.drawable.star),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .offset(x = (-20).dp, y = (-70).dp) // Moved up to avoid caption
-                            .size(70.dp)
-                            .rotate(-30f),
-                        tint = Color(0xFFFFF59D) // Pastel Yellow
-                    )
-
-                    // 5. Bottom Center/Right - White Stars Row
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(bottom = 80.dp, end = 40.dp), // Moved up to avoid caption
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
+                        // 폴라로이드 + 꾸미기 요소
+                        Box(contentAlignment = Alignment.Center) {
+                            Polaroid(
+                                media = media,
+                                modifier = Modifier.fillMaxWidth()
+                            )
 
+                            // Decorations
+
+                            // 1. Top Left - Pastel Purple Star
+                            Icon(
+                                painter = painterResource(id = DesignR.drawable.star),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .align(Alignment.TopStart)
+                                    .padding(top = 20.dp)
+                                    .offset(x = (-10).dp)
+                                    .size(50.dp)
+                                    .rotate(-15f),
+                                tint = Color(0xFFE1BEE7) // Pastel Purple
+                            )
+
+                            // 2. Top Right - Pastel Yellow Star
+                            Icon(
+                                painter = painterResource(id = DesignR.drawable.star),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(top = 10.dp)
+                                    .offset(x = 15.dp)
+                                    .size(60.dp)
+                                    .rotate(20f),
+                                tint = Color(0xFFFFF176) // Pastel Yellow
+                            )
+
+                            // 3. Top Right Small - Cream Star
+                            Icon(
+                                painter = painterResource(id = DesignR.drawable.star),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(top = 40.dp, end = 50.dp)
+                                    .size(30.dp)
+                                    .rotate(-10f),
+                                tint = Color(0xFFFFF9C4) // Cream
+                            )
+
+
+                            // 4. Bottom Left - Big Yellow Star
+                            Icon(
+                                painter = painterResource(id = DesignR.drawable.star),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .offset(x = (-20).dp, y = (-70).dp) // Moved up to avoid caption
+                                    .size(70.dp)
+                                    .rotate(-30f),
+                                tint = Color(0xFFFFF59D) // Pastel Yellow
+                            )
+
+                            // 5. Bottom Center/Right - White Stars Row
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(bottom = 80.dp, end = 40.dp), // Moved up to avoid caption
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+
+                            }
+                        }
+
+                        Spacer(Modifier.height(16.dp))
+
+                        // 액션바
+                        IconActionBar(
+                            modifier = Modifier.fillMaxWidth(),
+                            onDelete = { onDelete(media.id) },
+                            onDownload = { onDownload(media) },
+                            onEdit = onEdit,
+                        )
                     }
-
-
                 }
+            }
 
-                Spacer(Modifier.height(16.dp))
+            // Swipe Hint (Temporary Popup)
+            var showSwipeHint by remember { androidx.compose.runtime.mutableStateOf(true) }
+            LaunchedEffect(Unit) {
+                kotlinx.coroutines.delay(3000)
+                showSwipeHint = false
+            }
 
-                // 액션바
-                IconActionBar(
-                    modifier = Modifier.fillMaxWidth(),
-                    onDelete = onDelete,
-                    onDownload = onDownload,
-                    onEdit = onEdit,
-                )
+            androidx.compose.animation.AnimatedVisibility(
+                visible = showSwipeHint,
+                enter = androidx.compose.animation.fadeIn(),
+                exit = androidx.compose.animation.fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 120.dp) // Positioned above the action bar area
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = Color.Black.copy(alpha = 0.6f),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(30.dp)
+                        )
+                        .padding(horizontal = 24.dp, vertical = 12.dp)
+                ) {
+                   Text(
+                       text = "좌우로 넘겨서 다른 사진을 볼 수 있어요",
+                       color = Color.White,
+                       style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
+                   )
+                }
             }
         }
     }
 }
-
-
 
 // 프리뷰
 private fun fakePhotoMedia(): SharedMedia {
@@ -266,7 +342,8 @@ private fun Preview_Detail_Content() {
     LMTheme {
         MediaDetailScreen(
             title = "자세히 보기",
-            media = fakePhotoMedia(),
+            medias = listOf(fakePhotoMedia()),
+            initialIndex = 0,
             onBack = {},
             onDelete = {},
             onDownload = {},
