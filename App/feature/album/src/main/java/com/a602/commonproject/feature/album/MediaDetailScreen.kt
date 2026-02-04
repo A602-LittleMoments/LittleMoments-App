@@ -55,6 +55,8 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 
 // import com.a602.coommonproject.ui.SharedMediaDetailScreen // REMOVED
 
+
+
 @Composable
 fun MediaDetailRoute(
     mediaId: String,
@@ -106,30 +108,22 @@ fun MediaDetailRoute(
             when {
                 uiState.isLoading -> Text("불러오는 중…")
                 uiState.media != null -> {
-                    // Filter medias by date
-                    val currentMedia = uiState.media!!
-                    val dayMedias = remember(uiState.allMedias, currentMedia) {
-                        val targetDate = java.time.Instant.ofEpochMilli(currentMedia.dateTaken)
-                            .atZone(java.time.ZoneId.systemDefault())
-                            .toLocalDate()
-
-                        uiState.allMedias.filter {
-                            val date = java.time.Instant.ofEpochMilli(it.dateTaken)
-                                .atZone(java.time.ZoneId.systemDefault())
-                                .toLocalDate()
-                            date == targetDate
-                        }.sortedBy { it.dateTaken }
+                    // [Navigation Fix] Use ALL medias, sorted by date descending (Newest first)
+                    // Matches the Grid View order and allows swiping through the entire gallery.
+                    val sortedMedias = remember(uiState.allMedias) {
+                        uiState.allMedias.sortedByDescending { it.dateTaken }
                     }
 
-                    val initialIndex = remember(dayMedias, currentMedia) {
-                        val idx = dayMedias.indexOfFirst { it.id == currentMedia.id }
+                    val currentMedia = uiState.media!!
+                    val initialIndex = remember(sortedMedias, currentMedia) {
+                        val idx = sortedMedias.indexOfFirst { it.id == currentMedia.id }
                         if (idx == -1) 0 else idx
                     }
 
                     MediaDetailScreen(
                         title = "자세히 보기",
                         initialIndex = initialIndex,
-                        medias = dayMedias,
+                        medias = sortedMedias,
                         onBack = onBack,
                         onDelete = viewModel::deleteMedia,
                         onDownload = viewModel::downloadMedia, // Legacy 원본 다운로드
