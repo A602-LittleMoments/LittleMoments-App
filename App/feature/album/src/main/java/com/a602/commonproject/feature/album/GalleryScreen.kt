@@ -286,25 +286,30 @@ fun CalendarScreen(
     // 배경 이미지 리소스
     val backgroundImage = R.drawable.gallery_background
 
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-
-        // 2. Body with Starry Background
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-        ) {
+    Scaffold(
+        containerColor = Color.Transparent
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 1. Background Image (Full Screen)
             Image(
                 painter = painterResource(id = backgroundImage),
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier.fillMaxSize()
             )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+
+                // 2. Body with Starry Background
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
 
             // Rocket background element
             Image(
@@ -320,7 +325,6 @@ fun CalendarScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .statusBarsPadding()
                     .padding(horizontal = 16.dp)
             ) {
                 // 상단 버튼과 위의 거리
@@ -438,6 +442,7 @@ fun CalendarScreen(
             }
         }
         }
+    }
     }
 }
 
