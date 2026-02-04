@@ -1,6 +1,9 @@
 package com.a602.commonproject.designsystem.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.icon.LMicons
@@ -35,23 +39,23 @@ fun IconActionBar(
     enabledDownload: Boolean = true,
     enabledEdit: Boolean = true,
 ) {
-    val shape = RoundedCornerShape(32.dp)
+    val shape = RoundedCornerShape(16.dp)
 
-    Surface(
+    Box(
         modifier = modifier
-            .height(48.dp)
-            .fillMaxWidth(0.9f)
-            .widthIn(min= 280.dp, max = 350.dp)
+            .height(56.dp)
+            .fillMaxWidth(0.75f)
+            .widthIn(min = 280.dp, max = 350.dp)
+            .shadow(8.dp, shape)
+            .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), shape)
+            .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), shape)
             .clip(shape),
-        shape = shape,
-        color = lightbackground,
-//        tonalElevation = 2.dp,   // 살짝 톤
-//        shadowElevation = 10.dp,  // 캡쳐처럼 떠있는 그림자
+        contentAlignment = Alignment.Center
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 24.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -89,7 +93,7 @@ private fun ActionIconButton(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = color3
+            tint = androidx.compose.ui.graphics.Color.White.copy(alpha = if (enabled) 1f else 0.4f)
         )
     }
 }
