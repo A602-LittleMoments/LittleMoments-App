@@ -46,6 +46,12 @@ import com.a602.commonproject.feature.album.viewmodel.MediaDetailViewModel
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.designsystem.R as DesignR
 import kotlinx.coroutines.launch
+import android.graphics.Bitmap
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 
 // import com.a602.coommonproject.ui.SharedMediaDetailScreen // REMOVED
 
@@ -71,9 +77,9 @@ fun MediaDetailRoute(
         }
     }
 
-    // 다운로드 성공 스낵바
-    LaunchedEffect(uiState.downloadSuccess) {
-        if (uiState.downloadSuccess) {
+    // 다운로드(원본) 또는 캡처 성공 스낵바
+    LaunchedEffect(uiState.downloadSuccess, uiState.saveBitmapSuccess) {
+        if (uiState.downloadSuccess || uiState.saveBitmapSuccess) {
             viewModel.onDownloadSuccessConsumed()
             snackbarHostState.showSnackbar("사진을 저장했어요")
         }
@@ -120,7 +126,8 @@ fun MediaDetailRoute(
                         medias = dayMedias,
                         onBack = onBack,
                         onDelete = viewModel::deleteMedia,
-                        onDownload = viewModel::downloadMedia,
+                        onDownload = viewModel::downloadMedia, // Legacy 원본 다운로드
+                        onSaveBitmap = viewModel::saveBitmapToGallery, // ✨ 꾸며진 사진 저장
                         onEdit = onEdit,
                     )
                 }
@@ -148,12 +155,16 @@ fun MediaDetailScreen(
     onBack: () -> Unit,
     onDelete: (String) -> Unit,
     onDownload: (SharedMedia) -> Unit,
+    onSaveBitmap: (Bitmap) -> Unit,
     onEdit: () -> Unit,
 ) {
     val pagerState = rememberPagerState(
         initialPage = initialIndex,
         pageCount = { medias.size }
     )
+
+    // Capture Trigger
+    var captureTrigger by remember { mutableStateOf<Long?>(null) }
 
     // Fix: Ensure pager reflects the correct initial page when data loads asynchronously
     LaunchedEffect(initialIndex, medias.size) {
@@ -199,8 +210,31 @@ fun MediaDetailScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
+                        // 캡처를 위한 Graphics Layer
+                        val graphicsLayer = rememberGraphicsLayer()
+
+                        // 캡처 요청 발생 시 현재 페이지만 캡처
+                        LaunchedEffect(captureTrigger) {
+                            if (captureTrigger != null && pagerState.currentPage == page) {
+                                val bitmap = graphicsLayer.toImageBitmap()
+                                onSaveBitmap(bitmap.asAndroidBitmap())
+                            }
+                        }
+
                         // 폴라로이드 + 꾸미기 요소
-                        Box(contentAlignment = Alignment.Center) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .drawWithContent {
+                                    // 이 영역의 그림을 graphicsLayer에 기록합니다
+                                    graphicsLayer.record {
+                                        this@drawWithContent.drawContent()
+                                    }
+                                    // 실제 화면에도 그립니다
+                                    drawLayer(graphicsLayer)
+                                }
+                        ) {
                             Polaroid(
                                 media = media,
                                 modifier = Modifier.fillMaxWidth()
@@ -276,7 +310,10 @@ fun MediaDetailScreen(
                         IconActionBar(
                             modifier = Modifier.fillMaxWidth(),
                             onDelete = { onDelete(media.id) },
-                            onDownload = { onDownload(media) },
+                            onDownload = {
+                                // 캡처 트리거 실행
+                                captureTrigger = System.currentTimeMillis()
+                            },
                             onEdit = onEdit,
                         )
                     }
@@ -347,6 +384,7 @@ private fun Preview_Detail_Content() {
             onBack = {},
             onDelete = {},
             onDownload = {},
+            onSaveBitmap = {},
             onEdit = {}
         )
     }

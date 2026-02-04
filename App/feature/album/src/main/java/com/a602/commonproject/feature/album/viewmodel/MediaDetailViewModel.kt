@@ -1,15 +1,21 @@
 package com.a602.commonproject.feature.album.viewmodel
 
 import android.app.DownloadManager
+import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
+import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.model.data.SharedMedia
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import java.io.IOException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +23,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class MediaDetailUiState(
@@ -27,9 +34,11 @@ data class MediaDetailUiState(
     val isLoading: Boolean = true,
     val isDeleting: Boolean = false,
     val isDownloading: Boolean = false,
+    val isSavingBitmap: Boolean = false,
 
     val deleteSuccess: Boolean = false,
     val downloadSuccess: Boolean = false,
+    val saveBitmapSuccess: Boolean = false,
 
     val errorMessage: String? = null
 )
@@ -101,7 +110,8 @@ class MediaDetailViewModel @Inject constructor(
                 isLoading = true,
                 errorMessage = null,
                 deleteSuccess = false,
-                downloadSuccess = false
+                downloadSuccess = false,
+                saveBitmapSuccess = false
             )
         }
     }
@@ -145,31 +155,41 @@ class MediaDetailViewModel @Inject constructor(
     }
 
     fun downloadMedia(media: SharedMedia) {
-        val url = media.remoteUrl ?: run {
-            if (!media.localUri.isNullOrEmpty()) {
-                actionState.update { it.copy(errorMessage = "이미 기기에 저장되어 있는 사진입니다.") }
-            } else {
-                actionState.update { it.copy(errorMessage = "다운로드 URL이 없어요") }
-            }
-            return
-        }
+        val remoteUrl = media.remoteUrl
+        val localUriPath = media.localUri
 
         viewModelScope.launch {
             actionState.update { it.copy(isDownloading = true, errorMessage = null) }
 
             try {
-                val request = DownloadManager.Request(Uri.parse(url))
-                    .setTitle("아이랑나랑 사진")
-                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                    .setDestinationInExternalPublicDir(
-                        Environment.DIRECTORY_PICTURES,
-                        "a602_${media.id}.jpg"
-                    )
+                if (!remoteUrl.isNullOrBlank()) {
+                    // 1. Remote Download via DownloadManager
+                    val request = android.app.DownloadManager.Request(Uri.parse(remoteUrl))
+                        .setTitle("아이랑나랑 사진")
+                        .setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                        .setDestinationInExternalPublicDir(
+                            Environment.DIRECTORY_PICTURES,
+                            "a602_${media.id}.jpg"
+                        )
 
-                val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                dm.enqueue(request)
+                    val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
+                    dm.enqueue(request)
+                    
+                    actionState.update { it.copy(isDownloading = false, downloadSuccess = true) }
+                } else if (!localUriPath.isNullOrBlank()) {
+                    // 2. Local File -> Save to Gallery
+                    val success = withContext(Dispatchers.IO) {
+                        saveLocalFileToGallery(localUriPath, media.id)
+                    }
+                    if (success) {
+                        actionState.update { it.copy(isDownloading = false, downloadSuccess = true) }
+                    } else {
+                        actionState.update { it.copy(isDownloading = false, errorMessage = "갤러리 저장에 실패했어요") }
+                    }
+                } else {
+                    actionState.update { it.copy(isDownloading = false, errorMessage = "저장할 수 있는 사진 정보가 없어요") }
+                }
 
-                actionState.update { it.copy(isDownloading = false, downloadSuccess = true) }
             } catch (e: Exception) {
                 actionState.update {
                     it.copy(
@@ -181,10 +201,69 @@ class MediaDetailViewModel @Inject constructor(
         }
     }
 
-    fun onDownloadSuccessConsumed() {
-        actionState.update { it.copy(downloadSuccess = false) }
+    private suspend fun saveLocalFileToGallery(localPath: String, mediaId: String): Boolean {
+        return try {
+            val sourceFile = File(localPath)
+            if (!sourceFile.exists()) return false
+
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, "a602_${mediaId}_${System.currentTimeMillis()}.jpg")
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+            }
+
+            val resolver = context.contentResolver
+            val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return false
+
+            resolver.openOutputStream(uri)?.use { outputStream ->
+                sourceFile.inputStream().use { inputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            true
+        } catch (e: IOException) {
+            e.printStackTrace()
+            false
+        }
     }
 
+    fun onDownloadSuccessConsumed() {
+        actionState.update { it.copy(downloadSuccess = false, saveBitmapSuccess = false) }
+    }
+
+    fun saveBitmapToGallery(bitmap: Bitmap) {
+        viewModelScope.launch {
+            actionState.update { it.copy(isSavingBitmap = true, errorMessage = null) }
+            
+            val success = withContext(Dispatchers.IO) {
+                try {
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, "a602_capture_${System.currentTimeMillis()}.jpg")
+                        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+                    }
+ 
+                    val resolver = context.contentResolver
+                    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return@withContext false
+ 
+                    resolver.openOutputStream(uri)?.use { outputStream ->
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    }
+                    true
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    false
+                }
+            }
+ 
+            if (success) {
+                actionState.update { it.copy(isSavingBitmap = false, saveBitmapSuccess = true) }
+            } else {
+                actionState.update { it.copy(isSavingBitmap = false, errorMessage = "이미지 저장에 실패했어요") }
+            }
+        }
+    }
+ 
     fun clearError() {
         actionState.update { it.copy(errorMessage = null) }
     }

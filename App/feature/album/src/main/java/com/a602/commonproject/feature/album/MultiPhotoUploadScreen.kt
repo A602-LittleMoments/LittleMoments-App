@@ -16,9 +16,12 @@ import com.a602.commonproject.feature.album.viewmodel.MultiPhotoUploadViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import java.io.File
+import androidx.compose.ui.res.painterResource
+import com.a602.commonproject.designsystem.R as DesignR
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.icon.LMicons
 import com.a602.commonproject.feature.album.viewmodel.UploadState
+
 
 @Composable
 fun MultiPhotoUploadScreen(
@@ -40,7 +43,7 @@ fun MultiPhotoUploadScreen(
     val pagerState = rememberPagerState(pageCount = { selectedMedias.size })
 
     Scaffold(
-
+        containerColor = Color.Transparent,
         topBar = {
             LMTopAppBar(
                 title = "${pagerState.currentPage + 1} / ${selectedMedias.size}",
@@ -49,7 +52,15 @@ fun MultiPhotoUploadScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = DesignR.drawable.gallery_background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             if (selectedMedias.isNotEmpty()) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     // Photo Pager
@@ -124,6 +135,7 @@ fun MultiPhotoUploadScreen(
                      CircularProgressIndicator()
                  }
             }
+        }
         }
     }
 }

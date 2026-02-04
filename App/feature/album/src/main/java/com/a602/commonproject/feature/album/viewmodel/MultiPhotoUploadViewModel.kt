@@ -38,6 +38,12 @@ class MultiPhotoUploadViewModel @Inject constructor(
         _targetIds.value = ids
     }
 
+    fun removeTargetId(id: String) {
+        val current = _targetIds.value.toMutableList()
+        current.remove(id)
+        _targetIds.value = current
+    }
+
     fun upload(captions: Map<String, String>, onComplete: () -> Unit) {
         viewModelScope.launch {
             _uploadState.value = UploadState.Uploading
