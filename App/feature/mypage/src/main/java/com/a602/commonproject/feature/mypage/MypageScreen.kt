@@ -167,7 +167,7 @@ fun MypageScreen(
                 modifier = Modifier
                     .statusBarsPadding()
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -175,9 +175,9 @@ fun MypageScreen(
                 Box(
                     modifier = Modifier
                         .size(48.dp)
-                        .clip(androidx.compose.foundation.shape.CircleShape)
-                        .background(Color.White.copy(alpha = 0.2f)) // Semi-transparent glass effect
-                        .border(1.dp, Color.White.copy(alpha = 0.5f), androidx.compose.foundation.shape.CircleShape)
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(24.dp))
+                        .background(Color.White.copy(alpha = 0.1f)) // Semi-transparent glass effect
+                        .border(1.dp, Color.White.copy(alpha = 0.3f), androidx.compose.foundation.shape.RoundedCornerShape(24.dp))
                         .clickable(onClick = onNavigateToPasswordChange),
                     contentAlignment = Alignment.Center
                 ) {
@@ -193,9 +193,9 @@ fun MypageScreen(
                 Box(
                     modifier = Modifier
                         .size(48.dp)
-                        .clip(androidx.compose.foundation.shape.CircleShape)
-                        .background(Color.White.copy(alpha = 0.2f)) // Semi-transparent glass effect
-                        .border(1.dp, Color.White.copy(alpha = 0.5f), androidx.compose.foundation.shape.CircleShape)
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(24.dp))
+                        .background(Color.White.copy(alpha = 0.1f)) // Semi-transparent glass effect
+                        .border(1.dp, Color.White.copy(alpha = 0.3f), androidx.compose.foundation.shape.RoundedCornerShape(24.dp))
                         .clickable(onClick = onLogoutClick),
                     contentAlignment = Alignment.Center
                 ) {
