@@ -1,6 +1,7 @@
 package com.a602.commonproject.ui
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -17,6 +18,9 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import com.a602.commonproject.feature.login.navigation.loginEntries
+import com.a602.commonproject.feature.login.navigation.LoginNavKey
+import com.a602.commonproject.feature.login.navigation.SplashNavKey
+import com.a602.commonproject.feature.login.navigation.SignUpNavKey
 import com.a602.commonproject.designsystem.component.LMNavigationBar
 import com.a602.commonproject.designsystem.component.LMNavigationBarItem
 import com.a602.commonproject.feature.baby.navigation.babyEntries // NEW
@@ -34,6 +38,8 @@ import com.a602.commonproject.feature.camera.navigation.cameraEntries
 import com.a602.commonproject.feature.album.GridNavKey
 import com.a602.commonproject.feature.album.navigation.galleryEntries
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -43,6 +49,8 @@ import com.a602.commonproject.designsystem.component.ChangeStatusBarColor
 @Composable
 fun LMApp() {
     val appState = rememberLMAppState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var backPressedTime by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0L) }
 
     // [Fix] Dynamic Status Bar Icon Color based on Route
     // Dark Background Screens (Home, Gallery, Baby, Camera) -> White Icons (isAppearanceLightStatusBars = false)
@@ -57,6 +65,37 @@ fun LMApp() {
         color = Color.Transparent,
         isAppearanceLightStatusBars = useDarkIcons
     )
+
+    // [Fix] BackHandler로 백버튼 제어 (NavDisplay.onBack이 제대로 동작하지 않음)
+    BackHandler {
+        val currentKey = appState.navigationState.currentKey
+        val isAuthScreen = currentKey == LoginNavKey || currentKey == SplashNavKey || currentKey == SignUpNavKey
+
+        // 로그인/스플래시/회원가입 화면에서는 goBack 호출 없이 바로 앱 종료
+        if (isAuthScreen) {
+            (context as? android.app.Activity)?.finish()
+            return@BackHandler
+        }
+
+        if (!appState.navigator.goBack()) {
+            // Root에 도달했을 때 (더 이상 뒤로 갈 곳이 없음)
+            val isMainTab = currentKey in TOP_LEVEL_NAV_ITEMS.keys || currentKey == MemoryNavKey
+
+            if (isMainTab) {
+                // 메인 탭에서는 두 번 눌러서 종료
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - backPressedTime > 2000) {
+                    backPressedTime = currentTime
+                    android.widget.Toast.makeText(context, "한 번 더 뒤로가기를 누르면 종료됩니다.", android.widget.Toast.LENGTH_SHORT).show()
+                } else {
+                    (context as? android.app.Activity)?.finish()
+                }
+            } else {
+                // 다른 Root에서는 바로 종료
+                (context as? android.app.Activity)?.finish()
+            }
+        }
+    }
 
     // [Fix] Layout Refactor: Use Box to overlay NavigationBar over content
     Box(modifier = Modifier.fillMaxSize()) {
@@ -109,7 +148,35 @@ fun LMApp() {
                     .fillMaxSize(),
 
                     // 💡 [Fix] Global padding removed. Padding is applied via wrapper above.
-                onBack = { appState.navigator.goBack() },
+                onBack = {
+                    val currentKey = appState.navigationState.currentKey
+                    val isAuthScreen = currentKey == LoginNavKey || currentKey == SplashNavKey || currentKey == SignUpNavKey
+
+                    // 로그인/스플래시/회원가입 화면에서는 goBack 호출 없이 바로 앱 종료
+                    if (isAuthScreen) {
+                        (context as? android.app.Activity)?.finish()
+                        return@NavDisplay
+                    }
+
+                    if (!appState.navigator.goBack()) {
+                        // Root에 도달했을 때 (더 이상 뒤로 갈 곳이 없음)
+                        val isMainTab = currentKey in TOP_LEVEL_NAV_ITEMS.keys || currentKey == MemoryNavKey
+
+                        if (isMainTab) {
+                            // 메인 탭에서는 두 번 눌러서 종료
+                            val currentTime = System.currentTimeMillis()
+                            if (currentTime - backPressedTime > 2000) {
+                                backPressedTime = currentTime
+                                android.widget.Toast.makeText(context, "한 번 더 뒤로가기를 누르면 종료됩니다.", android.widget.Toast.LENGTH_SHORT).show()
+                            } else {
+                                (context as? android.app.Activity)?.finish()
+                            }
+                        } else {
+                            // 다른 Root에서는 바로 종료
+                            (context as? android.app.Activity)?.finish()
+                        }
+                    }
+                },
             )
         }
 

@@ -52,6 +52,7 @@ import com.a602.commonproject.feature.mypage.navigation.KidAddKey
 import com.a602.commonproject.feature.mypage.navigation.KidEditKey
 import com.a602.commonproject.feature.mypage.navigation.ProfileEditKey
 import com.a602.commonproject.feature.login.navigation.LoginNavKey
+import com.a602.commonproject.feature.login.navigation.SplashNavKey
 import com.a602.commonproject.feature.mypage.viewmodel.MyPageUiState
 import com.a602.commonproject.feature.mypage.viewmodel.MyPageViewModel
 import com.a602.commonproject.model.data.Baby
@@ -82,7 +83,8 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel =hiltVi
             onNavigateToGroupCreate = { navigator.navigate(GroupCreateKey) }, // 그룹 만들기 화면으로 이동
             onLogoutClick = {
                 viewModel.logout()
-                navigator.replaceRoot(LoginNavKey)
+                // SplashNavKey로 이동 - 스플래시가 로그아웃 상태를 감지하고 로그인 화면으로 리다이렉트
+                navigator.replaceRoot(SplashNavKey)
             },
             onGroupEditDismiss = viewModel::closeGroupEditDialog,
             onGroupNameChange = viewModel::onGroupNameChange,

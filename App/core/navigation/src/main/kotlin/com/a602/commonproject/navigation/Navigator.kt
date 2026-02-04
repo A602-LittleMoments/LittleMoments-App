@@ -28,22 +28,23 @@ class Navigator(val state: NavigationState) {
 
     /**
      * 이전 화면으로 돌아가는 함수 (뒤로 가기)
+     * @return true - 성공적으로 뒤로가기 수행됨, false - 더 이상 돌아갈 곳이 없음 (Root)
      */
-    fun goBack() {
+    fun goBack(): Boolean {
         // 1. 현재 서브 스택(상세 화면)이 있다면 제거
         if (state.currentSubstack.size > 1) {
             state.currentSubstack.removeLastOrNull()
-            return
+            return true
         }
 
         // 2. 최상위 탭 스택이 있다면 제거
         if (state.topLevelStack.size > 1) {
             state.topLevelStack.removeLastOrNull()
-            return
+            return true
         }
 
-        // 3. 더 이상 돌아갈 곳이 없음 (Activity 종료)
-        error("Root reached")
+        // 3. 더 이상 돌아갈 곳이 없음 (Activity 종료 처리를 위해 false 반환)
+        return false
     }
 
     /**
@@ -78,10 +79,17 @@ class Navigator(val state: NavigationState) {
 
     /**
      * 루트를 교체합니다. (예: 로그인 완료 후 Splash/Login 스택 제거하고 홈으로 설정)
+     * 모든 서브스택도 초기화하여 이전 세션의 네비게이션 상태를 제거합니다.
      */
     fun replaceRoot(key: NavKey) {
         state.topLevelStack.clear()
         state.topLevelStack.add(key)
+        // 모든 서브스택 초기화 (루트 키만 남김)
+        state.subStacks.forEach { (stackKey, stack) ->
+            val rootKey = stack.firstOrNull() ?: stackKey
+            stack.clear()
+            stack.add(rootKey)
+        }
     }
 
     /**
