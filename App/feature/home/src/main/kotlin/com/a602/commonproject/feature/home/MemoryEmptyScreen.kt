@@ -17,13 +17,13 @@ import com.a602.commonproject.designsystem.theme.LMTheme
 fun MemoryEmptyScreen() {
     Box(Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.empty_planet),
+            painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.memory_background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
 
-        // Text and overlay removed as per user request. 
+        // Text and overlay removed as per user request.
         // Only showing the empty planet background.
     }
 }

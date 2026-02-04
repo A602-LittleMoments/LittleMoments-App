@@ -108,11 +108,11 @@ fun BabyFormScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 18.dp),
 
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(60.dp)) // Lower components
+                Spacer(modifier = Modifier.height(20.dp)) // Lower components
 
                 // Profile Image Area (Fully Clickable)
                 Box(contentAlignment = Alignment.BottomEnd) {
@@ -135,53 +135,82 @@ fun BabyFormScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(15.dp))
 
-                // Name Input (Standard Component - Label-less style, Center Aligned)
-                com.a602.commonproject.designsystem.component.LMEditInputField(
-                    label = "",
-                    value = name,
-                    onValueChange = { name = it },
-                    placeholder = "이름 (예: 김싸피)",
-                    modifier = Modifier.fillMaxWidth(),
-
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // BirthDate Input (Standard Component - Label-less style, Center Aligned)
-                com.a602.commonproject.designsystem.component.LMEditInputField(
-                    label = "",
-                    value = birthDate,
-                    onValueChange = { birthDate = it },
-                    placeholder = "생년월일 (예: 20240101)",
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Gender Toggle
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                // Form Container (Glassmorphism)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.White.copy(alpha = 0.65f))
+                        .padding(vertical = 32.dp, horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(24.dp) // Unified spacing
                 ) {
-                    GenderButton(
-                        text = "남자",
-                        isSelected = gender == "MALE",
-                        onClick = { gender = "MALE" },
-                        modifier = Modifier.weight(1f)
-                    )
-                    GenderButton(
-                        text = "여자",
-                        isSelected = gender == "FEMALE",
-                        onClick = { gender = "FEMALE" },
-                        modifier = Modifier.weight(1f)
-                    )
+                    // Name Input
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "이름",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                        com.a602.commonproject.designsystem.component.LMEditInputField(
+                            label = "",
+                            value = name,
+                            onValueChange = { name = it },
+                            placeholder = "이름 (예: 김싸피)",
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    // BirthDate Input
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "생년월일",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                        com.a602.commonproject.designsystem.component.LMEditInputField(
+                            label = "",
+                            value = birthDate,
+                            onValueChange = { birthDate = it },
+                            placeholder = "생년월일 (예: 20240101)",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    // Gender Toggle
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        GenderButton(
+                            text = "남자",
+                            isSelected = gender == "MALE",
+                            onClick = { gender = "MALE" },
+                            modifier = Modifier.weight(1f)
+                        )
+                        GenderButton(
+                            text = "여자",
+                            isSelected = gender == "FEMALE",
+                            onClick = { gender = "FEMALE" },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // Action Buttons
                 Row(

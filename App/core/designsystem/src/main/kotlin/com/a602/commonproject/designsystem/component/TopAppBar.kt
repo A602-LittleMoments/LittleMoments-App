@@ -59,7 +59,7 @@ fun LMTopAppBar(
             }
         },
         colors = colors,
-        modifier = modifier.testTag("lmTopAppBar").shadow(3.dp),
+        modifier = modifier.testTag("lmTopAppBar").shadow(8.dp),
     )
 }
 
