@@ -30,8 +30,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons.Default
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoCamera
@@ -124,7 +126,8 @@ fun CameraScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black),
+                        .background(Color.Black)
+                        .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -145,9 +148,10 @@ fun CameraScreen(
                         text = "아이와의 소중한 순간을 담기 위해\n권한을 허용해 주세요.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
                     )
-                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(24.dp))
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(48.dp))
                     Button(
                         onClick = { launcher.launch(Manifest.permission.CAMERA) },
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
@@ -245,10 +249,10 @@ fun CameraContent(
                  // Placeholder for Gallery Icon/Thumbnail
                Box(
                      modifier = Modifier
-                         .size(48.dp)
-                         .clip(RoundedCornerShape(8.dp))
+                         .size(64.dp)
+                         .clip(RoundedCornerShape(12.dp))
                          .background(Color.Black.copy(alpha = 0.5f))
-                         .border(1.dp, Color.White, RoundedCornerShape(8.dp)),
+                         .border(1.dp, Color.White, RoundedCornerShape(12.dp)),
                      contentAlignment = Alignment.Center
                  ) {
                       // TODO: Show latest image thumbnail if possible
@@ -309,7 +313,7 @@ fun CameraContent(
             }
 
             // Right: Spacer to balance layout
-            Box(modifier = Modifier.size(48.dp))
+            Box(modifier = Modifier.size(64.dp))
         }
 
         // Camera Binding Logic (Same as before)

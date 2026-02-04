@@ -10,8 +10,15 @@ object MemoryNavArgsStore {
     private val _mediaId = MutableStateFlow<String?>(null)
     val mediaId: StateFlow<String?> = _mediaId
 
+    private val _keywordValue = MutableStateFlow<String?>(null)
+    val keywordValue: StateFlow<String?> = _keywordValue
+
     fun setKeywordId(id: String) {
         _keywordId.value = id
+    }
+
+    fun setKeywordValue(value: String) {
+        _keywordValue.value = value
     }
 
     fun setMediaId(id: String) {

@@ -1,4 +1,4 @@
-package com.a602.commonproject.feature.gallery.navigation
+package com.a602.commonproject.feature.album.navigation
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
@@ -12,8 +12,6 @@ import com.a602.commonproject.feature.album.GridNavKey
 import com.a602.commonproject.feature.album.GridRoute
 import com.a602.commonproject.feature.album.HighlightCalendarNavKey
 import com.a602.commonproject.feature.album.HighlightCalendarRoute
-import com.a602.commonproject.feature.album.HighlightLoadingNavKey
-import com.a602.commonproject.feature.album.HighlightLoadingRoute
 import com.a602.commonproject.feature.album.HighlightResultNavKey
 import com.a602.commonproject.feature.album.HighlightResultRoute
 //import com.a602.commonproject.feature.gallery.HighlightLoadingRoute
@@ -34,15 +32,19 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     entry<GalleryNavKey> {
         CalendarRoute(
             onDateClick = { date -> navigator.navigate(DayGridNavKey(date)) },
-            onGridClick = { navigator.navigate(GridNavKey) },
+            onGridClick = { navigator.navigate(GridNavKey()) },
             onTempAlbumClick = { navigator.navigate(TempAlbumNavKey) },
             onHighLightClick = { navigator.navigate(HighlightCalendarNavKey) },
             onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(mediaId = media.id)) }
         )
     }
     // 2. 그리드 보기
-    entry<GridNavKey> {
+    entry<GridNavKey> { key ->
         GridRoute(
+            keywordId = key.keywordId,
+            title = key.title,
+            babyId = key.babyId,
+            year = key.year,
             onBackClick = navigator::goBack,
             onCalendarClick = { navigator.navigate(GalleryNavKey) },
             onMediaClick = { media ->
@@ -112,27 +114,14 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     // 7. 하이라이트 캘린더
     entry<HighlightCalendarNavKey> {
         HighlightCalendarRoute(
-            onDateRangeSelected = { start, end ->
-                navigator.navigate(HighlightLoadingNavKey(start, end))
+            onDateRangeSelected = { _,_->
+
             },
             onBack = navigator::goBack
         )
     }
 
     // 7. 하이라이트 로딩
-    entry<HighlightLoadingNavKey> { key ->
-        HighlightLoadingRoute(
-            startMillis = key.startMillis,
-            endMillis = key.endMillis,
-            onSuccess = { slideshowId ->
-                navigator.navigate(HighlightResultNavKey(slideshowId))
-            },
-            onFailure = { error ->
-                // TODO: 에러 토스트 또는 스낵바
-                navigator.goBack()
-            }
-        )
-    }
 
     // 8. 하이라이트 결과
     entry<HighlightResultNavKey> { key ->

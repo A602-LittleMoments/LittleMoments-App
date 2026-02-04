@@ -15,12 +15,13 @@ import android.content.pm.ActivityInfo
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        
+
+        splashScreen.setKeepOnScreenCondition { false }
         // 화면 세로 모드 고정
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        
+
         enableEdgeToEdge()
         setContent {
             LMTheme {

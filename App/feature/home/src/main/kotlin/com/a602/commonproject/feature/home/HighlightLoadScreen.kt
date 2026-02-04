@@ -1,5 +1,4 @@
-
-package com.a602.commonproject.feature.album
+package com.a602.commonproject.feature.home
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -18,16 +17,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.theme.LMTheme
-import com.a602.commonproject.feature.album.viewmodel.HighlightLoadingViewModel
+import com.a602.commonproject.feature.home.viewmodel.HighlightLoadingViewModel
 import com.a602.commonproject.designsystem.theme.main
 
 @Composable
@@ -49,6 +51,7 @@ fun HighlightLoadingRoute(
 
     HighlightLoadingScreen()
 }
+
 @Composable
 fun HighlightLoadingScreen(
     modifier: Modifier = Modifier
@@ -58,7 +61,9 @@ fun HighlightLoadingScreen(
 
 @Composable
 fun LoadingContent(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    title: String = "추억 조각들을 연결하는 중",
+    subTitle: String = "곧 우리 가족만의\n특별한 하이라이트가\n우주에서 도착합니다!"
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "mission_control")
 
@@ -199,7 +204,7 @@ fun LoadingContent(
                         modifier = Modifier
                             .size(300.dp)
                             .offset(x = rumbleX.dp, y = (rumbleY + liftDelta).dp)
-                            .clip(androidx.compose.foundation.shape.CircleShape)
+                            .clip(CircleShape)
                             .blur(radius = 0.5.dp), // Extremely subtle soft focus
                         contentScale = ContentScale.Fit
                     )
@@ -209,9 +214,9 @@ fun LoadingContent(
             Spacer(Modifier.height(32.dp)) // Tighter spacing for better ratio
 
             Text(
-                text = "추억 조각들을 연결하는 중",
+                text = title,
                 style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
+                    fontWeight = FontWeight.ExtraBold,
                     letterSpacing = 0.5.sp,
                 ),
                 color = Color.White
@@ -220,11 +225,11 @@ fun LoadingContent(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "곧 우리 가족만의\n특별한 하이라이트가\n우주에서 도착합니다!",
+                text = subTitle,
                 style = MaterialTheme.typography.bodyLarge,
                 lineHeight = 22.sp,
                 color = Color.White.copy(alpha = 0.6f),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
 
             Spacer(Modifier.height(40.dp))
@@ -268,8 +273,8 @@ private fun Dot(scale: Float) {
         modifier = Modifier
             .size(12.dp)
             .scale(scale),
-        shape = androidx.compose.foundation.shape.CircleShape,
-        color = com.a602.commonproject.designsystem.theme.main
+        shape = CircleShape,
+        color = main
     ) {}
 }
 

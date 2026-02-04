@@ -42,11 +42,14 @@ private fun pickStablePlanetRes(categoryValue: String, keywordId: String): Int {
 }
 
 // collectionSize 기반 크기
+// collectionSize 기반 크기 (사용자 요청: 좀 더 크게)
 private fun sizeFromCollectionSize(size: Int): Dp = when {
-    size >= 200 -> 120.dp
-    size >= 100 -> 100.dp
-    size >= 50 -> 80.dp
-    else -> 80.dp
+    size >= 200 -> 150.dp // 120 -> 150
+    size >= 100 -> 130.dp // 100 -> 130
+    size >= 50 -> 110.dp  // 80 -> 110
+    size >= 20 -> 94.dp   // 70 -> 94
+    size >= 10 -> 80.dp   // 60 -> 80
+    else -> 70.dp         // 50 -> 70
 }
 
 /**
@@ -84,109 +87,170 @@ fun buildPlanetsUiLaneLayout(
     }
     
     val count = limited.size
-    // True Random 배치를 위해 크기를 충분히 줄여줌 (충돌 최소화)
-    val densityScale = if (count > 15) 0.6f else if (count > 10) 0.7f else if (count > 6) 0.85f else 1.0f
     
     // 배치 가능한 영역
     val minX = sideSafeArea.value
-    // 너비를 100% 다 쓰면 텍스트가 잘릴 수 있으므로, 우측 여백을 좀 더 줌 (텍스트 길이 고려)
+    // 너비를 100% 다 쓰면 텍스트가 잘릴 수 있으므로, 우측 여백을 좀 더 줌
     val maxX = (viewportWidth - sideSafeArea).value 
     
     val minY = topSafeArea.value
     val maxY = (viewportHeight - bottomSafeArea).value
     
-    // 겹침 검사를 위한 리스트
-    data class PlacedItem(val x: Float, val y: Float, val w: Float, val h: Float)
-    val placedItems = mutableListOf<PlacedItem>()
+    // Box Collision Logic (Rectangle)
+    // 원형 충돌은 '타이틀(글자)'가 겹치는 것을 완벽히 막기 어려움. 
+    // 사용자 요청: "제목 부분도 겹치면 안될 거 같은데"
+    // -> 따라서 (Planet Size + Label Height)를 포함하는 직사각형(Box) 충돌 검사로 변경.
+    
+    data class PlacedBox(val x: Float, val y: Float, val r: Float, val b: Float)
+    val placedBoxes = mutableListOf<PlacedBox>()
     val planets = mutableListOf<KeywordPlanetUi>()
     
-    val labelHeight = 24.dp.value
-    val margin = 8.dp.value // 아이템 간 최소 간격
+    val labelHeight = 32.dp.value // 24dp -> 32dp (여유분 확보)
+    val margin = 4.dp.value 
     
-    // 랜덤 시드 (화면 갱신될 때마다 위치가 바뀌면 정신사나우므로 고정)
     val globalSeed = limited.sumOf { it.keywordId.hashCode() }
     val rng = Random(globalSeed)
     
-    // 큰 것부터 배치하면 성공률이 높음 (선택사항, 일단 순서대로)
-    // ID 순으로 정렬해서 순서는 고정
-    val sortedItems = limited.sortedBy { it.keywordId }
+    // 1. 큰 것부터 배치 (내림차순 정렬) - 사용자 요청
+    val sortedItems = limited.sortedByDescending { it.collectionSize }
 
     sortedItems.forEach { item ->
         val baseSize = sizeFromCollectionSize(item.collectionSize)
-        val sizeVal = (baseSize * densityScale).value
-        val planetRes = assignedIcons[item.keywordId] ?: defaultPlanetRes
-        val label = item.keywordValue.takeIf{ it.isNotBlank() } ?: item.categoryValue
-
-        // 위치 찾기 (Rejection Sampling)
-        // 최대 N번 시도하여 겹치지 않는 위치를 찾음
-        var bestX = minX
-        var bestY = minY
+        val densityScale = if (count > 15) 0.6f else if (count > 10) 0.75f else if (count > 6) 0.85f else 1.0f
+        
+        var currentScale = 1.0f
+        var bestX: Float = minX
+        var bestY: Float = minY
+        var finalSizeVal = 0f
         var found = false
         
-        // 시도 횟수
-        val maxTries = 50
+        // Adaptive Resizing
+        val scaleAttempts = 5 
         
-        for (i in 0 until maxTries) {
-            // 랜덤 위치 생성 (가능 영역 내)
-            // itemWidth = sizeVal
-            // itemHeight = sizeVal + labelHeight
-            val availableW = (maxX - minX - sizeVal).coerceAtLeast(0f)
-            val availableH = (maxY - minY - sizeVal - labelHeight).coerceAtLeast(0f)
+        outer@ for (s in 0 until scaleAttempts) {
+            val scaleFactor = 1.0f - (s * 0.1f) 
+            val sizeVal = (baseSize * densityScale * scaleFactor).value
             
-            val candX = minX + rng.nextFloat() * availableW
-            val candY = minY + rng.nextFloat() * availableH
+            // 직사각형 크기 (Planet + Label)
+            val itemW = sizeVal
+            val itemH = sizeVal + labelHeight
             
-            // 겹침 검사
-            val candR = candX + sizeVal
-            val candB = candY + sizeVal + labelHeight
+            val maxTries = 100
             
-            var overlap = false
-            for (p in placedItems) {
-                // 사각형 겹침 판정 (with margin)
-                // A.L < B.R && A.R > B.L && A.T < B.B && A.B > B.T
-                if (candX < p.x + p.w + margin && 
-                    candR > p.x - margin &&
-                    candY < p.y + p.h + margin &&
-                    candB > p.y - margin) {
-                    overlap = true
-                    break
+            // 랜덤 마진 (기존 4.dp 고정 -> 2~12.dp 랜덤)
+            // 아이템마다 여백이 달라지면 "열이 맞춰진 느낌"이 깨지고 더 불규칙해 보임.
+            val randomMargin = (2 + rng.nextFloat() * 10).dp.value
+
+            for (i in 0 until maxTries) {
+                // 랜덤 위치 (좌상단 기준)
+                val availableW = (maxX - minX - itemW).coerceAtLeast(0f)
+                val availableH = (maxY - minY - itemH).coerceAtLeast(0f)
+                
+                val candX = minX + rng.nextFloat() * availableW
+                val candY = minY + rng.nextFloat() * availableH
+                
+                // 마진 포함된 후보 영역 (충돌 검사용)
+                val cLeft = candX - randomMargin
+                val cTop = candY - randomMargin
+                val cRight = candX + itemW + randomMargin
+                val cBottom = candY + itemH + randomMargin
+                
+                // Box Collision Check
+                var overlap = false
+                for (p in placedBoxes) {
+                    // A.Left < B.Right && A.Right > B.Left && A.Top < B.Bottom && A.Bottom > B.Top
+                    if (cLeft < p.r && cRight > p.x && cTop < p.b && cBottom > p.y) {
+                        overlap = true
+                        break
+                    }
+                }
+                
+                if (!overlap) {
+                    bestX = candX
+                    bestY = candY
+                    finalSizeVal = sizeVal
+                    
+                    // 배치 확정 (실제 영역 + 마진 기록)
+                    placedBoxes.add(PlacedBox(cLeft, cTop, cRight, cBottom))
+                    found = true
+                    break@outer
+                }
+            }
+        }
+        
+        // Fallback: 겹치더라도 "최소한으로" 겹치는 곳 찾기 (Best Fit)
+        if (!found) {
+            val minScale = 0.5f
+            finalSizeVal = (baseSize * densityScale * minScale).value
+            val itemW = finalSizeVal
+            val itemH = finalSizeVal + labelHeight
+            val randomMargin = 2.dp.value // Fallback에선 최소 마진 사용
+
+            var minOverlapArea = Float.MAX_VALUE
+            var bestFallbackX = minX
+            var bestFallbackY = minY
+            
+            val fallbackTries = 50 // 50번 시도해서 가장 덜 겹치는 곳 찾기
+            
+            for (k in 0 until fallbackTries) {
+                val candX = minX + rng.nextFloat() * (maxX - minX - itemW)
+                val candY = minY + rng.nextFloat() * (maxY - minY - itemH)
+                
+                val cLeft = candX - randomMargin
+                val cTop = candY - randomMargin
+                val cRight = candX + itemW + randomMargin
+                val cBottom = candY + itemH + randomMargin
+                
+                // 겹침 면적 계산
+                var currentOverlap = 0f
+                for (p in placedBoxes) {
+                    // 교차 영역 구하기
+                    val interL = max(cLeft, p.x)
+                    val interR = kotlin.math.min(cRight, p.r)
+                    val interT = max(cTop, p.y)
+                    val interB = kotlin.math.min(cBottom, p.b)
+                    
+                    if (interL < interR && interT < interB) {
+                         currentOverlap += (interR - interL) * (interB - interT)
+                    }
+                }
+                
+                if (currentOverlap < minOverlapArea) {
+                    minOverlapArea = currentOverlap
+                    bestFallbackX = candX
+                    bestFallbackY = candY
+                    
+                    if (currentOverlap == 0f) break // 운좋게 빈공간 찾음
                 }
             }
             
-            if (!overlap) {
-                bestX = candX
-                bestY = candY
-                found = true
-                break
-            }
+            bestX = bestFallbackX
+            bestY = bestFallbackY
+            
+            // 기록
+            val cLeft = bestX - randomMargin
+            val cTop = bestY - randomMargin
+            val cRight = bestX + itemW + randomMargin
+            val cBottom = bestY + itemH + randomMargin
+            placedBoxes.add(PlacedBox(cLeft, cTop, cRight, cBottom))
         }
-        
-        // 만약 50번 시도해도 자리를 못 찾았으면?
-        // (화면이 너무 꽉 찼을 때)
-        // -> 그냥 랜덤 위치 or 가장 마지막 시도 위치에 배치 (겹치더라도 표시하는게 중요)
-        if (!found) {
-             // 겹치더라도 배치 (Fallback)
-             // 사용자 경험상 아예 안 나오는 것보단 낫고, scale을 줄였으므로 드물 것임
-        }
+
+        val planetRes = assignedIcons[item.keywordId] ?: defaultPlanetRes
+        val label = item.keywordValue.takeIf{ it.isNotBlank() } ?: item.categoryValue
 
         planets.add(
             KeywordPlanetUi(
                 keywordId = item.keywordId,
                 planetResId = planetRes,
-                xRatio = ((bestX + sizeVal / 2) / viewportWidth.value).coerceIn(0f, 1f),
+                xRatio = ((bestX + finalSizeVal / 2) / viewportWidth.value).coerceIn(0f, 1f),
                 y = bestY.dp,
-                size = sizeVal.dp,
+                size = finalSizeVal.dp,
                 label = label,
             )
         )
-        
-        placedItems.add(PlacedItem(bestX, bestY, sizeVal, sizeVal + labelHeight))
     }
 
-    // 전체 캔버스 높이 (고정)
-    val canvasHeight = baseHeight
-
-    return PlanetLayoutResult(planets = planets, canvasHeight = canvasHeight)
+    return PlanetLayoutResult(planets = planets, canvasHeight = baseHeight)
 }
 
 /**

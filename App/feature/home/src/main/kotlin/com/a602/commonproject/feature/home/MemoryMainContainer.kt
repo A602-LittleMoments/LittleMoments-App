@@ -30,13 +30,17 @@ import com.a602.commonproject.feature.home.viewmodel.MemoryMainViewModel
 import androidx.compose.material3.CircularProgressIndicator
 
 
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import kotlinx.coroutines.launch
 import com.a602.commonproject.feature.home.viewmodel.SlideshowRequest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemoryMainContainer(
     viewModel: MemoryMainViewModel,
-    onOpenGrid: (String) -> Unit,
+    onOpenGrid: (String, String) -> Unit, // id, label
     onNavigateToCamera: (Boolean) -> Unit,
     onNavigateToSlideshow: (SlideshowRequest) -> Unit,
     onNavigateToNotification: () -> Unit,
@@ -62,10 +66,11 @@ fun MemoryMainContainer(
     var showSlideshowDialog by remember { mutableStateOf(false) }
     var showHelpDialog by remember { mutableStateOf(false) }
 
+
     Box(
-        modifier = Modifier
-            .padding(bottom = NavigationBarHeight)
-            .navigationBarsPadding()
+        modifier = Modifier,
+        // .padding(bottom = NavigationBarHeight) // [Fix] Removed to allow background behind nav bar
+        // .navigationBarsPadding() // [Fix] Removed to allow background behind nav bar
     ) {
         when (uiState) {
             MemoryMainUiState.Empty -> MemoryEmptyScreen()
@@ -77,19 +82,19 @@ fun MemoryMainContainer(
                     onCameraClick = { viewModel.onCameraAction(true) },
                     onMakeSlideshowClick = { showSlideshowDialog = true },
                     onNotificationClick = onNavigateToNotification,
-                    onHelpClick = { showHelpDialog = true }
+                    onHelpClick = { showHelpDialog = true },
                 )
             }
 
 
             is MemoryMainUiState.Error -> MemoryEmptyScreen()
             MemoryMainUiState.Loading -> {
-                 Box(
+                Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -99,7 +104,7 @@ fun MemoryMainContainer(
         if (showCameraDialog) {
             BasicAlertDialog(
                 onDismissRequest = { showCameraDialog = false },
-                properties = DialogProperties(usePlatformDefaultWidth = false)
+                properties = DialogProperties(usePlatformDefaultWidth = false),
             ) {
                 MemoryDialogContent(
                     title = "우리 아이와의 추억을 남겨봐요!",
@@ -112,9 +117,9 @@ fun MemoryMainContainer(
                         "영상 만들기" to {
                             showCameraDialog = false
                             viewModel.onCameraAction(false)
-                        }
+                        },
                     ),
-                    onDismiss = { showCameraDialog = false }
+                    onDismiss = { showCameraDialog = false },
                 )
             }
         }
@@ -128,33 +133,35 @@ fun MemoryMainContainer(
                     showSlideshowDialog = false
                     viewModel.onSlideshowAction(request)
                 },
-                onDismiss = { showSlideshowDialog = false }
+                onDismiss = { showSlideshowDialog = false },
             )
         }
-        }
+    } // End Box scope for dialogs
 
-        // 도움말 다이얼로그 (튜토리얼)
-        if (showHelpDialog) {
-            BasicAlertDialog(
-                onDismissRequest = { showHelpDialog = false },
-                properties = DialogProperties(usePlatformDefaultWidth = false)
-            ) {
-                HelpDialogContent(onDismiss = { showHelpDialog = false })
-            }
+    // 도움말 다이얼로그 (튜토리얼)
+    if (showHelpDialog) {
+        BasicAlertDialog(
+            onDismissRequest = { showHelpDialog = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+        ) {
+            HelpDialogContent(onDismiss = { showHelpDialog = false })
         }
     }
+}
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HelpDialogContent(onDismiss: () -> Unit) {
     // 0: 사진 찍기 가이드, 1: 영상 만들기 가이드
-    var page by remember { mutableStateOf(0) }
+    val pagerState = rememberPagerState(pageCount = { 2 })
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .clickable(onClick = onDismiss),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier
@@ -163,13 +170,13 @@ fun HelpDialogContent(onDismiss: () -> Unit) {
                 .background(Color.White)
                 .clickable(enabled = false) {}
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = "우리 아이와의 추억을 남겨봐요!",
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center,
-                color = com.a602.commonproject.designsystem.theme.main
+                color = com.a602.commonproject.designsystem.theme.main,
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -178,50 +185,70 @@ fun HelpDialogContent(onDismiss: () -> Unit) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                // 왼쪽 화살표 (페이지 0일때 숨김)
-                if (page > 0) {
-                     androidx.compose.material3.Icon(
+                // 왼쪽 화살표
+                if (pagerState.currentPage > 0) {
+                    androidx.compose.material3.Icon(
                         imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "이전",
                         tint = Color(0xFFFFCC00), // 노란색
-                        modifier = Modifier.size(32.dp).clickable { page-- }
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                }
+                            },
                     )
                 } else {
                     Spacer(modifier = Modifier.size(32.dp))
                 }
 
-                // 중앙 컨텐츠
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Image(
-                        painter = painterResource(id = if (page == 0) R.drawable.boy_camera else R.drawable.girl_slideshow),
-                        contentDescription = null,
-                        modifier = Modifier.size(128.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = if (page == 0) "사진 찍기" else "영상 만들기",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = com.a602.commonproject.designsystem.theme.main)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                         text = if (page == 0) "위 이미지를 누르면\n아이와의 순간을 촬영할 수 있어요." else "위 이미지를 누르면\n아이와의 추억 영상을 만들 수 있어요.",
-                         style = MaterialTheme.typography.bodyLarge.copy(color = Color.Gray),
-                         textAlign = TextAlign.Center
-                    )
+                // 중앙 컨텐츠 (Pager for Swipe support)
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.weight(1f),
+                ) { page ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth(), // Pager item fills width
+                    ) {
+                        Image(
+                            painter = painterResource(id = if (page == 0) R.drawable.boy_camera else R.drawable.girl_slideshow),
+                            contentDescription = null,
+                            modifier = Modifier.size(128.dp),
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = if (page == 0) "사진 찍기" else "영상 만들기",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = com.a602.commonproject.designsystem.theme.main,
+                            ),
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = if (page == 0) "위 이미지를 누르면\n아이와의 순간을 촬영할 수 있어요." else "위 이미지를 누르면\n아이와의 추억 영상을 만들 수 있어요.",
+                            style = MaterialTheme.typography.bodyLarge.copy(color = Color.Gray),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
 
-                // 오른쪽 화살표 (페이지 1일때 숨김)
-                if (page < 1) {
-                     androidx.compose.material3.Icon(
+                // 오른쪽 화살표
+                if (pagerState.currentPage < 1) {
+                    androidx.compose.material3.Icon(
                         imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = "다음",
                         tint = Color(0xFFFFCC00),
-                        modifier = Modifier.size(32.dp).clickable { page++ }
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                }
+                            },
                     )
                 } else {
                     Spacer(modifier = Modifier.size(32.dp))
@@ -236,7 +263,7 @@ fun HelpDialogContent(onDismiss: () -> Unit) {
                 style = MaterialTheme.typography.bodyLarge.copy(color = Color.Gray),
                 modifier = Modifier
                     .align(Alignment.End)
-                    .clickable { onDismiss() }
+                    .clickable { onDismiss() },
             )
         }
     }
@@ -248,13 +275,13 @@ fun MemoryDialogContent(
     subTitle: String? = null,
     imageResId: Int,
     buttons: List<Pair<String, () -> Unit>>,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .clickable(onClick = onDismiss), // 바깥 클릭 닫기
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier
@@ -263,13 +290,13 @@ fun MemoryDialogContent(
                 .background(Color.White)
                 .clickable(enabled = false) {} // 내부 클릭 무시
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // 이미지 (상단 배치)
             Image(
                 painter = painterResource(id = imageResId),
                 contentDescription = null,
-                modifier = Modifier.size(120.dp)
+                modifier = Modifier.size(120.dp),
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -277,7 +304,7 @@ fun MemoryDialogContent(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
 
             if (subTitle != null) {
@@ -285,7 +312,7 @@ fun MemoryDialogContent(
                 Text(
                     text = subTitle,
                     style = MaterialTheme.typography.bodyLarge.copy(color = Color.Gray),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
 
@@ -301,11 +328,14 @@ fun MemoryDialogContent(
                         .background(Color(0xFFFFF4CC)) // 연한 노란색/주황색 계열 (디자인 참고)
                         .clickable(onClick = onClick)
                         .padding(vertical = 12.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = text,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, color = Color.Black)
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.Black,
+                        ),
                     )
                 }
             }

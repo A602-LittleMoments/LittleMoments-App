@@ -24,6 +24,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.model.data.SharedMedia
+import coil.compose.AsyncImage
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun GridPolaroid(
@@ -39,7 +43,8 @@ fun GridPolaroid(
             media = media,
             modifier = Modifier
                 .fillMaxSize()
-                .clickable { onClick() }
+                .clickable { onClick() },
+            useThumbnail = true // 🚀 Grid에서는 썸네일 사용 강제
         )
     }
 }
@@ -63,6 +68,84 @@ fun GalleryGridPolaroid(
         ) { item ->
 
             GridPolaroid(
+                media = item,
+                onClick = { onClick(item) }
+            )
+        }
+    }
+}
+
+// 🚀 [NEW] 프레임 없는 사진 아이템 (사용자 요청)
+@Composable
+fun FramelessPhotoItem(
+    media: SharedMedia,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
+    // Polaroid.kt의 내부 로직 재사용 (프레임만 제거)
+    // 썸네일 우선 사용
+    val rearUrl = media.thumbnailUrl ?: media.remoteUrl ?: media.localUri
+    val frontUrl = media.subThumbnailUrl ?: media.subRemoteUrl ?: media.subLocalUri
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(3f / 4f)
+            .clip(RoundedCornerShape(12.dp)) // Round applied
+            .background(Color.LightGray) // 로딩 전 배경
+            .clickable { onClick() }
+    ) {
+        // Rear (Main)
+        AsyncImage(
+            model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                .data(rearUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // Front (PIP) - 있으면 표시
+        if (frontUrl != null) {
+            AsyncImage(
+                model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                    .data(frontUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(8.dp)
+                    .width(40.dp) // 작게 표시 (비율 유지)
+                    .aspectRatio(3f / 4f)
+                    .clip(RoundedCornerShape(8.dp)) // PIP also rounded slightly less
+                    .background(Color.Black), // 테두리 느낌?
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
+}
+
+// 🚀 [NEW] 프레임 없는 그리드 리스트
+@Composable
+fun GalleryGridFrameless(
+    medias: List<SharedMedia>,
+    modifier: Modifier = Modifier,
+    onClick: (SharedMedia) -> Unit = {}
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3), // 프레임 없으니 3열로 꽉 차게? 사용자 요청은 "그리드 배열"인데 보통 프레임 없으면 3열이 이쁨. 일단 3열로 시도.
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(12.dp), // 여백 더 넓힘 (8dp -> 12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(
+            items = medias,
+            key = { it.id }
+        ) { item ->
+            FramelessPhotoItem(
                 media = item,
                 onClick = { onClick(item) }
             )

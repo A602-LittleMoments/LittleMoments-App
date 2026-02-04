@@ -1,4 +1,6 @@
 package com.a602.commonproject.feature.album
+
+import Polaroid
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,19 +10,14 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.draw.shadow
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -29,22 +26,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import coil.compose.AsyncImage
-import java.time.Instant
-import java.time.ZoneId
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -62,6 +53,8 @@ import com.a602.commonproject.designsystem.R
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.designsystem.R as DesignR
+// import com.a602.coommonproject.ui.SharedMediaDetailScreen // REMOVED
 
 @Composable
 fun MediaDetailRoute(
@@ -127,6 +120,29 @@ fun MediaDetailRoute(
                 )
             }
             else -> Text("사진을 불러오지 못했어요")
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                uiState.isLoading -> Text("불러오는 중…")
+                uiState.media != null -> {
+                    MediaDetailScreen(
+                        title = "자세히 보기",
+                        media = uiState.media!!,
+                        onBack = onBack,
+                        onDelete = viewModel::deleteCurrent,
+                        onDownload = viewModel::downloadCurrent,
+                        onEdit = onEdit,
+                    )
+                }
+                else -> Text("사진을 불러오지 못했어요")
+            }
         }
     }
 }
@@ -147,9 +163,11 @@ fun MediaDetailPagerScreen(
     isDeleting: Boolean = false,
     snackbarHostState: SnackbarHostState
 ) {
+    // SharedMediaDetailScreen Code INLINED here per user request to reuse Album directly without intermediate shared file.
     var showDeleteDialog by remember { mutableStateOf(false) }
     val pagerState = rememberPagerState(initialPage = initialIndex, pageCount = { medias.size })
 
+    // START INLINED CODE
     LaunchedEffect(pagerState.currentPage) {
         onPageChanged(pagerState.currentPage)
     }
@@ -167,6 +185,32 @@ fun MediaDetailPagerScreen(
             )
         }
     ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // Background Image
+            Image(
+                painter = painterResource(id = DesignR.drawable.gallery_background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                // 폴라로이드 + 꾸미기 요소
+                Box(contentAlignment = Alignment.Center) {
+                    Polaroid(
+                        media = media,
+                        modifier = Modifier.fillMaxWidth()
+                    )
         Box(modifier = Modifier.fillMaxSize()) {
             // Background (Fixed)
             Image(
@@ -275,6 +319,19 @@ fun MediaDetailContent(
                 }
             }
 
+                    // Decorations
+                    // 1. Top Left - Pastel Purple Star
+                    Icon(
+                        painter = painterResource(id = DesignR.drawable.star),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(top = 20.dp)
+                            .offset(x = (-10).dp)
+                            .size(50.dp)
+                            .rotate(-15f),
+                        tint = Color(0xFFE1BEE7) // Pastel Purple
+                    )
             Spacer(Modifier.height(16.dp))
 
             // Text Area
@@ -318,6 +375,18 @@ fun MediaDetailContent(
                 .graphicsLayer(rotationZ = -25f)
         )
 
+                    // 2. Top Right - Pastel Yellow Star
+                    Icon(
+                        painter = painterResource(id = DesignR.drawable.star),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 10.dp)
+                            .offset(x = 15.dp)
+                            .size(60.dp)
+                            .rotate(20f),
+                        tint = Color(0xFFFFF176) // Pastel Yellow
+                    )
         Icon(
             imageVector = Icons.Rounded.Star,
             contentDescription = null,
@@ -339,6 +408,17 @@ fun MediaDetailContent(
                 .size(72.dp)
                 .graphicsLayer(rotationZ = 25f)
         )
+                     // 3. Top Right Small - Cream Star
+                    Icon(
+                        painter = painterResource(id = DesignR.drawable.star),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 40.dp, end = 50.dp)
+                            .size(30.dp)
+                            .rotate(-10f),
+                        tint = Color(0xFFFFF9C4) // Cream
+                    )
 
         Icon(
             imageVector = Icons.Rounded.Star,
@@ -351,6 +431,18 @@ fun MediaDetailContent(
                 .graphicsLayer(rotationZ = -15f)
         )
     }
+
+                    // 4. Bottom Left - Big Yellow Star
+                    Icon(
+                        painter = painterResource(id = DesignR.drawable.star),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .offset(x = (-20).dp, y = 20.dp)
+                            .size(90.dp)
+                            .rotate(-30f),
+                        tint = Color(0xFFFFF59D) // Pastel Yellow
+                    )
 
     Spacer(Modifier.height(24.dp))
 
@@ -368,6 +460,41 @@ fun MediaDetailContent(
             )
         }
     }
+}
+
+                    // 5. Bottom Center/Right - White Stars Row
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(bottom = 10.dp, end = 40.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        repeat(3) {
+                             Icon(
+                                painter = painterResource(id = DesignR.drawable.star),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .rotate(10f * (it + 1)),
+                                tint = Color.White
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // 액션바
+                IconActionBar(
+                    modifier = Modifier.fillMaxWidth(),
+                    onDelete = onDelete,
+                    onDownload = onDownload,
+                    onEdit = onEdit,
+                )
+            }
+        }
+    }
+    // END INLINED CODE
 }
 
 
@@ -407,4 +534,3 @@ private fun Preview_Detail_Pager() {
         )
     }
 }
-

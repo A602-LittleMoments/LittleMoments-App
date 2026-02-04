@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.model)
     implementation(projects.feature.camera)
+    implementation(projects.feature.album)
 
 
 

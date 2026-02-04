@@ -39,15 +39,27 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
     // =================================================================
     // 📱 1. UI용: 목록 관찰 (Offline-First) - Legacy List
     // =================================================================
-    override fun getSharedAlbumStream(): Flow<List<SharedMedia>> {
-        // DAO에서 이미 '삭제 예정(TO_BE_DELETED)'은 제외하고 가져와야 함
-        return mediaDao.getSharedMediaFlow().map { entities -> entities.map { it.asExternalModel() } }
+    override fun getSharedAlbumStream(babyId: String?, year: Int?): Flow<List<SharedMedia>> {
+        return if (babyId != null) {
+            if (year != null) {
+                 val zoneId = java.time.ZoneId.systemDefault()
+                 val start = java.time.LocalDate.of(year, 1, 1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+                 val end = java.time.LocalDate.of(year, 12, 31).atTime(23, 59, 59).atZone(zoneId).toInstant().toEpochMilli()
+                 mediaDao.getSharedMediaFlowByBabyAndDateRange(babyId, start, end)
+                     .map { entities -> entities.map { it.asExternalModel() } }
+            } else {
+                 mediaDao.getSharedMediaFlowByBaby(babyId)
+                     .map { entities -> entities.map { it.asExternalModel() } }
+            }
+        } else {
+             mediaDao.getSharedMediaFlow().map { entities -> entities.map { it.asExternalModel() } }
+        }
     }
 
     // =================================================================
     // 📱 1-1. UI용: 목록 관찰 (Paging 3) - Optimized for Home
     // =================================================================
-    override fun getSharedAlbumPagingStream(babyId: String?): Flow<PagingData<SharedMedia>> {
+    override fun getSharedAlbumPagingStream(babyId: String?, year: Int?): Flow<PagingData<SharedMedia>> {
         // Paging 3: Pager 구성
         return Pager(
             config = PagingConfig(
@@ -57,8 +69,19 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
             ),
             pagingSourceFactory = {
                 if (babyId != null) {
-                    mediaDao.getSharedMediaPagingSourceByBaby(babyId)
+                    if (year != null) {
+                        // 날짜 범위 계산 (해당 연도 1월 1일 ~ 12월 31일)
+                        // Local Time 기준 (사용자가 인식하는 날짜)
+                        val zoneId = java.time.ZoneId.systemDefault()
+                        val start = java.time.LocalDate.of(year, 1, 1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+                        val end = java.time.LocalDate.of(year, 12, 31).atTime(23, 59, 59).atZone(zoneId).toInstant().toEpochMilli()
+                        
+                        mediaDao.getSharedMediaPagingSourceByBabyAndDateRange(babyId, start, end)
+                    } else {
+                        mediaDao.getSharedMediaPagingSourceByBaby(babyId)
+                    }
                 } else {
+                    // 전체 보기에서는 연도 필터링 미지원 (혹은 필요시 추가)
                     mediaDao.getSharedMediaPagingSource()
                 }
             }

@@ -20,7 +20,7 @@ fun rememberLMAppState(
     // 1. [변경] Start destination set to SplashNavKey (Login/Check)
     startDestination: NavKey = SplashNavKey,
     // 2. [변경] 맵에서 키 목록(Set<NavKey>)을 가져와서 설정 + GridNavKey 추가 (탑레벨 취급)
-    topLevelDestinations: Set<NavKey> = TOP_LEVEL_NAV_ITEMS.keys + GridNavKey
+    topLevelDestinations: Set<NavKey> = TOP_LEVEL_NAV_ITEMS.keys + GridNavKey()
 ): LMAppState {
 
     // NavigationState 생성 (NavKey 기반)
