@@ -1,6 +1,7 @@
 package com.a602.commonproject.feature.login.login
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -91,80 +92,137 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // [Fix] Explicitly force Status Bar to Transparent + White Icons for LoginScreen
+    val view = androidx.compose.ui.platform.LocalView.current
+    if (!view.isInEditMode) {
+        androidx.compose.runtime.SideEffect {
+            val window = (view.context as android.app.Activity).window
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            androidx.core.view.WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
-        containerColor = Color(0xFFFFF9E6) // 아이보리 배경
+        containerColor = Color.Transparent,
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 1. Background Image
+            Image(
+                painter = painterResource(id = R.drawable.gallery_background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+            )
+
+            // 2. Content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(32.dp),
+                    .padding(paddingValues)
+                    .padding(horizontal = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // 앱 로고 이미지
+                // Logo
                 Image(
-                    painter = painterResource(id = R.drawable.littlemoments_logo),
+                    painter = painterResource(id = R.drawable.logo_shadow),
                     contentDescription = "Logo",
-                    modifier = Modifier.size(250.dp)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-                // 앱 슬로건/설명 텍스트
-                Text(
-                    text = "우리 가족의 추억 저장소",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.Gray
+                    modifier = Modifier.size(280.dp) // Adjusted size
                 )
 
                 Spacer(modifier = Modifier.height(48.dp))
 
-                // 이메일 입력 필드
-                LMEditInputField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = "이메일",
+                // Email Input
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-                )
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "이메일",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                    LMEditInputField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = "",
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 비밀번호 입력 필드
-                LMEditInputField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = "비밀번호",
+                // Password Input
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-                )
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "비밀번호",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                    LMEditInputField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "",
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Forgot Password (Auto Login removed as requested)
+                androidx.compose.foundation.layout.Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = { /* TODO: Forgot Password Logic */ }) {
+                        Text(
+                            text = "비밀번호 찾기",
+                            color = Color.White.copy(alpha = 0.8f),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 로그인 버튼
+                // Login Button
                 if (isLoading) {
                     Box(modifier = Modifier.fillMaxWidth().height(56.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = com.a602.commonproject.designsystem.theme.main, modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     }
                 } else {
                     FilledButton(
                         text = "로그인",
                         onClick = { onLoginClick(email, password) },
                         modifier = Modifier.fillMaxWidth(),
-                        size = ButtonSize.Full,
-                        enabled = !isLoading
+                        size = ButtonSize.Full, // Assuming Large/Full fits design
+                        enabled = !isLoading,
+                        // Custom colors if needed, but FilledButton might default to Primary (Navy)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // 회원 가입 화면으로 이동하는 링크
+                // Sign Up Link
                 TextButton(onClick = onSignUpClick) {
-                    Text("계정이 없으신가요? 회원가입 하기", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        text = "아직 아이랑 나랑 회원이 아니신가요? 회원가입",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
-
-                // TODO: 소셜 로그인 버튼 추가
             }
         }
     }

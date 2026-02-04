@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.a602.commonproject.data.repository.TempMediaRepository
 import com.a602.commonproject.model.data.TempMedia
+import com.a602.commonproject.sync.status.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,8 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class MultiPhotoUploadViewModel @Inject constructor(
-    private val repository: TempMediaRepository
+    private val repository: TempMediaRepository,
+    private val syncManager: SyncManager,
 ) : ViewModel() {
 
     // UI에서 Nav arguments를 받아 `setTargetIds`를 호출하여 ID 리스트를 전달한다고 가정합니다.
@@ -45,6 +47,7 @@ class MultiPhotoUploadViewModel @Inject constructor(
 
             repository.moveToShared(ids, captions)
                 .onSuccess {
+                    syncManager.requestSync()
                     _uploadState.value = UploadState.Success
                     onComplete()
                 }

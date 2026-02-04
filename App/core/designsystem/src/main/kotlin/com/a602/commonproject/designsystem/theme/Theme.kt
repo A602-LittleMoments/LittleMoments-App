@@ -150,12 +150,9 @@ fun LMTheme(
         SideEffect {
             val window = (view.context as Activity).window
 
-            // [Fix] 전체 앱 상태바 색상: NavyBlue
-            window.statusBarColor = NavyBlue.toArgb()
-
-            // [Fix] 상태바 아이콘 색상: 밝은색 (White)
-            // isAppearanceLightStatusBars = false -> 배경이 어두우므로 아이콘을 밝게 설정
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            // [Fix] Default: Transparent StatusBar + White Icons (Starry Background)
+            window.statusBarColor = Color.Transparent.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false 
         }
     }
 
