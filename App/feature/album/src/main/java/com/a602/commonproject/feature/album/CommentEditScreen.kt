@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -275,74 +276,61 @@ fun CommentEditScreen(
                         .imePadding(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth(0.85f)
-                            .shadow(16.dp, RoundedCornerShape(24.dp))
-                            .background(Color.White, RoundedCornerShape(24.dp))
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    androidx.compose.material3.Card(
+                        modifier = Modifier.fillMaxWidth(0.85f),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = com.a602.commonproject.designsystem.theme.lightbackground),
                     ) {
-                        Text(
-                            text = "코멘트 수정",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier
+                                .padding(24.dp)
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            TextField(
+                            Text(
+                                text = "코멘트 수정",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = com.a602.commonproject.designsystem.theme.color3
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            com.a602.commonproject.designsystem.component.LMEditInputField(
                                 value = uiState.caption,
                                 onValueChange = onCaptionChange,
+                                label = "코멘트",
                                 modifier = Modifier
-                                    .weight(1f)
+                                    .fillMaxWidth()
                                     .focusRequester(focusRequester),
-                                textStyle = MaterialTheme.typography.bodyLarge,
-                                placeholder = {
-                                    Text(
-                                        text = "소중한 추억을 기록해보세요",
-                                        color = Color.Gray
-                                    )
-                                },
-                                colors = TextFieldDefaults.colors(
-                                    focusedContainerColor = Color(0xFFF5F5F5),
-                                    unfocusedContainerColor = Color(0xFFF5F5F5),
-                                    focusedIndicatorColor = com.a602.commonproject.designsystem.theme.main,
-                                    unfocusedIndicatorColor = Color.Transparent,
-                                    cursorColor = com.a602.commonproject.designsystem.theme.main
-                                ),
-                                shape = RoundedCornerShape(12.dp),
-                                maxLines = 5
+                                singleLine = false,
+                                placeholder = "소중한 추억을 기록해보세요"
                             )
 
-                            Spacer(Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
 
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .shadow(4.dp, RoundedCornerShape(12.dp))
-                                    .background(com.a602.commonproject.designsystem.theme.main, RoundedCornerShape(12.dp))
-                                    .clickable {
+                            // Buttons
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                androidx.compose.material3.TextButton(onClick = onBack) {
+                                    Text("취소")
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                androidx.compose.material3.Button(
+                                    onClick = {
                                         if (!uiState.isSaving) onDone()
                                     },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (uiState.isSaving) {
-                                    androidx.compose.material3.CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        color = Color.White,
-                                        strokeWidth = 2.dp
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = androidx.compose.material.icons.Icons.Default.Check,
-                                        contentDescription = "저장",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(24.dp)
-                                    )
+                                    enabled = !uiState.isSaving
+                                ) {
+                                    if (uiState.isSaving) {
+                                        androidx.compose.material3.CircularProgressIndicator(
+                                            modifier = Modifier.size(20.dp),
+                                            color = Color.White,
+                                            strokeWidth = 2.dp
+                                        )
+                                    } else {
+                                        Text("저장")
+                                    }
                                 }
                             }
                         }

@@ -84,6 +84,14 @@ interface MediaDao {
     @Query("DELETE FROM shared_media WHERE mediaId = :mediaId")
     suspend fun hardDelete(mediaId: String)
 
+    // ✨ [추가] 배치 삭제 (중복 제거용)
+    @Query("DELETE FROM shared_media WHERE mediaId IN (:ids)")
+    suspend fun hardDeleteByIds(ids: List<String>)
+
+    // ✨ [추가] 배치 조회 (중복 확인용)
+    @Query("SELECT * FROM shared_media WHERE mediaId IN (:ids)")
+    suspend fun getSharedMediaListByIds(ids: List<String>): List<ShareMediaEntity>
+
 
     // --- 날짜가 지나고 삭제할 때 사용할 것들 ---
     // 1. 만료된 목록 가져오기 (Repository에서 파일을 먼저 지우기 위함)

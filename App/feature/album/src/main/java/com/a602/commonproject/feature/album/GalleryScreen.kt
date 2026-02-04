@@ -488,22 +488,11 @@ fun DateGroupedGridView(
 
             // Grid Items
             items(dateMedias) { media ->
-                Box(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .padding(2.dp)
-                        .shadow(2.dp, RoundedCornerShape(12.dp))
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White)
-                        .clickable { onMediaClick(media) }
-                ) {
-                    AsyncImage(
-                        model = media.remoteUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                com.a602.coommonproject.ui.FramelessPhotoItem(
+                    media = media,
+                    modifier = Modifier.padding(2.dp),
+                    onClick = { onMediaClick(media) }
+                )
             }
         }
     }
