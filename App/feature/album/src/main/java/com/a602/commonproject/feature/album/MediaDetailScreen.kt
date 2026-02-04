@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -78,13 +79,9 @@ fun MediaDetailRoute(
         viewModel.clearError()
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             when {
@@ -102,6 +99,13 @@ fun MediaDetailRoute(
                 else -> Text("사진을 불러오지 못했어요")
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .systemBarsPadding()
+        )
     }
 }
 
@@ -156,6 +160,7 @@ fun MediaDetailScreen(
                     )
 
                     // Decorations
+
                     // 1. Top Left - Pastel Purple Star
                     Icon(
                         painter = painterResource(id = DesignR.drawable.star),
@@ -201,8 +206,8 @@ fun MediaDetailScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .align(Alignment.BottomStart)
-                            .offset(x = (-20).dp, y = 20.dp)
-                            .size(90.dp)
+                            .offset(x = (-20).dp, y = (-70).dp) // Moved up to avoid caption
+                            .size(70.dp)
                             .rotate(-30f),
                         tint = Color(0xFFFFF59D) // Pastel Yellow
                     )
@@ -211,20 +216,13 @@ fun MediaDetailScreen(
                     Row(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(bottom = 10.dp, end = 40.dp),
+                            .padding(bottom = 80.dp, end = 40.dp), // Moved up to avoid caption
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        repeat(3) {
-                            Icon(
-                                painter = painterResource(id = DesignR.drawable.star),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .rotate(10f * (it + 1)),
-                                tint = Color.White
-                            )
-                        }
+
                     }
+
+
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -239,7 +237,6 @@ fun MediaDetailScreen(
             }
         }
     }
-    // END INLINED CODE
 }
 
 
