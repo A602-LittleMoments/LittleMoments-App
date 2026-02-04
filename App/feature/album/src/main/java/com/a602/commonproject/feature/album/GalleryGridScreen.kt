@@ -228,8 +228,10 @@ fun YearHistoryLayout(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = innerPadding.calculateTopPadding())
-                    .padding(16.dp)
-                    .padding(bottom = 16.dp) // Extra bottom padding
+                    .padding(top = 24.dp) // ✨ Extra spacing from TopBar
+                    .navigationBarsPadding() // ✨ Prevent overlap with bottom bar
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 30.dp) // ✨ Match Planet Photo style (was 16.dp)
                     .shadow(8.dp, RoundedCornerShape(16.dp))
                     .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
