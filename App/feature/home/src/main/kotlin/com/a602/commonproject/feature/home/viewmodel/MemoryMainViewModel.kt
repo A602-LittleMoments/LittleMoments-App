@@ -46,7 +46,9 @@ class MemoryMainViewModel @Inject constructor(
                     }
                 }
                 .onFailure {
-                    _uiState.value = MemoryMainUiState.Error(it.message ?: "Unknown error")
+                    // [Fix] Offline Support: Even if collections fail, show Main screen so buttons work.
+                    // We can log the error or show a Snackbar later if needed.
+                    _uiState.value = MemoryMainUiState.Main(emptyList()) 
                 }
         }
     }

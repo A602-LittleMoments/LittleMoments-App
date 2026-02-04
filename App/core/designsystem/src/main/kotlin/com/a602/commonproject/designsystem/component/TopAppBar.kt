@@ -33,11 +33,29 @@ fun LMTopAppBar(
     onNavigationClick: () -> Unit = {},
     onActionClick: () -> Unit = {},
 ) {
+    val view = androidx.compose.ui.platform.LocalView.current
+    if (!view.isInEditMode) {
+        // [Fix] Force Black Icons (Ivory Bg) whenever this TopBar is composed
+        // Using SideEffect ensures it runs after parent Theme's SideEffect, enforcing the override.
+        androidx.compose.runtime.SideEffect {
+            val window = (view.context as android.app.Activity).window
+            androidx.core.view.WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+        }
+        
+        // [Fix] Cleanup on Leave: Revert to White Icons (Starry Bg Default)
+        androidx.compose.runtime.DisposableEffect(Unit) {
+            onDispose {
+                val window = (view.context as android.app.Activity).window
+                androidx.core.view.WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            }
+        }
+    }
+
     CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.headlineLarge
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineLarge
             )
         },
         navigationIcon = {
