@@ -12,10 +12,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.a602.commonproject.designsystem.R
@@ -62,7 +67,8 @@ fun GridRoute(
     onMediaClick: (SharedMedia) -> Unit,
     viewModel: GridGalleryViewmodel = hiltViewModel(),
 ) {
-    LaunchedEffect(keywordId, title, babyId, year) {
+    // Import for coroutine scope
+    androidx.compose.runtime.LaunchedEffect(keywordId, title, babyId, year) {
         viewModel.setFilter(keywordId, title, babyId, year)
     }
 
@@ -72,24 +78,95 @@ fun GridRoute(
     val showCalendarButton = keywordId == null
     val topBarTitle = title ?: uiState.title
 
-    val filtered = remember(uiState.medias, date) {
-        if (date == null) uiState.medias
-        else uiState.medias.filter { it.isSameDay(date) }
-    }
+    // Logic switch: If we have a specific date, we enable Pager Mode.
+    if (date != null) {
+        // 1. Group all available media by Date
+        val grouped = remember(uiState.medias) {
+            uiState.medias.groupBy {
+                Instant.ofEpochMilli(it.dateTaken)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+            }.toSortedMap()
+        }
+        val availableDates = remember(grouped) { grouped.keys.toList() }
 
-    val headerText = remember(date) {
-        date?.let { "${it.year}년 ${it.monthValue}월 ${it.dayOfMonth}일" } ?: "Recent"
-    }
+        // 2. Find initial page
+        val initialPage = remember(availableDates, date) {
+            val idx = availableDates.indexOf(date)
+            if (idx == -1) 0 else idx
+        }
 
-    GridGalleryScreen(
-        medias = filtered,
-        headerText = headerText,
-        onCalendarClick = onCalendarClick,
-        onMediaClick = onMediaClick,
-        onBackClick = onBackClick,
-        title = topBarTitle,
-        showCalendarButton = showCalendarButton
-    )
+        val pagerState = rememberPagerState(
+            initialPage = initialPage,
+            pageCount = { availableDates.size }
+        )
+
+        val scope = androidx.compose.runtime.rememberCoroutineScope()
+
+        // Fix: Data loading delay causes initialPage to be 0 (oldest).
+        // Sync pager to the correct date once data is available.
+        LaunchedEffect(availableDates.size) {
+            val idx = availableDates.indexOf(date)
+            if (idx != -1 && pagerState.currentPage != idx) {
+                pagerState.scrollToPage(idx)
+            }
+        }
+
+        GridGalleryShell(
+            title = topBarTitle,
+            onBackClick = onBackClick
+        ) { innerPadding ->
+            if (availableDates.isNotEmpty()) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    val pageDate = availableDates[page]
+                    val pageMedias = grouped[pageDate] ?: emptyList()
+                    val pageHeaderText = "${pageDate.year}년 ${pageDate.monthValue}월 ${pageDate.dayOfMonth}일"
+
+                    GridGalleryContent(
+                        medias = pageMedias,
+                        headerText = pageHeaderText,
+                        showCalendarButton = true, // 날짜 보기 모드에서는 헤더(날짜+화살표) 표시
+                        onCalendarClick = onCalendarClick,
+                        onMediaClick = onMediaClick,
+                        topPadding = innerPadding.calculateTopPadding(),
+                        onHeaderPrevClick = {
+                            if (pagerState.currentPage > 0) {
+                                scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
+                            }
+                        },
+                        onHeaderNextClick = {
+                             if (pagerState.currentPage < pagerState.pageCount - 1) {
+                                scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                            }
+                        }
+                    )
+                }
+            } else {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("사진이 없습니다.", color = androidx.compose.ui.graphics.Color.White)
+                }
+            }
+        }
+    } else {
+        // Fallback to original single-view logic for keyword/baby/all
+        val filtered = remember(uiState.medias, date) {
+             uiState.medias // date is null here
+        }
+        val headerText = "Recent" // Or dynamic based on filters
+
+        GridGalleryScreen(
+            medias = filtered,
+            headerText = headerText,
+            onCalendarClick = onCalendarClick,
+            onMediaClick = onMediaClick,
+            onBackClick = onBackClick,
+            title = topBarTitle,
+            showCalendarButton = showCalendarButton
+        )
+    }
 }
 private fun SharedMedia.isSameDay(target: LocalDate): Boolean {
     val day = Instant.ofEpochMilli(this.dateTaken)
@@ -99,6 +176,138 @@ private fun SharedMedia.isSameDay(target: LocalDate): Boolean {
 }
 
 // 격자 보기
+@Composable
+// Shell Component (Scaffold + Background)
+fun GridGalleryShell(
+    title: String,
+    onBackClick: () -> Unit,
+    content: @Composable (androidx.compose.foundation.layout.PaddingValues) -> Unit
+) {
+    Scaffold(
+        topBar = {
+            LMTopAppBar(
+                title = title,
+                onNavigationClick = onBackClick,
+            )
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = R.drawable.gallery_background),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
+            )
+            // Rocket background element
+            Image(
+                painter = painterResource(id = R.drawable.rocket4),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(280.dp)
+                    .offset(x = (-60).dp, y = 80.dp)
+                    .graphicsLayer(rotationZ = -35f),
+                alpha = 0.8f
+            )
+
+            content(innerPadding)
+        }
+    }
+}
+
+// Inner Content Component (Glass Box + Header + Grid)
+@Composable
+fun GridGalleryContent(
+    medias: List<SharedMedia>,
+    headerText: String,
+    showCalendarButton: Boolean,
+    onCalendarClick: () -> Unit,
+    onMediaClick: (SharedMedia) -> Unit,
+    topPadding: androidx.compose.ui.unit.Dp,
+    onHeaderPrevClick: (() -> Unit)? = null,
+    onHeaderNextClick: (() -> Unit)? = null
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = topPadding)
+            .padding(horizontal = 8.dp)
+            .padding(top = 24.dp), // Increased top spacing
+    ) {
+        // Main Container (Glass-like with Dark Theme)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding() // Move up to act as margin
+                .padding(bottom = 30.dp) // Almost touching the bottom bar
+                .shadow(8.dp, RoundedCornerShape(16.dp)) // Match Calendar Mode Shape
+                .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+                .padding(horizontal = 16.dp, vertical = 16.dp) // Adjust inner padding
+        ) {
+            // 1. 상단 헤더 영역
+            if (showCalendarButton) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    if (onHeaderPrevClick != null && onHeaderNextClick != null) {
+                         // Date Mode: Center Align with Arrows
+                         androidx.compose.material3.IconButton(onClick = onHeaderPrevClick) {
+                             androidx.compose.material3.Icon(
+                                 imageVector = androidx.compose.material.icons.Icons.Default.KeyboardArrowLeft,
+                                 contentDescription = "Previous Date",
+                                 tint = androidx.compose.ui.graphics.Color.White
+                             )
+                         }
+
+                         Text(
+                            text = headerText,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 22.sp,
+                            ),
+                            color = androidx.compose.ui.graphics.Color.White,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        androidx.compose.material3.IconButton(onClick = onHeaderNextClick) {
+                             androidx.compose.material3.Icon(
+                                 imageVector = androidx.compose.material.icons.Icons.Default.KeyboardArrowRight,
+                                 contentDescription = "Next Date",
+                                 tint = androidx.compose.ui.graphics.Color.White
+                             )
+                         }
+
+                    } else {
+                        // Regular Mode: Start Align
+                        Text(
+                            text = headerText,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 22.sp,
+                            ),
+                            color = androidx.compose.ui.graphics.Color.White
+                        )
+                    }
+                }
+            }
+
+            // Grid Area
+            Box(modifier = Modifier.weight(1f)) {
+                GalleryGridFrameless(
+                    medias = medias,
+                    onClick = onMediaClick,
+                )
+            }
+        }
+    }
+}
+
+// Legacy wrapper for Preview and simple usage
 @Composable
 fun GridGalleryScreen(
     medias: List<SharedMedia>,
@@ -110,86 +319,17 @@ fun GridGalleryScreen(
     title: String = "갤러리",
     showCalendarButton: Boolean = true
 ) {
-    Scaffold(
-        topBar = {
-            LMTopAppBar(
-                title = title,
-                onNavigationClick = onBackClick,
-            )
-        }
-    ) { innerPadding ->
-        Box(modifier = modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(id = R.drawable.gallery_background),
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier.fillMaxSize()
-            )
-
-            // Rocket background element
-            Image(
-                painter = painterResource(id = R.drawable.rocket4),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(280.dp)
-                    .offset(x = (-60).dp, y = 80.dp)
-                    .graphicsLayer(rotationZ = -35f),
-                alpha = 0.8f
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = innerPadding.calculateTopPadding()) // Top padding from Scaffold (AppBar)
-                    .padding(horizontal = 8.dp, vertical = 16.dp), // Side margin only
-
-            ) {
-                // Main Container (Glass-like with Dark Theme)
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .shadow(8.dp, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)) // Bottom is flat or rounded? User said "go to the end". Usually means flat bottom or rounded? Let's keep rounded but maybe modify shape. "RoundedCornerShape(16.dp)" is all corners. If it goes to bottom, maybe bottom corners should be 0? Or keep them.
-                        // Let's keep 16.dp as requested style, just extending down.
-                        .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                        .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
-                        .padding(start = 16.dp, end = 16.dp, top = 24.dp) // Content padding increased
-                        .navigationBarsPadding() // Push content up above nav bar
-                        .padding(bottom = 24.dp) // Extra bottom padding for visuals increased
-                ) {
-                    // 1. 상단 헤더 영역 (캘린더 보기 버튼이 있을 때만 표시 = 앨범 모드일 때만)
-                    if (showCalendarButton) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = headerText,
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 22.sp
-                                ),
-                                color = androidx.compose.ui.graphics.Color.White
-                            )
-
-                            FillWrapButton(
-                                text = "캘린더 보기",
-                                onClick = onCalendarClick,
-                            )
-                        }
-                    }
-
-                    // Grid Area
-                    Box(modifier = Modifier.weight(1f)) {
-                        GalleryGridFrameless(
-                            medias = medias,
-                            onClick = onMediaClick,
-                        )
-                    }
-                }
-            }
-        }
+    GridGalleryShell(title = title, onBackClick = onBackClick) { innerPadding ->
+        GridGalleryContent(
+            medias = medias,
+            headerText = headerText,
+            showCalendarButton = showCalendarButton,
+            onCalendarClick = onCalendarClick,
+            onMediaClick = onMediaClick,
+            topPadding = innerPadding.calculateTopPadding(),
+            onHeaderPrevClick = null,
+            onHeaderNextClick = null
+        )
     }
 }
 

@@ -421,12 +421,8 @@ fun CalendarScreen(
                                     days = days,
                                     rows = rows,
                                     modifier = Modifier.fillMaxSize(),
-                                    onDateClick = { date, mediaId ->
-                                        if (mediaId != null) {
-                                            onMediaClick(medias.first { it.id == mediaId })
-                                        } else {
-                                            onDateClick(date)
-                                        }
+                                    onDateClick = { date, _ ->
+                                        onDateClick(date)
                                     }
                                 )
                             }
