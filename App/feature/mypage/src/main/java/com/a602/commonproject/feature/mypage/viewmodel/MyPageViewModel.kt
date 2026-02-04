@@ -75,7 +75,9 @@ private data class MyPageLocalState(
     val currentPassword: String = "",
     val newPassword: String = "",
     val confirmPassword: String = "",
-    val passwordChangeError: String? = null
+    val passwordChangeError: String? = null,
+    val isOptimisticNickname: Boolean = false,
+    val isOptimisticGroupName: Boolean = false
 )
 
 @HiltViewModel
@@ -104,7 +106,7 @@ class MyPageViewModel @Inject constructor(
     }.flatMapLatest { (authState, babyList) ->
         flow {
             val user = if (authState is AuthState.LoggedIn) authState.user else null
-            emit(MyPageDataState(user = user, babies = babyList, isLoading = true))
+            // emit(MyPageDataState(user = user, babies = babyList, isLoading = true))
 
             // 그룹 정보와 멤버 목록을 모두 가져옵니다.
             val groupResult = groupRepository.getMyGroup()
@@ -136,9 +138,9 @@ class MyPageViewModel @Inject constructor(
         _localState
     ) { data, local ->
         MyPageUiState(
-            user = data.user,
+            user = if (local.isOptimisticNickname) data.user?.copy(nickname = local.editingNickname) else data.user,
             babies = data.babies,
-            group = data.group,
+            group = if (local.isOptimisticGroupName) data.group?.copy(name = local.editingGroupName) else data.group,
             groupMembers = data.groupMembers,
             hasGroup = data.hasGroup,
             isLoading = data.isLoading,
@@ -184,10 +186,12 @@ class MyPageViewModel @Inject constructor(
         if (newName.isBlank()) return // validation
 
         viewModelScope.launch {
+            _localState.update { it.copy(isOptimisticGroupName = true) }
             groupRepository.updateGroupName(newName)
             // 성공하면 다이얼로그 닫기 + 데이터 새로고침
             closeGroupEditDialog()
             _refreshTrigger.value += 1
+            _localState.update { it.copy(isOptimisticGroupName = false) }
         }
     }
 
@@ -301,9 +305,11 @@ class MyPageViewModel @Inject constructor(
         if (newNickname.isBlank()) return
 
         viewModelScope.launch {
+            _localState.update { it.copy(isOptimisticNickname = true) }
             userRepository.updateProfile(newNickname, null)
             _refreshTrigger.value += 1
             closeProfileEditDialog()
+            _localState.update { it.copy(isOptimisticNickname = false) }
         }
     }
 
