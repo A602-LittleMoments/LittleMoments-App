@@ -41,8 +41,8 @@ class GridGalleryViewmodel @Inject constructor(
         )
     )
 
-    fun setFilter(keywordId: String?, title: String?) {
-        filterState.value = GridNavKey(keywordId, title)
+    fun setFilter(keywordId: String?, title: String?, babyId: String? = null, year: Int? = null) {
+        filterState.value = GridNavKey(keywordId, title, babyId, year)
     }
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -54,8 +54,11 @@ class GridGalleryViewmodel @Inject constructor(
                     emit(collectionRepository.getCollectionDetail(filter.keywordId).getOrElse { emptyList() })
                 }
             } else {
-                // All Photos (Stream)
-                sharedMediaRepository.getSharedAlbumStream()
+                // All Photos or Filtered by Baby/Year (Stream)
+                sharedMediaRepository.getSharedAlbumStream(
+                    babyId = filter.babyId,
+                    year = filter.year
+                )
             }
             
             flow.map { medias ->

@@ -1,6 +1,7 @@
 package com.a602.commonproject.designsystem.component
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,8 +12,10 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.a602.commonproject.designsystem.theme.*
@@ -31,15 +34,30 @@ fun LMEditInputField(
     enabled: Boolean = true,
     readOnly: Boolean = false,
     isError: Boolean = false,
-    supportingText: String? = null
+    supportingText: String? = null,
+    color: Color? = null
 ) {
     Column(modifier = modifier) {
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            label = { Text(label, color = color4.copy(alpha = 0.6f), style = MaterialTheme.typography.labelMedium) },
-            placeholder = { Text(placeholder, color = color4.copy(alpha = 0.3f), style = MaterialTheme.typography.titleMedium) },
-            textStyle = MaterialTheme.typography.titleMedium.copy(color = color4),
+            label = {
+                Text(
+                    label,
+                    color = color ?: NavyBlue,
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            },
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    color = color ?: NavyBlue,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            },
+            textStyle = MaterialTheme.typography.titleMedium.copy(
+                color = color ?: NavyBlue
+            ),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             singleLine = singleLine,
@@ -54,18 +72,18 @@ fun LMEditInputField(
                 unfocusedBorderColor = if (isError) errorRed else lightblue,
                 errorBorderColor = errorRed, // 에러 상태일 때의 테두리 색 명시
                 errorLabelColor = errorRed, // 에러 상태일 때의 라벨 색 명시
-                errorSupportingTextColor = errorRed // 에러 상태일 때의 보조 텍스트 색 명시
+                errorSupportingTextColor = errorRed, // 에러 상태일 때의 보조 텍스트 색 명시
             ),
             enabled = enabled,
-            readOnly = readOnly
+            readOnly = readOnly,
         )
         // 보조 텍스트가 있을 경우에만 표시
         if (supportingText != null) {
             Text(
                 text = supportingText,
-                color = if(isError) errorRed else color4.copy(alpha = 0.6f),
+                color = if (isError) errorRed else color4.copy(alpha = 0.6f),
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp),
             )
         }
     }
@@ -78,7 +96,7 @@ fun LMEditInputFieldPreview() {
         LMEditInputField(
             label = "라벨",
             value = "입력된 텍스트",
-            onValueChange = {}
+            onValueChange = {},
         )
     }
 }
@@ -92,7 +110,7 @@ fun LMEditInputFieldErorrPreview() {
             value = "잘못된 입력",
             onValueChange = {},
             isError = true,
-            supportingText = "오류 메시지가 여기에 표시됩니다."
+            supportingText = "오류 메시지가 여기에 표시됩니다.",
         )
     }
 }

@@ -23,28 +23,40 @@ import kotlinx.coroutines.flow.flatMapLatest
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    babyRepository: BabyRepository,
-    sharedMediaRepository: SharedMediaRepository,
+    private val babyRepository: BabyRepository,
+    private val sharedMediaRepository: SharedMediaRepository,
     private val collectionRepository: CollectionRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _collections = MutableStateFlow<List<Collection>>(emptyList())
     private val _isError = MutableStateFlow(false)
     private val _selectedBabyIndex = MutableStateFlow(0)
+    private val _selectedYear = MutableStateFlow<Int?>(null) // null means All
 
-    // Paging 3 Stream (별도로 노출)
+    // ... (Existing Paging Stream)
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val mediaPagingFlow: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<SharedMedia>> =
         combine(
             babyRepository.getBabyStream(),
-            _selectedBabyIndex
-        ) { babies, index ->
-            // 인덱스가 유효하고 아기가 있으면 해당 아기의 ID, 없으면 null (전체 보기 or 예외)
-            babies.getOrNull(index)?.babyId
-        }.flatMapLatest { babyId ->
-            sharedMediaRepository.getSharedAlbumPagingStream(babyId)
+            _selectedBabyIndex,
+            _selectedYear
+        ) { babies, index, year ->
+            val babyId = babies.getOrNull(index)?.babyId
+            Pair(babyId, year)
+        }.flatMapLatest { (babyId, year) ->
+            sharedMediaRepository.getSharedAlbumPagingStream(babyId, year)
         }.cachedIn(viewModelScope)
+
+    fun selectYear(yearOffset: Int) {
+        if (yearOffset == 0) {
+            _selectedYear.value = null
+        } else {
+            val currentYear = java.time.LocalDate.now().year
+            _selectedYear.value = currentYear - yearOffset
+        }
+    }
 
     val uiState: StateFlow<HomeUiState> = combine(
         babyRepository.getBabyStream(),
@@ -75,6 +87,7 @@ class HomeViewModel @Inject constructor(
     init {
         fetchCollections()
     }
+    
     fun logout(){
         viewModelScope.launch {
             userRepository.logout()
@@ -90,8 +103,76 @@ class HomeViewModel @Inject constructor(
                 }
                 .onFailure {
                     // _isError.value = true
-                    // 컬렉션 로딩 실패해도 메인 화면은 보여줘야 함 (DB 데이터 우선)
                 }
+        }
+    }
+
+    // [New] Baby CRUD Operations
+    fun addBaby(name: String, birthDate: String, gender: String, imageUri: android.net.Uri?, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val imageFile = imageUri?.let { uriToFile(it) }
+            val formattedBirthDate = formatDate(birthDate)
+            val genderEnum = if (gender == "MALE") Baby.Gender.MALE else Baby.Gender.FEMALE
+            
+            babyRepository.addBaby(name, formattedBirthDate, genderEnum, imageFile)
+                .onSuccess { onComplete() }
+                .onFailure { 
+                    // TODO: Handle error
+                    onComplete() // Proceed for now or show error
+                }
+        }
+    }
+
+    fun updateBaby(babyId: String, name: String, birthDate: String, gender: String, imageUri: android.net.Uri?, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val imageFile = imageUri?.let { uriToFile(it) }
+            val formattedBirthDate = formatDate(birthDate)
+            val genderEnum = if (gender == "MALE") Baby.Gender.MALE else Baby.Gender.FEMALE
+
+            babyRepository.updateBaby(babyId, name, formattedBirthDate, genderEnum, imageFile)
+                .onSuccess { onComplete() }
+                .onFailure {
+                     // TODO: Handle error
+                     onComplete()
+                }
+        }
+    }
+
+    fun deleteBaby(babyId: String, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val groupId = userRepository.getCurrentGroupId()
+            if (groupId != null) {
+                babyRepository.deleteBaby(groupId, babyId)
+                    .onSuccess { onComplete() }
+            } else {
+                // Error: No Group ID
+                onComplete()
+            }
+        }
+    }
+
+    private fun formatDate(input: String): String {
+        // Input: "YYYYMMDD" -> Output: "YYYY-MM-DD"
+        if (input.length == 8) {
+            return "${input.substring(0, 4)}-${input.substring(4, 6)}-${input.substring(6, 8)}"
+        }
+        return input // Fallback
+    }
+
+    private fun uriToFile(uri: android.net.Uri): java.io.File? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val file = java.io.File(context.cacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
+            val outputStream = java.io.FileOutputStream(file)
+            inputStream?.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                }
+            }
+            file
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 }

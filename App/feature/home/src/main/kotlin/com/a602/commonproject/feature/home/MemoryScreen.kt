@@ -1,6 +1,8 @@
 package com.a602.commonproject.feature.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -17,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -52,7 +55,7 @@ fun MemoryScreen(
 
         // 2. 행성 스크롤 영역
         // 하단 캐릭터/버튼 영역(흰색 배경)과 겹치지 않게 위쪽(남색 배경)에만 배치
-        val bottomReservedSpace = 260.dp
+        val bottomReservedSpace = 340.dp // [Fix] Increased to avoid overlap with higher buttons
 
         // 5. Layout Calculation on Background Thread
         // 계산량이 많아짐(Best Fit, Box Collision 등)에 따라 UI 스레드에서 돌면 버벅일 수 있음.
@@ -85,26 +88,45 @@ fun MemoryScreen(
             modifier = Modifier
                 .statusBarsPadding()
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+
+                .padding(16.dp), // [Fix] Changed from vertical=8.dp to 16.dp to match BabyScreen Edit icon height
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // 도움말 아이콘
-            IconButton(onClick = onHelpClick) {
+            // [Fix] Applied Glass Frame Style
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(24.dp))
+                    .background(Color.White.copy(alpha = 0.1f))
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), androidx.compose.foundation.shape.RoundedCornerShape(24.dp))
+                    .clickable(onClick = onHelpClick),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
                     imageVector = Icons.Default.HelpOutline,
                     contentDescription = "Help",
                     tint = Color.White,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
             // 알림 아이콘
-            IconButton(onClick = onNotificationClick) {
+            // [Fix] Applied Glass Frame Style
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(24.dp))
+                    .background(Color.White.copy(alpha = 0.1f))
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), androidx.compose.foundation.shape.RoundedCornerShape(24.dp))
+                    .clickable(onClick = onNotificationClick),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
                     imageVector = Icons.Outlined.Notifications,
                     contentDescription = "Notifications",
                     tint = Color.White,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
@@ -114,7 +136,7 @@ fun MemoryScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(bottom = 80.dp), // 언덕 위에 앉아 있는 느낌 (Padding Up)
+                .padding(bottom = 200.dp), // [Fix] Raised further as requested (160dp -> 200dp)
             contentAlignment = Alignment.BottomCenter
         ) {
             Row(

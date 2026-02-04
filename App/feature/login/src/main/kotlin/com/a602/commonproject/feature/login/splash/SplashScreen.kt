@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -22,7 +23,7 @@ import com.a602.commonproject.designsystem.R
 fun SplashRoute(
     viewModel: SplashViewModel = hiltViewModel(),
     onNavigateToLogin: () -> Unit,
-    onNavigateToHome: () -> Unit
+    onNavigateToHome: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -40,15 +41,16 @@ fun SplashRoute(
 @Composable
 fun SplashScreen() {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFFF9E6)), // 아이보리 배경 (참고 이미지 색상)
-        contentAlignment = Alignment.Center
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
     ) {
-         Image(
-             painter = painterResource(id = R.drawable.littlemoments_logo),
-             contentDescription = "Logo",
-             modifier = Modifier.size(300.dp)
-         )
+        Image(
+            // ✨ 여기에 사용하실 전체 화면 이미지 리소스를 넣으세요
+            painter = painterResource(id = R.drawable.splash_background),
+            contentDescription = "Splash Background",
+            modifier = Modifier.fillMaxSize(),
+            // ✨ 이미지가 화면 비율에 맞춰 꽉 차게 설정 (가장자리 일부가 잘릴 수 있음)
+            contentScale = ContentScale.Crop,
+        )
     }
 }

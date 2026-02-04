@@ -43,6 +43,8 @@ fun EntryProviderScope<NavKey>.galleryEntries(
         GridRoute(
             keywordId = key.keywordId,
             title = key.title,
+            babyId = key.babyId,
+            year = key.year,
             onBackClick = navigator::goBack,
             onCalendarClick = { navigator.navigate(GalleryNavKey) },
             onMediaClick = { media ->

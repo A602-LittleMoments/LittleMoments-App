@@ -5,3 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 object BabyNavKey : NavKey
+
+@Serializable
+object AddBabyNavKey : NavKey
+
+@Serializable
+data class EditBabyNavKey(val babyId: String) : NavKey
