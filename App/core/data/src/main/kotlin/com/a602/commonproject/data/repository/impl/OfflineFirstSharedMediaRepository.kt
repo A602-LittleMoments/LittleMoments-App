@@ -262,15 +262,35 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                             // 일단 mainUrl만 업데이트.
 
                             if (remoteRearUrl != null) {
-                                // ✨ [핵심 수정] DAO의 markAsSync 호출
-                                // subRemoteUrl도 함께 전달해야 함 (없으면 빈 문자열 처리)
-                                mediaDao.markAsSync(
-                                    mediaId = media.mediaId,
-                                    remoteUrl = remoteRearUrl,
-                                    subRemoteUrl = remoteFrontUrl ?: "",
-                                )
-                                // 참고: markAsSync가 실행되면 DB의 localUri, subLocalUri는 NULL이 됩니다.
-                                // 필요하다면 여기서 실제 파일(mainFile, subFile)을 삭제해도 됩니다.
+                                // ✨ [핵심 로직 개선] ID 교체 (Local UUID -> Server ID)
+                                // 서버가 발급해준 실제 ID(`result.mediaId`)로 로컬 DB를 업데이트합니다.
+                                // 이렇게 해야 나중에 `getAlbums`로 목록을 받아올 때 중복이 생기지 않습니다.
+                                
+                                val newServerId = result.mediaId // 배치 응답에서 Server ID 획득
+
+                                if (!newServerId.isNullOrBlank() && newServerId != media.mediaId) {
+                                    // 1. 새로운 ID를 가진 엔티티 생성 (기존 정보 복사 + ID 변경 + 상태 SYNCED)
+                                    val newEntity = media.copy(
+                                        mediaId = newServerId,
+                                        syncStatus = "SYNCED",
+                                        remoteUrl = remoteRearUrl,
+                                        subRemoteUrl = remoteFrontUrl ?: "",
+                                        // localUri 등은 그대로 유지됨
+                                    )
+                                    
+                                    // 2. 새 엔티티 저장 (Insert)
+                                    mediaDao.upsertSharedList(listOf(newEntity))
+                                    
+                                    // 3. 구 엔티티(임시 ID) 삭제 (Delete)
+                                    mediaDao.hardDelete(media.mediaId)
+                                } else {
+                                    // ID가 같거나(그럴리 없지만) Server ID가 없으면 기존 방식대로 업데이트
+                                    mediaDao.markAsSync(
+                                        mediaId = media.mediaId,
+                                        remoteUrl = remoteRearUrl,
+                                        subRemoteUrl = remoteFrontUrl ?: "",
+                                    )
+                                }
                             }
                         } else {
                             allSuccess = false
@@ -364,16 +384,35 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
     }
 
     // 응답 -> 엔티티 변환 및 저장 헬퍼
+    // 응답 -> 엔티티 변환 및 저장 헬퍼
     private suspend fun processAndSave(remoteList: List<com.a602.commonproject.network.model.MediaResponse>): List<ShareMediaEntity> {
+        // [중복 방지 로직]
+        // 1. 서버에서 온 ID 리스트 추출
+        val remoteIds = remoteList.map { it.mediaId }
+
+        // 2. 이미 로컬에 저장된 항목이 있는지 확인 (Server ID 기준)
+        // (UploadWorker에서 업로드 성공 시 ID를 Server ID로 교체해두었으므로 매칭됩니다.)
+        val existingMap = if (remoteIds.isNotEmpty()) {
+            mediaDao.getSharedMediaListByIds(remoteIds).associateBy { it.mediaId }
+        } else {
+            emptyMap()
+        }
+
         val entities = remoteList.map { remote ->
+            // 기존에 로컬에 있던 데이터(원본 파일 경로 등)를 가져옵니다.
+            val existing = existingMap[remote.mediaId]
+
             ShareMediaEntity(
                 mediaId = remote.mediaId,
-                localUri = null,
+                // ✨ [핵심] 기존에 로컬 파일 경로가 있다면 유지합니다. (없으면 null)
+                // 이렇게 하면 다시 다운로드할 필요 없이 바로 고화질 원본을 볼 수 있습니다.
+                localUri = existing?.localUri, 
 
                 remoteUrl = remote.storageUrl,
                 thumbnailUrl = remote.thumbUrl,
 
-                subLocalUri = null,
+                // ✨ [핵심] 서브(전면) 카메라도 동일하게 경로 유지
+                subLocalUri = existing?.subLocalUri,
                 subRemoteUrl = remote.subStorageUrl,
                 subThumbnailUrl = remote.subThumbUrl,
 
@@ -394,9 +433,11 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                 syncStatus = "SYNCED",
             )
         }
+        
         if (entities.isNotEmpty()) {
             mediaDao.syncSharedList(entities)
         }
+        
         return entities
     }
 
