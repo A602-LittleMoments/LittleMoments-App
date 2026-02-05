@@ -109,6 +109,21 @@ fun MediaDetailRoute(
         viewModel.clearError()
     }
 
+    // ✨ [Fix] 화면이 다시 보일 때(코멘트 수정 후 복귀 등) 데이터 갱신
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                // 키워드 컬렉션 데이터 등은 일회성 Fetch이므로, 화면 복귀 시 갱신 필요
+                viewModel.refreshData()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier.fillMaxSize(),

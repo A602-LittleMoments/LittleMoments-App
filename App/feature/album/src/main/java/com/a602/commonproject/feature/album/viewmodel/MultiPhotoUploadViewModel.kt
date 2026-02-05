@@ -1,11 +1,13 @@
 package com.a602.commonproject.feature.album.viewmodel
 
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.a602.commonproject.data.repository.TempMediaRepository
+import com.a602.commonproject.data.repository.UserRepository
+import com.a602.commonproject.model.data.AuthState
 import com.a602.commonproject.model.data.TempMedia
-import com.a602.commonproject.sync.status.SyncManager
+// ✨ 와일드카드 import를 사용하여 특정 이름 충돌 방지
+import com.a602.commonproject.sync.status.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,11 +16,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class MultiPhotoUploadViewModel @Inject constructor(
     private val repository: TempMediaRepository,
+    private val userRepository: UserRepository,
     private val syncManager: SyncManager,
 ) : ViewModel() {
 
@@ -31,10 +35,16 @@ class MultiPhotoUploadViewModel @Inject constructor(
         _targetIds
     ) { allMedia, ids ->
         allMedia.filter { it.id in ids }
-    }.stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), emptyList())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _uploadState = MutableStateFlow<UploadState>(UploadState.Idle)
     val uploadState = _uploadState.asStateFlow()
+
+    val userNickname: StateFlow<String> = userRepository.authState
+        .map { state ->
+            if (state is AuthState.LoggedIn) state.user.nickname else ""
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     fun setTargetIds(ids: List<String>) {
         _targetIds.value = ids

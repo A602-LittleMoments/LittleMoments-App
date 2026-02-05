@@ -94,7 +94,7 @@ class MediaDetailViewModel @Inject constructor(
                     )
                 }
 
-                val media = medias.firstOrNull { it.id == mediaId }
+                // 1. 먼저 어떤 리스트를 보여줄지 결정합니다 (필터링 적용)
                 val filteredMedias = when {
                     dateStr != null -> {
                         val targetDate = LocalDate.parse(dateStr)
@@ -112,6 +112,10 @@ class MediaDetailViewModel @Inject constructor(
                     }
                 }
 
+                // 2. 결정된 리스트 안에서 현재 보고 있는 사진을 찾습니다.
+                // (키워드/날짜 모드일 경우 medias에는 없고 filteredMedias에만 있을 수 있음)
+                val media = filteredMedias.firstOrNull { it.id == mediaId }
+
                 when {
                     media != null -> action.copy(
                         mediaId = mediaId,
@@ -121,17 +125,17 @@ class MediaDetailViewModel @Inject constructor(
                         errorMessage = null
                     )
 
-                    medias.isEmpty() -> action.copy(
+                    filteredMedias.isEmpty() -> action.copy(
                         mediaId = mediaId,
                         media = null,
                         allMedias = emptyList(),
-                        isLoading = true
+                        isLoading = true // 로딩 중일 수도 있음
                     )
 
                     else -> action.copy(
                         mediaId = mediaId,
                         media = null,
-                        allMedias = medias,
+                        allMedias = filteredMedias,
                         isLoading = false,
                         errorMessage = "사진을 불러오지 못했어요"
                     )
@@ -144,11 +148,15 @@ class MediaDetailViewModel @Inject constructor(
         )
 
     fun setMediaId(mediaId: String, date: String? = null, keywordId: String? = null, babyId: String? = null, year: Int? = null) {
+        // 모든 값이 동일하면 무시
         if (mediaIdFlow.value == mediaId && 
             dateFlow.value == date && 
             keywordIdFlow.value == keywordId &&
             babyIdFlow.value == babyId &&
             yearFlow.value == year) return
+
+        // 상태 업데이트 전 기존 키워드 확인
+        val previousKeywordId = keywordIdFlow.value
 
         mediaIdFlow.value = mediaId
         dateFlow.value = date
@@ -156,7 +164,8 @@ class MediaDetailViewModel @Inject constructor(
         babyIdFlow.value = babyId
         yearFlow.value = year
 
-        if (keywordId != null) {
+        // 키워드가 실제로 '변경'되었거나, 처음 들어왔을 때만 로딩
+        if (keywordId != null && keywordId != previousKeywordId) {
             viewModelScope.launch {
                 val result = collectionRepository.getCollectionDetail(keywordId)
                 keywordMediasFlow.value = result.getOrElse { emptyList() }
@@ -165,7 +174,8 @@ class MediaDetailViewModel @Inject constructor(
 
         actionState.update {
             it.copy(
-                isLoading = true,
+                // 키워드 변경 시에는 로딩 보여주기, 단순 스와이프(ID 변경) 시에는 로딩 안 함
+                isLoading = keywordId != previousKeywordId,
                 errorMessage = null,
                 deleteSuccess = false,
                 downloadSuccess = false,
@@ -324,5 +334,20 @@ class MediaDetailViewModel @Inject constructor(
 
     fun clearError() {
         actionState.update { it.copy(errorMessage = null) }
+    }
+
+    fun refreshData() {
+        val keywordId = keywordIdFlow.value
+        if (keywordId != null) {
+            viewModelScope.launch {
+                // 로딩 시작
+                actionState.update { it.copy(isLoading = true) }
+                // 데이터 다시 불러오기
+                val result = collectionRepository.getCollectionDetail(keywordId)
+                keywordMediasFlow.value = result.getOrElse { emptyList() }
+                // 로딩 끝
+                actionState.update { it.copy(isLoading = false) }
+            }
+        }
     }
 }
