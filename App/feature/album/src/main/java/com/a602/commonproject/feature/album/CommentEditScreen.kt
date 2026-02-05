@@ -46,6 +46,7 @@ import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.feature.album.viewmodel.CommentEditUiState
 import com.a602.commonproject.feature.album.viewmodel.CommentEditViewModel
+import com.a602.commonproject.designsystem.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -159,7 +160,7 @@ fun CommentEditScreen(
         ) {
             // 1. Background Image
             Image(
-                painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.gallery_background),
+                painter = painterResource(id = R.drawable.gallery_background),
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier.fillMaxSize()
@@ -169,7 +170,7 @@ fun CommentEditScreen(
                 androidx.compose.material3.CircularProgressIndicator(color = Color.White)
             } else if (uiState.media == null) {
                 Text(
-                    text = uiState.error ?: "사진을 불러오지 못했어요", 
+                    text = uiState.error ?: "사진을 불러오지 못했어요",
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge
                 )
