@@ -58,6 +58,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import Polaroid
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.a602.commonproject.model.data.SharedMedia
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -66,11 +69,12 @@ import java.time.ZoneId
 @Composable
 fun CommentEditRoute(
     mediaId: String,
+    isTemp: Boolean = false,
     onBack: () -> Unit,
     onDone: () -> Unit,
     viewModel: CommentEditViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(mediaId) { viewModel.setMediaId(mediaId) }
+    LaunchedEffect(mediaId) { viewModel.setMediaId(mediaId, isTemp) }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -130,8 +134,9 @@ fun CommentEditScreen(
 ) {
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(uiState.media?.id) {
-        if (uiState.media != null) focusRequester.requestFocus()
+    // 키보드 자동 포커스
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
     }
 
     Scaffold(
@@ -152,191 +157,124 @@ fun CommentEditScreen(
                 .padding(innerPadding),
             contentAlignment = Alignment.Center
         ) {
+            // 1. Background Image
             Image(
                 painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.gallery_background),
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier.fillMaxSize()
             )
-            when {
-                uiState.isLoading -> {
-                    Text("불러오는 중…")
-                }
 
-                uiState.error != null || uiState.media == null -> {
-                    Text(uiState.error ?: "사진을 불러오지 못했어요")
-                }
-
-                else -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                // 1. Background Visuals (Same as Detail Screen)
+            if (uiState.isLoading) {
+                androidx.compose.material3.CircularProgressIndicator(color = Color.White)
+            } else if (uiState.media == null) {
+                Text(
+                    text = uiState.error ?: "사진을 불러오지 못했어요", 
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            } else {
+                // 2. Polaroid Preview (Background Context)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Spacer(Modifier.height(80.dp))
-
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.padding(horizontal = 40.dp)
-                    ) {
-                        // Polaroid Frame
-                        Column(
-                            modifier = Modifier
-                                .width(300.dp)
-                                .shadow(12.dp, RoundedCornerShape(2.dp))
-                                .background(Color.White)
-                                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(1f)
-                                    .background(Color.LightGray)
-                            ) {
-                                AsyncImage(
-                                    model = uiState.media.remoteUrl,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-
-                                if (uiState.media.subRemoteUrl != null || uiState.media.subThumbnailUrl != null) {
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.BottomEnd)
-                                            .padding(8.dp)
-                                            .size(80.dp)
-                                            .border(1.dp, Color.Black)
-                                            .background(Color.Gray)
-                                    ) {
-                                        AsyncImage(
-                                            model = uiState.media.subRemoteUrl ?: uiState.media.subThumbnailUrl,
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
-                                    }
-                                }
-                            }
-
-                            Spacer(Modifier.height(16.dp))
-
-                            // Date Info
-                            val date = Instant.ofEpochMilli(uiState.media.dateTaken)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                            Text(
-                                text = "${date.year}.${String.format("%02d", date.monthValue)}.${String.format("%02d", date.dayOfMonth)}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            )
-                            Spacer(Modifier.height(20.dp))
-                        }
-
-                        // Decorations (Stars)
-                        val purpleStarColor = Color(0xFFEDBDFF)
-                        val yellowStarColor = Color(0xFFFFF5BA)
-
-                        Icon(
-                            imageVector = Icons.Rounded.Star,
-                            contentDescription = null,
-                            tint = purpleStarColor,
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .offset(x = (-32).dp, y = (-32).dp)
-                                .size(80.dp)
-                                .graphicsLayer(rotationZ = -25f)
-                        )
-
-                        Icon(
-                            imageVector = Icons.Rounded.Star,
-                            contentDescription = null,
-                            tint = yellowStarColor,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(x = (28).dp, y = (-28).dp)
-                                .size(72.dp)
-                                .graphicsLayer(rotationZ = 25f)
-                        )
+                     val displayMedia = remember(uiState.media, uiState.caption) {
+                        uiState.media!!.copy(caption = uiState.caption)
                     }
+
+                    // Show Polaroid nicely in the back
+                    Polaroid(
+                        media = displayMedia,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .graphicsLayer { alpha = 0.6f }
+                    )
                 }
 
-                // 2. Popup Input Overlay
+                // 3. Dimmed Overlay (Simulating Modal)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.4f)) // Semi-transparent dimming
-                        .imePadding(),
-                    contentAlignment = Alignment.Center
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .clickable(enabled = false) {}
+                )
+
+                // 4. Edit Card (The "Popup")
+                androidx.compose.material3.Card(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .imePadding(), // Move up with keyboard
+                    shape = RoundedCornerShape(24.dp),
+                    colors = androidx.compose.material3.CardDefaults.cardColors(
+                        containerColor = com.a602.commonproject.designsystem.theme.lightbackground
+                    ),
+                    elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 8.dp)
                 ) {
-                    androidx.compose.material3.Card(
-                        modifier = Modifier.fillMaxWidth(0.85f),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = com.a602.commonproject.designsystem.theme.lightbackground),
+                    Column(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
+                        Text(
+                            text = "코멘트 작성",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = com.a602.commonproject.designsystem.theme.color3
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        com.a602.commonproject.designsystem.component.LMEditInputField(
+                            value = uiState.caption,
+                            onValueChange = onCaptionChange,
+                            label = "코멘트",
                             modifier = Modifier
-                                .padding(24.dp)
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester),
+                            singleLine = false,
+                            placeholder = "소중한 추억을 기록해보세요"
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
                         ) {
-                            Text(
-                                text = "코멘트 수정",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = com.a602.commonproject.designsystem.theme.color3
-                            )
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            com.a602.commonproject.designsystem.component.LMEditInputField(
-                                value = uiState.caption,
-                                onValueChange = onCaptionChange,
-                                label = "코멘트",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(focusRequester),
-                                singleLine = false,
-                                placeholder = "소중한 추억을 기록해보세요"
-                            )
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // Buttons
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
+                            androidx.compose.material3.TextButton(
+                                onClick = onBack
                             ) {
-                                androidx.compose.material3.TextButton(onClick = onBack) {
-                                    Text("취소")
-                                }
-                                Spacer(Modifier.width(8.dp))
-                                androidx.compose.material3.Button(
-                                    onClick = {
-                                        if (!uiState.isSaving) onDone()
-                                    },
-                                    enabled = !uiState.isSaving
-                                ) {
-                                    if (uiState.isSaving) {
-                                        androidx.compose.material3.CircularProgressIndicator(
-                                            modifier = Modifier.size(20.dp),
-                                            color = Color.White,
-                                            strokeWidth = 2.dp
-                                        )
-                                    } else {
-                                        Text("저장")
+                                Text("취소")
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            androidx.compose.material3.Button(
+                                onClick = {
+                                    if (!uiState.isSaving) {
+                                        onDone()
                                     }
+                                },
+                                enabled = !uiState.isSaving,
+                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                    containerColor = com.a602.commonproject.designsystem.theme.main
+                                )
+                            ) {
+                                if (uiState.isSaving) {
+                                    androidx.compose.material3.CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text("저장")
                                 }
                             }
                         }
                     }
-                }
-            }
                 }
             }
         }

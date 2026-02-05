@@ -47,6 +47,7 @@ import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.designsystem.R as DesignR
 import kotlinx.coroutines.launch
 import android.graphics.Bitmap
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.draw.drawWithContent
@@ -369,7 +370,7 @@ fun MediaDetailScreen(
 
                         Spacer(Modifier.height(16.dp))
 
-                        // 액션바 (임시 앨범에서는 미표시)
+                        // 액션바
                         if (!isTemp) {
                             IconActionBar(
                                 modifier = Modifier.fillMaxWidth(),

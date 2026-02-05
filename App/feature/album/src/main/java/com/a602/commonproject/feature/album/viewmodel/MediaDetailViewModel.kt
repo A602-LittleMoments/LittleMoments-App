@@ -82,10 +82,10 @@ class MediaDetailViewModel @Inject constructor(
                             localUri = tm.localUri,
                             remoteUrl = null,
                             thumbnailUrl = null,
-                            subLocalUri = null,
+                            subLocalUri = tm.subLocalUri,
                             subRemoteUrl = null,
                             subThumbnailUrl = null,
-                            cameraFacing = "BACK", // Default
+                            cameraFacing = if (tm.subLocalUri != null) "DUAL" else "REAR",
                             caption = null,
                             dateTaken = tm.takenAt,
                             orientation = 0,

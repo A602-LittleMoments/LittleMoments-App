@@ -87,7 +87,7 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             year = key.year,
             isTemp = key.isTemp,
             onBack = navigator::goBack,
-            onEdit = { currentMediaId -> navigator.navigate(CommentEditNavKey(currentMediaId)) },
+            onEdit = { currentMediaId -> navigator.navigate(CommentEditNavKey(currentMediaId, isTemp = key.isTemp)) },
             onDeleted = navigator::goBack
         )
     }
@@ -96,6 +96,7 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     entry<CommentEditNavKey> { key ->
         CommentEditRoute(
             mediaId = key.mediaId,
+            isTemp = key.isTemp,
             onBack = navigator::goBack,
             onDone = navigator::goBack
         )

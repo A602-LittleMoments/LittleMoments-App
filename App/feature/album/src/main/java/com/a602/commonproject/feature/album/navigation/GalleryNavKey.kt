@@ -41,7 +41,8 @@ data class MediaDetailNavKey(
 // 코멘트 수정
 @Serializable
 data class CommentEditNavKey(
-    val mediaId: String
+    val mediaId: String,
+    val isTemp: Boolean = false
 ) : NavKey
 
 
