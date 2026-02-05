@@ -7,6 +7,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.runtime.NavKey
 import com.a602.commonproject.feature.album.GridNavKey
 import com.a602.commonproject.feature.home.navigation.MemoryNavKey
+import com.a602.commonproject.feature.login.navigation.LoginNavKey
+import com.a602.commonproject.feature.login.navigation.SignUpNavKey
 import com.a602.commonproject.feature.login.navigation.SplashNavKey
 import com.a602.commonproject.navigation.NavigationState
 import com.a602.commonproject.navigation.Navigator
@@ -26,7 +28,8 @@ fun rememberLMAppState(
     // NavigationState 생성 (NavKey 기반)
     val navigationState = rememberNavigationState(
         startKey = startDestination,
-        topLevelKeys = topLevelDestinations
+        // Splash, Login, SignUp 등을 포함한 모든 '독립 스택'이 필요한 키들
+        topLevelKeys = topLevelDestinations + LoginNavKey + SignUpNavKey
     )
 
     // Navigator 생성 (로직 위임)

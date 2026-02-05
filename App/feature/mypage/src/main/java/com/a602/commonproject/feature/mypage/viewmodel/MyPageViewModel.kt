@@ -49,7 +49,9 @@ data class MyPageUiState(
     val currentPassword: String = "",
     val newPassword: String = "",
     val confirmPassword: String = "",
-    val passwordChangeError: String? = null
+    val passwordChangeError: String? = null,
+    val isLoggingOut: Boolean = false,
+    val isLogoutSuccess: Boolean = false
 )
 
 private data class MyPageDataState(
@@ -77,7 +79,9 @@ private data class MyPageLocalState(
     val confirmPassword: String = "",
     val passwordChangeError: String? = null,
     val isOptimisticNickname: Boolean = false,
-    val isOptimisticGroupName: Boolean = false
+    val isOptimisticGroupName: Boolean = false,
+    val isLoggingOut: Boolean = false,
+    val isLogoutSuccess: Boolean = false
 )
 
 @HiltViewModel
@@ -89,7 +93,13 @@ class MyPageViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
-            userRepository.logout()
+            _localState.update { it.copy(isLoggingOut = true) }
+            val result = userRepository.logout()
+            if (result.isSuccess) {
+                _localState.update { it.copy(isLoggingOut = false, isLogoutSuccess = true) }
+            } else {
+                _localState.update { it.copy(isLoggingOut = false) }
+            }
         }
     }
 
@@ -155,7 +165,9 @@ class MyPageViewModel @Inject constructor(
             currentPassword = local.currentPassword,
             newPassword = local.newPassword,
             confirmPassword = local.confirmPassword,
-            passwordChangeError = local.passwordChangeError
+            passwordChangeError = local.passwordChangeError,
+            isLoggingOut = local.isLoggingOut,
+            isLogoutSuccess = local.isLogoutSuccess
         )
     }.stateIn(
         scope = viewModelScope,

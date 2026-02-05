@@ -10,16 +10,20 @@ import com.a602.commonproject.network.model.ChangePasswordRequest
 import com.a602.commonproject.network.model.LoginRequest
 import com.a602.commonproject.network.model.SignupRequest
 import com.a602.commonproject.network.model.UpdateProfileRequest
+import com.a602.commonproject.database.LMDatabase
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class OfflineFirstUserRepository @Inject constructor(
     private val userPreferences: UserPreferencesDataSource,
     private val authDataSource: AuthNetworkDataSource,
-    private val groupDataSource: GroupNetworkDataSource
+    private val groupDataSource: GroupNetworkDataSource,
+    private val database: LMDatabase
 ) : UserRepository {
 
     // =================================================================
@@ -127,6 +131,12 @@ class OfflineFirstUserRepository @Inject constructor(
         return try {
             // dataStore 초기화
             userPreferences.clear()
+            
+            // Room 데이터베이스 전체 삭제 (다른 계정 로그인 시 기존 데이터 잔존 방지)
+            // Main Thread 에서 실행하면 터지므로 IO 스레드로 변경
+            withContext(Dispatchers.IO) {
+                database.clearAllTables()
+            }
 
             Result.success(Unit)
         } catch (e: Exception) {

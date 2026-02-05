@@ -19,5 +19,6 @@ dependencies {
     implementation(libs.coil.kt.svg)
     implementation("androidx.media3:media3-exoplayer:1.3.1")
     implementation("androidx.media3:media3-ui:1.3.1")
+    implementation(libs.androidx.material3)
 
 }

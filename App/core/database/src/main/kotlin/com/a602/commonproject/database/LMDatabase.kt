@@ -25,7 +25,7 @@ import com.a602.commonproject.database.model.NotificationEntity
     version = 4,
     exportSchema = true
 )
-internal abstract class LMDatabase : RoomDatabase(){
+abstract class LMDatabase : RoomDatabase(){
     abstract fun mediaDao() : MediaDao
     abstract fun babyDao() : BabyDao
     abstract fun slideshowDao() : SlideshowDao

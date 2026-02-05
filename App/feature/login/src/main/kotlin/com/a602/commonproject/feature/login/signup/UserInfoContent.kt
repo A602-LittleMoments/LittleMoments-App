@@ -1,6 +1,7 @@
 package com.a602.commonproject.feature.login.signup
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +24,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.Alignment.Companion.Start
 import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.component.ButtonSize
 import com.a602.commonproject.designsystem.component.FilledButton
@@ -36,32 +41,25 @@ fun UserInfoContent(
     uiState: SignUpUiState,
     onSignUp: (String, String, String) -> Unit,
 ) {
-    var name by remember { mutableStateOf("") } // UI only
     var nickname by remember { mutableStateOf(uiState.nickname) }
     var email by remember { mutableStateOf(uiState.email) }
     var password by remember { mutableStateOf(uiState.password) }
     var isPasswordVisible by remember { mutableStateOf(false) }
 
-    // Validation (Simple Regex for demonstration matches design text)
-    // Password: 8~20 chars, 2 of (English, Number, Special)
-    // Regex is complex, simplified check:
-    val passwordRegex = "^(?=.*[a-zA-Z])(?=.*[0-9])|(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9])|(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,20}$".toRegex()
-    val isPasswordValid = password.isEmpty() || password.matches(passwordRegex)
-
-    // Check for specific error messages (Naive implementation based on uiState.error)
+    // Check for specific error messages
     val emailError = uiState.error?.contains("이메일") == true || uiState.error?.contains("email") == true || uiState.error?.contains("사용중") == true
-    val passwordError = !isPasswordValid
+
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 32.dp),
+            .padding(start = 36.dp, end = 36.dp, top = 30.dp, bottom = 10.dp),
     ) {
         Image(
             painter = painterResource(id = R.drawable.logo_shadow),
             contentDescription = "Logo",
-            modifier = Modifier.size(200.dp), // Slightly smaller to fit card
+            modifier = Modifier.size(200.dp).padding(top = 10.dp), // Slightly smaller to fit card
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -69,18 +67,26 @@ fun UserInfoContent(
         androidx.compose.material3.Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-            color = Color.White,
+            color = Color.White.copy(alpha = 0.9f),
             shadowElevation = 8.dp
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 1. Name
+
+                // 1. Nickname
+                Text(
+                    text = "닉네임",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = com.a602.commonproject.designsystem.theme.NavyBlue,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp, start = 4.dp)
+                )
                 LMEditInputField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = "이름",
+                    value = nickname,
+                    onValueChange = { nickname = it },
+                    label = "",
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         androidx.compose.material3.Icon(
@@ -92,27 +98,18 @@ fun UserInfoContent(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // 2. Nickname
-                LMEditInputField(
-                    value = nickname,
-                    onValueChange = { nickname = it },
-                    label = "닉네임",
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = {
-                        androidx.compose.material3.Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Outlined.Person, // Person Outline not available in default? Use Person
-                            contentDescription = null,
-                            tint = com.a602.commonproject.designsystem.theme.NavyBlue
-                        )
-                    }
+                // 2. Email
+                Text(
+                    text = "이메일",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = com.a602.commonproject.designsystem.theme.NavyBlue,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp, start = 4.dp)
                 )
-                Spacer(Modifier.height(12.dp))
-
-                // 3. Email
                 LMEditInputField(
                     value = email,
                     onValueChange = { email = it },
-                    label = "이메일",
+                    label = "",
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     trailingIcon = {
@@ -127,11 +124,19 @@ fun UserInfoContent(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // 4. Password
+                // 3. Password
+                Text(
+                    text = "비밀번호",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = com.a602.commonproject.designsystem.theme.NavyBlue,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp, start = 4.dp)
+                )
+
                 LMEditInputField(
                     value = password,
                     onValueChange = { password = it },
-                    label = "비밀번호",
+                    label = "",
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     isPassword = !isPasswordVisible,
@@ -143,9 +148,7 @@ fun UserInfoContent(
                                 tint = com.a602.commonproject.designsystem.theme.NavyBlue
                             )
                         }
-                    },
-                    isError = passwordError,
-                    supportingText = if (passwordError) "영문/숫자/특수문자 중 2가지 이상 조합 (8 ~ 20자)" else null
+                    }
                 )
                 Spacer(Modifier.height(24.dp))
 
@@ -154,10 +157,21 @@ fun UserInfoContent(
                     onClick = { onSignUp(email, password, nickname) },
                     modifier = Modifier.fillMaxWidth(),
                     size = ButtonSize.Full,
-                    enabled = email.isNotBlank() && password.isNotBlank() && nickname.isNotBlank() && name.isNotBlank(), // Validations
+                    enabled = email.isNotBlank() && password.isNotBlank() && nickname.isNotBlank(),
                 )
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun UserInfoContentPreview() {
+    com.a602.commonproject.designsystem.theme.LMTheme {
+        UserInfoContent(
+            uiState = SignUpUiState(),
+            onSignUp = { _, _, _ -> }
+        )
     }
 }
