@@ -133,17 +133,42 @@ fun MediaDetailRoute(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        topBar = {
+            LMTopAppBar(
+                title = "자세히 보기",
+                onNavigationClick = onBack,
+            )
+        },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.systemBarsPadding()
+            )
+        }
+    ) { innerPadding ->
         Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
+            // 갤러리 공통 배경 (삭제 시에도 유지됨)
+            Image(
+                painter = painterResource(id = DesignR.drawable.gallery_background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
             when {
-                // 삭제 성공 시 에러 메시지 방지 (스낵바 유지하면서 대기)
-                uiState.deleteSuccess -> {
-                   // 빈 화면 유지
+                // 삭제 성공 시 빈 화면 유지 (배경과 툴바는 보임)
+                uiState.deleteSuccess -> { }
+
+                uiState.isLoading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("불러오는 중…", color = Color.White)
+                    }
                 }
-                uiState.isLoading -> Text("불러오는 중…")
                 uiState.media != null -> {
                     // [Navigation Fix] Use ALL medias, sorted by date descending (Newest first)
                     // Matches the Grid View order and allows swiping through the entire gallery.
@@ -158,28 +183,26 @@ fun MediaDetailRoute(
                     }
 
                     MediaDetailScreen(
-                        title = "자세히 보기",
                         initialIndex = initialIndex,
                         medias = sortedMedias,
-                        isTemp = isTemp, // Pass isTemp
-                        onBack = onBack,
+                        isTemp = isTemp,
                         onDelete = viewModel::deleteMedia,
-                        onDownload = viewModel::downloadMedia, // Legacy 원본 다운로드
-                        onSaveBitmap = viewModel::saveBitmapToGallery, // ✨ 꾸며진 사진 저장
+                        onDownload = viewModel::downloadMedia,
+                        onSaveBitmap = viewModel::saveBitmapToGallery,
                         onEdit = onEdit,
                         onMediaIdChange = { currentId = it }
                     )
                 }
-                else -> Text("사진을 불러오지 못했어요")
+                else -> {
+                    // 에러 메시지가 있을 때만 텍스트를 보여주고, 그 외에는 배경만 유지합니다. (삭제 작업 등)
+                    if (uiState.errorMessage != null) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(uiState.errorMessage!!, color = Color.White)
+                        }
+                    }
+                }
             }
         }
-
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .systemBarsPadding()
-        )
     }
 }
 
@@ -188,11 +211,9 @@ fun MediaDetailRoute(
 
 @Composable
 fun MediaDetailScreen(
-    title: String,
     initialIndex: Int,
     medias: List<SharedMedia>,
-    isTemp: Boolean = false, // Added param
-    onBack: () -> Unit,
+    isTemp: Boolean = false,
     onDelete: (String) -> Unit,
     onDownload: (SharedMedia) -> Unit,
     onSaveBitmap: (Bitmap) -> Unit,
@@ -238,33 +259,12 @@ fun MediaDetailScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            LMTopAppBar(
-                title = title,
-                onNavigationClick = onBack,
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            // Background Image (Static)
-            Image(
-                painter = painterResource(id = DesignR.drawable.gallery_background),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-
-            // Content Area with Pager
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                key = { index -> medias.getOrNull(index)?.id ?: index }
-            ) { page ->
+    // Content Area with Pager
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxSize(),
+        key = { index -> medias.getOrNull(index)?.id ?: index }
+    ) { page ->
                 val media = medias.getOrNull(page)
 
                 if (media != null) {
@@ -388,9 +388,6 @@ fun MediaDetailScreen(
                     }
                 }
             }
-
-        }
-    }
 }
 
 // 프리뷰
@@ -417,10 +414,8 @@ private fun fakePhotoMedia(): SharedMedia {
 private fun Preview_Detail_Content() {
     LMTheme {
         MediaDetailScreen(
-            title = "자세히 보기",
             medias = listOf(fakePhotoMedia()),
             initialIndex = 0,
-            onBack = {},
             onDelete = {},
             onDownload = {},
             onSaveBitmap = {},
