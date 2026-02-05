@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.clickable
@@ -209,7 +208,7 @@ fun MypageScreen(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             // 3. 메인 콘텐츠 (단일 카드 형태)
             Column(
                 modifier = Modifier
@@ -233,7 +232,7 @@ fun MypageScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 32.dp, horizontal = 24.dp),
+                                .padding(top = 24.dp, bottom = 32.dp, start = 24.dp, end = 24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             // 3-1. 상단 아이콘 (나의 권한에 맞는 아이콘 표시)
