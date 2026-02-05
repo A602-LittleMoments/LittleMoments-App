@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -46,6 +47,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import com.a602.commonproject.designsystem.R
@@ -376,43 +378,47 @@ fun FootprintFilterSection(
         // [Fix] Removed Rotation
         // [Fix] Adjusted Vertical Spacing (Y offsets)
 
-        // 4년 전 (Far Left)
+        // 4년 전 (Far Left) - 가장 먼저 등장
         FootprintItem(
             resId = R.drawable.fourth_footprint,
             label = "4년 전",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .offset(x = (-130).dp, y = (-20).dp), // Y Adjusted
+                .offset(x = (-130).dp, y = (-20).dp), 
+            entranceDelay = 0,
             onClick = { onYearSelected(4) }
         )
-
+ 
         // 3년 전 (Mid Left)
         FootprintItem(
             resId = R.drawable.third_footprint,
             label = "3년 전",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .offset(x = (-50).dp, y = (-100).dp), // Y Adjusted
+                .offset(x = (-50).dp, y = (-100).dp), 
+            entranceDelay = 200,
             onClick = { onYearSelected(3) }
         )
-
+ 
         // 2년 전 (Mid Right)
         FootprintItem(
             resId = R.drawable.second_footprint,
             label = "2년 전",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .offset(x = 30.dp, y = (-20).dp), // Y Adjusted (Matches 4yr)
+                .offset(x = 30.dp, y = (-20).dp), 
+            entranceDelay = 400,
             onClick = { onYearSelected(2) }
         )
-
+ 
          // 1년 전 (Far Right)
         FootprintItem(
             resId = R.drawable.first_footprint,
             label = "1년 전",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .offset(x = 110.dp, y = (-100).dp), // Y Adjusted (Matches 3yr)
+                .offset(x = 110.dp, y = (-100).dp), 
+            entranceDelay = 600,
             onClick = { onYearSelected(1) }
         )
     }
@@ -423,37 +429,81 @@ fun FootprintItem(
     resId: Int,
     label: String,
     modifier: Modifier = Modifier,
-    // [Fix] Removed rotation parameter
+    entranceDelay: Int = 0,
     onClick: () -> Unit
 ) {
+    var isVisible by remember { mutableStateOf(false) }
+    
+    // 등장 애니메이션 트리거
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(entranceDelay.toLong())
+        isVisible = true
+    }
+
+    // 1. 등장 애니메이션 (Scale & Alpha)
+    val entranceScale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (isVisible) 1.0f else 0.0f,
+        animationSpec = androidx.compose.animation.core.spring(
+            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+        ),
+        label = "EntranceScale"
+    )
+    val entranceAlpha by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (isVisible) 1.0f else 0.0f,
+        animationSpec = androidx.compose.animation.core.tween(500),
+        label = "EntranceAlpha"
+    )
+
+    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    // 2. 클릭 시 '딛는' 느낌을 주기 위한 스케일 및 투명도 애니메이션
+    val clickScale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (isPressed) 0.85f else 1.0f, // 더 깊이 눌리도록 조정
+        animationSpec = androidx.compose.animation.core.spring(dampingRatio = androidx.compose.animation.core.Spring.DampingRatioLowBouncy),
+        label = "ClickScale"
+    )
+    val clickAlpha by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (isPressed) 0.6f else 1.0f,
+        label = "ClickAlpha"
+    )
+
     Column(
-        modifier = modifier, // [Fix] Removed clickable from Column (prevents wide hit box)
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = entranceScale * clickScale
+                scaleY = entranceScale * clickScale
+                alpha = entranceAlpha * clickAlpha
+            },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             painter = painterResource(id = resId),
             contentDescription = null,
             modifier = Modifier
-                .size(100.dp) // [Fix] Reduced size (130 -> 100) for tighter touch target
-                .clip(androidx.compose.foundation.shape.CircleShape)
-                .clickable { onClick() }, // [Fix] Click only on Image
+                .size(100.dp)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null, 
+                    onClick = onClick
+                ),
             contentScale = ContentScale.Fit,
-            alpha = 1f
         )
-        // [Fix] Reduced gap with text closer (Adjusted for new image size)
+        // [Fix] 글씨를 더 진하게 하고 그림자를 강화하여 시인성 개선
         Text(
             text = label,
-            modifier = Modifier.offset(y = (-25).dp), // Adjusted text offset (-35 -> -25) relative to smaller image
+            modifier = Modifier.offset(y = (-20).dp), 
             style = MaterialTheme.typography.titleMedium.copy(
                 shadow = androidx.compose.ui.graphics.Shadow(
-                    color = Color.Black.copy(alpha = 0.3f),
-                    offset = androidx.compose.ui.geometry.Offset(1f, 1f),
-                    blurRadius = 2f
+                    color = Color.Black.copy(alpha = 0.8f), 
+                    offset = androidx.compose.ui.geometry.Offset(2f, 4f), 
+                    blurRadius = 6f 
                 )
             ),
             color = Color.White,
             fontWeight = FontWeight.ExtraBold,
-            fontSize = 18.sp
+            fontSize = 19.sp 
         )
     }
 }
