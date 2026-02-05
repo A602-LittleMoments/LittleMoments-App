@@ -97,7 +97,8 @@ class CommentEditViewModel @Inject constructor(
 
     fun saveCaption(onSuccess: () -> Unit, onError: (String) -> Unit) {
         val currentMediaId = mediaIdFlow.value ?: return
-        val currentCaption = captionFlow.value ?: ""
+        // uiState.value.caption은 이미 null 체크와 미디어 원본 캡션 처리가 되어있습니다.
+        val currentCaption = uiState.value.caption
 
         viewModelScope.launch {
             savingFlow.value = true
