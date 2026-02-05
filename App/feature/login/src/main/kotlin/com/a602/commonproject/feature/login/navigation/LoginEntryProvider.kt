@@ -17,7 +17,7 @@ fun EntryProviderScope<NavKey>.loginEntries(
     // 1. Splash Screen
     entry<SplashNavKey> {
         SplashRoute(
-            onNavigateToLogin = { navigator.navigate(LoginNavKey) },
+            onNavigateToLogin = { navigator.replaceRoot(LoginNavKey) },
             onNavigateToHome = onLoginSuccess
         )
     }
