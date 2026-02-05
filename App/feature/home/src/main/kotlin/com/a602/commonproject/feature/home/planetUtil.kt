@@ -11,17 +11,17 @@ import com.a602.commonproject.model.data.Collection
 import kotlin.math.ceil
 import kotlin.math.sqrt
 
-private const val MAX_PLANETS = 20
+private const val MAX_PLANETS = 7
 
 // 카테고리별 아이콘 3개씩 (예시 — 너희 drawable로 교체)
 // 카테고리별 아이콘 (너희 drawable로 교체)
 // 카테고리끼리 겹치지 않게 고유하게 배정
 private val categoryToPlanetPool: Map<String, List<Int>> = mapOf(
-    "물건" to listOf(DsR.drawable.ball, DsR.drawable.game, DsR.drawable.rubberduck),
-    "음식" to listOf(DsR.drawable.food1, DsR.drawable.food2),
-    "인물" to listOf(DsR.drawable.kids, DsR.drawable.bear),
-    "기념" to listOf(DsR.drawable.cupcake, DsR.drawable.moon, DsR.drawable.star),
-    "여행" to listOf(DsR.drawable.camera, DsR.drawable.rocket, DsR.drawable.planet),
+    "물건" to listOf(DsR.drawable.ic_thing1, DsR.drawable.ic_thing2, DsR.drawable.ic_thing3,DsR.drawable.ic_thing4,DsR.drawable.ic_thing5,DsR.drawable.ic_thing6),
+    "음식" to listOf(DsR.drawable.ic_food1, DsR.drawable.ic_food2,DsR.drawable.ic_food3,DsR.drawable.ic_food4,DsR.drawable.ic_food5,DsR.drawable.ic_food6,DsR.drawable.ic_food7),
+    "인물" to listOf(DsR.drawable.ic_person1, DsR.drawable.ic_person2,DsR.drawable.ic_person3,DsR.drawable.ic_person4,DsR.drawable.ic_person5,DsR.drawable.ic_person6,DsR.drawable.ic_person7),
+    "기념" to listOf(DsR.drawable.ic_event1, DsR.drawable.ic_event2, DsR.drawable.ic_event3,DsR.drawable.ic_event4,DsR.drawable.ic_event5),
+    "여행" to listOf(DsR.drawable.ic_travle1, DsR.drawable.ic_travle2, DsR.drawable.ic_travle3,DsR.drawable.ic_travle4,DsR.drawable.ic_travle5),
 )
 
 // 매칭 실패 시 기본

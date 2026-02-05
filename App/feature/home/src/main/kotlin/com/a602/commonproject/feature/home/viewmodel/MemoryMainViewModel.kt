@@ -35,7 +35,7 @@ class MemoryMainViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = MemoryMainUiState.Loading
 
-            collectionRepository.getCollections()
+            collectionRepository.getCollections(limit = 7)
                 .onSuccess { list ->
                     if (list.isEmpty()) {
                         _uiState.value = MemoryMainUiState.Empty

@@ -67,12 +67,16 @@ class Navigator(val state: NavigationState) {
         state.topLevelStack.apply {
             // 1. 기존의 쌓여 있던 탭 기록을 모두 지움
             clear()
-            // 2. 무조건 바닥에 '홈'(startKey)을 깔기
-            // 단, replaceRoot 등으로 startKey가 실제 화면이 아니게 된 경우(로그인 후)에는 로직 조정이 필요할 수 있으나,
-            // 기본 탭바 동작은 항상 '첫 번째 탭'을 기저에 둡니다.
-            add(state.startKey)
-            // 3. 이동하려는 곳이 '홈'이 아니라면 그 위에 얹기
-            if (key != state.startKey)
+            // 2. 무조건 바닥에 현재 루트(Root)를 깔기
+            // startKey가 아니라, 현재 스택의 가장 바닥에 있는 키를 유지해야 함.
+            // (로그인 후에는 Home이 Root가 되었을 테니까)
+            val currentRoot = if (isNotEmpty()) first() else state.startKey
+            
+            clear()
+            add(currentRoot)
+
+            // 3. 이동하려는 곳이 '현재 루트'가 아니라면 그 위에 얹기
+            if (key != currentRoot)
                 add(key)
         }
     }
