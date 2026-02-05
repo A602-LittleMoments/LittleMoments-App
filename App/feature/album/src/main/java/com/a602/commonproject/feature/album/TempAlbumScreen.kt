@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -167,6 +168,7 @@ fun TempGridGallery(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(1f)
                     .padding(horizontal = 16.dp)
             ) {
                 // 상단 버튼 (전체 선택 / 선택)
@@ -222,9 +224,7 @@ fun TempGridGallery(
                 // Empty / Grid 분기
                 if (medias.isEmpty()) {
                     TempAlbumEmptyState(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 40.dp),
+                        modifier = Modifier.fillMaxSize(),
                     )
                 } else {
                     TempImageGrid(
@@ -361,6 +361,7 @@ fun TempAlbumEmptyState(
         contentAlignment = Alignment.Center
     ) {
         Column(
+            modifier = Modifier.offset(y = (-60).dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {

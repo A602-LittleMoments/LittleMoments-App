@@ -248,7 +248,7 @@ fun MediaDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .align(Alignment.TopStart)
-                                    .padding(top = 20.dp)
+                                    .padding(top = 5.dp)
                                     .offset(x = (-10).dp)
                                     .size(50.dp)
                                     .rotate(-15f),
@@ -261,7 +261,6 @@ fun MediaDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
-                                    .padding(top = 10.dp)
                                     .offset(x = 15.dp)
                                     .size(60.dp)
                                     .rotate(20f),
@@ -274,7 +273,7 @@ fun MediaDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
-                                    .padding(top = 40.dp, end = 50.dp)
+                                    .padding(top = 25.dp, end = 50.dp)
                                     .size(30.dp)
                                     .rotate(-10f),
                                 tint = Color(0xFFFFF9C4) // Cream
@@ -287,7 +286,7 @@ fun MediaDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .align(Alignment.BottomStart)
-                                    .offset(x = (-20).dp, y = (-70).dp) // Moved up to avoid caption
+                                    .offset(x = (-20).dp, y = (-68).dp) // Moved up to avoid caption
                                     .size(70.dp)
                                     .rotate(-30f),
                                 tint = Color(0xFFFFF59D) // Pastel Yellow
