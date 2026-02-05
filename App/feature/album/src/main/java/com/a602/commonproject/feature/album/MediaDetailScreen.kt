@@ -53,6 +53,8 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import coil.compose.AsyncImagePainter.State.Empty.painter
 
 // import com.a602.coommonproject.ui.SharedMediaDetailScreen // REMOVED
 
@@ -65,6 +67,7 @@ fun MediaDetailRoute(
     keywordId: String? = null,
     babyId: String? = null,
     year: Int? = null,
+    isTemp: Boolean = false,
     onBack: () -> Unit,
     onEdit: (String) -> Unit,
     onDeleted: () -> Unit,
@@ -72,8 +75,8 @@ fun MediaDetailRoute(
 ) {
     var currentId by rememberSaveable { mutableStateOf(mediaId) }
 
-    LaunchedEffect(currentId, date, keywordId, babyId, year) {
-        viewModel.setMediaId(currentId, date, keywordId, babyId, year)
+    LaunchedEffect(currentId, date, keywordId, babyId, year, isTemp) {
+        viewModel.setMediaId(currentId, date, keywordId, babyId, year, isTemp)
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -115,7 +118,7 @@ fun MediaDetailRoute(
     }
 
     // ✨ [Fix] 화면이 다시 보일 때(코멘트 수정 후 복귀 등) 데이터 갱신
-    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
@@ -157,6 +160,7 @@ fun MediaDetailRoute(
                         title = "자세히 보기",
                         initialIndex = initialIndex,
                         medias = sortedMedias,
+                        isTemp = isTemp, // Pass isTemp
                         onBack = onBack,
                         onDelete = viewModel::deleteMedia,
                         onDownload = viewModel::downloadMedia, // Legacy 원본 다운로드
@@ -186,6 +190,7 @@ fun MediaDetailScreen(
     title: String,
     initialIndex: Int,
     medias: List<SharedMedia>,
+    isTemp: Boolean = false, // Added param
     onBack: () -> Unit,
     onDelete: (String) -> Unit,
     onDownload: (SharedMedia) -> Unit,
@@ -200,7 +205,7 @@ fun MediaDetailScreen(
 
     // Capture Trigger
     var captureTrigger by remember { mutableStateOf<Long?>(null) }
-    
+
     // Delete Dialog State
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deleteTargetId by remember { mutableStateOf<String?>(null) }
@@ -364,19 +369,21 @@ fun MediaDetailScreen(
 
                         Spacer(Modifier.height(16.dp))
 
-                        // 액션바
-                        IconActionBar(
-                            modifier = Modifier.fillMaxWidth(),
-                            onDelete = {
-                                deleteTargetId = media.id
-                                showDeleteDialog = true
-                            },
-                            onDownload = {
-                                // 캡처 트리거 실행 (현재 보고 있는 페이지만 캡처됨)
-                                captureTrigger = System.currentTimeMillis()
-                            },
-                            onEdit = { onEdit(media.id) },
-                        )
+                        // 액션바 (임시 앨범에서는 미표시)
+                        if (!isTemp) {
+                            IconActionBar(
+                                modifier = Modifier.fillMaxWidth(),
+                                onDelete = {
+                                    deleteTargetId = media.id
+                                    showDeleteDialog = true
+                                },
+                                onDownload = {
+                                    // 캡처 트리거 실행 (현재 보고 있는 페이지만 캡처됨)
+                                    captureTrigger = System.currentTimeMillis()
+                                },
+                                onEdit = { onEdit(media.id) },
+                            )
+                        }
                     }
                 }
             }

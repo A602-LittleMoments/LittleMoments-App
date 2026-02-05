@@ -159,10 +159,12 @@ fun Polaroid(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "by ${media.uploaderName ?: ""}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+                if (!media.uploaderName.isNullOrBlank()) {
+                    Text(
+                        text = "by ${media.uploaderName}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
 
             if (!caption.isNullOrBlank()) {

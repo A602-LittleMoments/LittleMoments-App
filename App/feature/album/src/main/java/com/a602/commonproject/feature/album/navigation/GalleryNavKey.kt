@@ -33,7 +33,8 @@ data class MediaDetailNavKey(
     val date: String? = null,
     val keywordId: String? = null,
     val babyId: String? = null,
-    val year: Int? = null
+    val year: Int? = null,
+    val isTemp: Boolean = false
 ) : NavKey
 
 

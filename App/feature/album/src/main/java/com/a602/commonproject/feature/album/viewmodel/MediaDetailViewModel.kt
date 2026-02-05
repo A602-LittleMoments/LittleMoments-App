@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 
 data class MediaDetailUiState(
     val mediaId: String? = null,
@@ -52,6 +53,7 @@ data class MediaDetailUiState(
 class MediaDetailViewModel @Inject constructor(
     private val repository: SharedMediaRepository,
     private val collectionRepository: CollectionRepository,
+    private val tempRepository: com.a602.commonproject.data.repository.TempMediaRepository, // Added
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -60,6 +62,7 @@ class MediaDetailViewModel @Inject constructor(
     private val keywordIdFlow = MutableStateFlow<String?>(null)
     private val babyIdFlow = MutableStateFlow<String?>(null)
     private val yearFlow = MutableStateFlow<Int?>(null)
+    private val isTempFlow = MutableStateFlow(false) // Added
     private val keywordMediasFlow = MutableStateFlow<List<SharedMedia>>(emptyList())
     private val actionState = MutableStateFlow(
         MediaDetailUiState(
@@ -68,10 +71,35 @@ class MediaDetailViewModel @Inject constructor(
     )
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<MediaDetailUiState> = kotlinx.coroutines.flow.combine(babyIdFlow, yearFlow) { b, y -> b to y }
-        .flatMapLatest { (babyId, year) ->
+    val uiState: StateFlow<MediaDetailUiState> = kotlinx.coroutines.flow.combine(babyIdFlow, yearFlow, isTempFlow) { b, y, t -> Triple(b, y, t) }
+        .flatMapLatest { (babyId, year, isTemp) ->
+            val sourceStream = if (isTemp) {
+                tempRepository.getTempMediaStream().map { tempList ->
+                    tempList.map { tm ->
+                        SharedMedia(
+                            id = tm.id,
+                            type = SharedMedia.MediaType.PHOTO,
+                            localUri = tm.localUri,
+                            remoteUrl = null,
+                            thumbnailUrl = null,
+                            subLocalUri = null,
+                            subRemoteUrl = null,
+                            subThumbnailUrl = null,
+                            cameraFacing = "BACK", // Default
+                            caption = null,
+                            dateTaken = tm.takenAt,
+                            orientation = 0,
+                            uploaderName = null,
+                            syncStatus = SharedMedia.SyncStatus.SYNCED
+                        )
+                    }
+                }
+            } else {
+                repository.getSharedAlbumStream(babyId, year)
+            }
+
             combine(
-                repository.getSharedAlbumStream(babyId, year),
+                sourceStream,
                 mediaIdFlow,
                 dateFlow,
                 keywordIdFlow,
@@ -96,6 +124,7 @@ class MediaDetailViewModel @Inject constructor(
 
                 // 1. 먼저 어떤 리스트를 보여줄지 결정합니다 (필터링 적용)
                 val filteredMedias = when {
+                    isTemp -> medias // Temp는 필터링 없음 (현재)
                     dateStr != null -> {
                         val targetDate = LocalDate.parse(dateStr)
                         medias.filter {
@@ -157,13 +186,14 @@ class MediaDetailViewModel @Inject constructor(
             initialValue = MediaDetailUiState(isLoading = true)
         )
 
-    fun setMediaId(mediaId: String, date: String? = null, keywordId: String? = null, babyId: String? = null, year: Int? = null) {
+    fun setMediaId(mediaId: String, date: String? = null, keywordId: String? = null, babyId: String? = null, year: Int? = null, isTemp: Boolean = false) {
         // 모든 값이 동일하면 무시
         if (mediaIdFlow.value == mediaId && 
             dateFlow.value == date && 
             keywordIdFlow.value == keywordId &&
             babyIdFlow.value == babyId &&
-            yearFlow.value == year) return
+            yearFlow.value == year &&
+            isTempFlow.value == isTemp) return
 
         // 상태 업데이트 전 기존 키워드 확인
         val previousKeywordId = keywordIdFlow.value
@@ -173,6 +203,7 @@ class MediaDetailViewModel @Inject constructor(
         keywordIdFlow.value = keywordId
         babyIdFlow.value = babyId
         yearFlow.value = year
+        isTempFlow.value = isTemp
 
         // 키워드가 실제로 '변경'되었거나, 처음 들어왔을 때만 로딩
         if (keywordId != null && keywordId != previousKeywordId) {
@@ -181,7 +212,9 @@ class MediaDetailViewModel @Inject constructor(
                 keywordMediasFlow.value = result.getOrElse { emptyList() }
             }
         }
-
+        
+        // ... (remaining unchanged logic implicitly covered by updating the flow triggers)
+        
         actionState.update {
             it.copy(
                 // 키워드 변경 시에는 로딩 보여주기, 단순 스와이프(ID 변경) 시에는 로딩 안 함
@@ -204,18 +237,32 @@ class MediaDetailViewModel @Inject constructor(
         viewModelScope.launch {
             actionState.update { it.copy(isDeleting = true, errorMessage = null) }
 
-            repository.deleteMedia(id)
-                .onSuccess {
-                    actionState.update { it.copy(isDeleting = false, deleteSuccess = true) }
-                }
-                .onFailure { e ->
-                    actionState.update {
-                        it.copy(
-                            isDeleting = false,
-                            errorMessage = e.message ?: "삭제에 실패했어요"
-                        )
+            if (isTempFlow.value) {
+                // 임시 앨범 삭제
+                tempRepository.deleteTempMedia(listOf(id))
+                    .onSuccess {
+                        actionState.update { it.copy(isDeleting = false, deleteSuccess = true) }
                     }
-                }
+                    .onFailure { e ->
+                        actionState.update {
+                            it.copy(isDeleting = false, errorMessage = e.message ?: "삭제에 실패했어요")
+                        }
+                    }
+            } else {
+                // 공유 앨범 삭제
+                repository.deleteMedia(id)
+                    .onSuccess {
+                        actionState.update { it.copy(isDeleting = false, deleteSuccess = true) }
+                    }
+                    .onFailure { e ->
+                        actionState.update {
+                            it.copy(
+                                isDeleting = false,
+                                errorMessage = e.message ?: "삭제에 실패했어요"
+                            )
+                        }
+                    }
+            }
         }
     }
 

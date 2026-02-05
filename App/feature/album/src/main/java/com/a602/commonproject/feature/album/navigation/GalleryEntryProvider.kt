@@ -85,6 +85,7 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             keywordId = key.keywordId,
             babyId = key.babyId,
             year = key.year,
+            isTemp = key.isTemp,
             onBack = navigator::goBack,
             onEdit = { currentMediaId -> navigator.navigate(CommentEditNavKey(currentMediaId)) },
             onDeleted = navigator::goBack
@@ -99,12 +100,11 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             onDone = navigator::goBack
         )
     }
-// 5. 임시 앨범
+// 5. 임시 앨범 (상세보기 추가)
     entry<TempAlbumNavKey> {
         TempGridGalleryRoute(
             onMediaClick = { media ->
-                // TODO: 임시 앨범의 상세보기 화면 정의 필요
-                // 현재는 PhotoDetailNavKey 재사용
+                 navigator.navigate(MediaDetailNavKey(mediaId = media.id, isTemp = true))
             },
             onBackClick = navigator::goBack,
             onNavigateToUpload = { ids ->
