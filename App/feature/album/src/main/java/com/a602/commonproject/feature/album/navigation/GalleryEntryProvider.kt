@@ -67,7 +67,12 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             date = key.date,
             onBackClick = navigator::goBack,
             onCalendarClick = { navigator.navigate(GalleryNavKey) },
-            onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(mediaId = media.id, date = key.date.toString())) } // 예시
+            onMediaClick = { media -> 
+                val mediaDate = java.time.Instant.ofEpochMilli(media.dateTaken)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate()
+                navigator.navigate(MediaDetailNavKey(mediaId = media.id, date = mediaDate.toString())) 
+            }
         )
     }
 
