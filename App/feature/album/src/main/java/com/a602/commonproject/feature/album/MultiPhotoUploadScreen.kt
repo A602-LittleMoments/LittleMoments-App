@@ -118,7 +118,13 @@ fun MultiPhotoUploadScreen(
                                 value = text,
                                 onValueChange = { captions[currentMedia.id] = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("사진에 대한 설명을 남겨주세요") },
+                                placeholder = { 
+                                    Text(
+                                        "사진에 대한 설명을 남겨주세요",
+                                        color = Color.Gray.copy(alpha = 0.5f),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    ) 
+                                },
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent
