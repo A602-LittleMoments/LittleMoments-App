@@ -31,7 +31,9 @@ data class DayGridNavKey(val date: LocalDate) : NavKey
 data class MediaDetailNavKey(
     val mediaId: String,
     val date: String? = null,
-    val keywordId: String? = null
+    val keywordId: String? = null,
+    val babyId: String? = null,
+    val year: Int? = null
 ) : NavKey
 
 

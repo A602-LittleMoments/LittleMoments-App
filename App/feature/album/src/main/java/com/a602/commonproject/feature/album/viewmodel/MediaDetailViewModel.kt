@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlinx.coroutines.flow.flatMapLatest
 
 data class MediaDetailUiState(
     val mediaId: String? = null,
@@ -57,6 +58,8 @@ class MediaDetailViewModel @Inject constructor(
     private val mediaIdFlow = MutableStateFlow<String?>(null)
     private val dateFlow = MutableStateFlow<String?>(null)
     private val keywordIdFlow = MutableStateFlow<String?>(null)
+    private val babyIdFlow = MutableStateFlow<String?>(null)
+    private val yearFlow = MutableStateFlow<Int?>(null)
     private val keywordMediasFlow = MutableStateFlow<List<SharedMedia>>(emptyList())
     private val actionState = MutableStateFlow(
         MediaDetailUiState(
@@ -64,72 +67,75 @@ class MediaDetailViewModel @Inject constructor(
         )
     )
 
-    val uiState: StateFlow<MediaDetailUiState> =
-        combine(
-            repository.getSharedAlbumStream(),
-            mediaIdFlow,
-            dateFlow,
-            keywordIdFlow,
-            keywordMediasFlow,
-            actionState
-        ) { flows ->
-            val medias = flows[0] as List<SharedMedia>
-            val mediaId = flows[1] as? String
-            val dateStr = flows[2] as? String
-            val keywordIdStr = flows[3] as? String
-            val kMedias = flows[4] as List<SharedMedia>
-            val action = flows[5] as MediaDetailUiState
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<MediaDetailUiState> = kotlinx.coroutines.flow.combine(babyIdFlow, yearFlow) { b, y -> b to y }
+        .flatMapLatest { (babyId, year) ->
+            combine(
+                repository.getSharedAlbumStream(babyId, year),
+                mediaIdFlow,
+                dateFlow,
+                keywordIdFlow,
+                keywordMediasFlow,
+                actionState
+            ) { flows ->
+                val medias = flows[0] as List<SharedMedia>
+                val mediaId = flows[1] as? String
+                val dateStr = flows[2] as? String
+                val keywordIdStr = flows[3] as? String
+                val kMedias = flows[4] as List<SharedMedia>
+                val action = flows[5] as MediaDetailUiState
 
-            if (mediaId == null) {
-                return@combine action.copy(
-                    mediaId = null,
-                    media = null,
-                    isLoading = true,
-                    errorMessage = null
-                )
-            }
+                if (mediaId == null) {
+                    return@combine action.copy(
+                        mediaId = null,
+                        media = null,
+                        isLoading = true,
+                        errorMessage = null
+                    )
+                }
 
-            val media = medias.firstOrNull { it.id == mediaId }
-            val filteredMedias = when {
-                dateStr != null -> {
-                    val targetDate = LocalDate.parse(dateStr)
-                    medias.filter {
-                        Instant.ofEpochMilli(it.dateTaken)
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate() == targetDate
+                val media = medias.firstOrNull { it.id == mediaId }
+                val filteredMedias = when {
+                    dateStr != null -> {
+                        val targetDate = LocalDate.parse(dateStr)
+                        medias.filter {
+                            Instant.ofEpochMilli(it.dateTaken)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate() == targetDate
+                        }
+                    }
+                    keywordIdStr != null -> {
+                        kMedias
+                    }
+                    else -> {
+                        medias
                     }
                 }
-                keywordIdStr != null -> {
-                    kMedias
+
+                when {
+                    media != null -> action.copy(
+                        mediaId = mediaId,
+                        media = media,
+                        allMedias = filteredMedias,
+                        isLoading = false,
+                        errorMessage = null
+                    )
+
+                    medias.isEmpty() -> action.copy(
+                        mediaId = mediaId,
+                        media = null,
+                        allMedias = emptyList(),
+                        isLoading = true
+                    )
+
+                    else -> action.copy(
+                        mediaId = mediaId,
+                        media = null,
+                        allMedias = medias,
+                        isLoading = false,
+                        errorMessage = "사진을 불러오지 못했어요"
+                    )
                 }
-                else -> {
-                    medias
-                }
-            }
-
-            when {
-                media != null -> action.copy(
-                    mediaId = mediaId,
-                    media = media,
-                    allMedias = filteredMedias,
-                    isLoading = false,
-                    errorMessage = null
-                )
-
-                medias.isEmpty() -> action.copy(
-                    mediaId = mediaId,
-                    media = null,
-                    allMedias = emptyList(),
-                    isLoading = true
-                )
-
-                else -> action.copy(
-                    mediaId = mediaId,
-                    media = null,
-                    allMedias = medias,
-                    isLoading = false,
-                    errorMessage = "사진을 불러오지 못했어요"
-                )
             }
         }.stateIn(
             scope = viewModelScope,
@@ -137,11 +143,13 @@ class MediaDetailViewModel @Inject constructor(
             initialValue = MediaDetailUiState(isLoading = true)
         )
 
-    fun setMediaId(mediaId: String, date: String? = null, keywordId: String? = null) {
+    fun setMediaId(mediaId: String, date: String? = null, keywordId: String? = null, babyId: String? = null, year: Int? = null) {
         mediaIdFlow.value = mediaId
         dateFlow.value = date
         keywordIdFlow.value = keywordId
-        
+        babyIdFlow.value = babyId
+        yearFlow.value = year
+
         if (keywordId != null) {
             viewModelScope.launch {
                 val result = collectionRepository.getCollectionDetail(keywordId)
@@ -218,7 +226,7 @@ class MediaDetailViewModel @Inject constructor(
 
                     val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
                     dm.enqueue(request)
-                    
+
                     actionState.update { it.copy(isDownloading = false, downloadSuccess = true) }
                 } else if (!localUriPath.isNullOrBlank()) {
                     // 2. Local File -> Save to Gallery
@@ -278,7 +286,7 @@ class MediaDetailViewModel @Inject constructor(
     fun saveBitmapToGallery(bitmap: Bitmap) {
         viewModelScope.launch {
             actionState.update { it.copy(isSavingBitmap = true, errorMessage = null) }
-            
+
             val success = withContext(Dispatchers.IO) {
                 try {
                     val contentValues = ContentValues().apply {
@@ -286,10 +294,10 @@ class MediaDetailViewModel @Inject constructor(
                         put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
                         put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
                     }
- 
+
                     val resolver = context.contentResolver
                     val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return@withContext false
- 
+
                     resolver.openOutputStream(uri)?.use { outputStream ->
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
                     }
@@ -299,7 +307,7 @@ class MediaDetailViewModel @Inject constructor(
                     false
                 }
             }
- 
+
             if (success) {
                 actionState.update { it.copy(isSavingBitmap = false, saveBitmapSuccess = true) }
             } else {
@@ -307,7 +315,7 @@ class MediaDetailViewModel @Inject constructor(
             }
         }
     }
- 
+
     fun clearError() {
         actionState.update { it.copy(errorMessage = null) }
     }

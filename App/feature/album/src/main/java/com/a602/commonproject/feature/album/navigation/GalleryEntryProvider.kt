@@ -50,7 +50,14 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             onBackClick = navigator::goBack,
             onCalendarClick = { navigator.navigate(GalleryNavKey) },
             onMediaClick = { media ->
-                navigator.navigate(MediaDetailNavKey(mediaId = media.id, keywordId = key.keywordId))
+                navigator.navigate(
+                    MediaDetailNavKey(
+                        mediaId = media.id,
+                        keywordId = key.keywordId,
+                        babyId = key.babyId,
+                        year = key.year
+                    )
+                )
             }
         )
     }
@@ -71,6 +78,8 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             mediaId = key.mediaId,
             date = key.date,
             keywordId = key.keywordId,
+            babyId = key.babyId,
+            year = key.year,
             onBack = navigator::goBack,
             onEdit = { navigator.navigate(CommentEditNavKey(key.mediaId)) },
             onDeleted = navigator::goBack

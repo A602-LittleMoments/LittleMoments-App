@@ -62,12 +62,16 @@ fun MediaDetailRoute(
     mediaId: String,
     date: String? = null,
     keywordId: String? = null,
+    babyId: String? = null,
+    year: Int? = null,
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onDeleted: () -> Unit,
     viewModel: MediaDetailViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(mediaId, date, keywordId) { viewModel.setMediaId(mediaId, date, keywordId) }
+    LaunchedEffect(mediaId, date, keywordId, babyId, year) { 
+        viewModel.setMediaId(mediaId, date, keywordId, babyId, year) 
+    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
