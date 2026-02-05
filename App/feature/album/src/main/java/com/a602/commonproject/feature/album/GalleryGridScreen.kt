@@ -58,6 +58,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.clip
 
 
 @Composable
@@ -253,19 +254,23 @@ fun YearHistoryLayout(
                     .navigationBarsPadding() // ✨ Prevent overlap with bottom bar
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 30.dp) // ✨ Match Planet Photo style (was 16.dp)
-                    .shadow(8.dp, RoundedCornerShape(16.dp))
-                    .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                    .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
-                    .padding(16.dp) // Padding inside the card
+                    .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                    .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
+                    .padding(12.dp) // Padding inside the card
             ) {
                  if (medias.isEmpty()) {
-                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                     Box(Modifier.fillMaxSize().background(background.copy(alpha = 0.1f), shape = RoundedCornerShape(24.dp)), contentAlignment = Alignment.Center) {
                          Text("아직 추억이 없어요.", color = androidx.compose.ui.graphics.Color.White)
                      }
                  } else {
                      androidx.compose.foundation.lazy.LazyColumn(
-                         modifier = Modifier.fillMaxSize(),
-                         verticalArrangement = Arrangement.spacedBy(24.dp)
+                         modifier = Modifier.fillMaxSize()
+                             .background(background.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+                             .clip(RoundedCornerShape(24.dp)),
+                         verticalArrangement = Arrangement.spacedBy(24.dp),
+                         contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                             start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp
+                         )
                      ) {
                          groupedFn.forEach { (date, dailyMedias) ->
                              // Header (Sticky-like behavior within list)
@@ -277,7 +282,7 @@ fun YearHistoryLayout(
                                  Box(
                                      modifier = Modifier
                                          .fillMaxWidth()
-                                         .padding(start = 4.dp, top = 16.dp, bottom = 8.dp)
+                                         .padding(start = 12.dp, top = 16.dp, bottom = 8.dp) // 날짜를 오른쪽으로 조금 더 이동
                                  ) {
                                      Text(
                                          text = "${date.year}.${String.format("%02d", date.monthValue)}.${String.format("%02d", date.dayOfMonth)}",
@@ -391,10 +396,9 @@ fun GridGalleryContent(
                 .fillMaxSize()
                 .navigationBarsPadding() // Move up to act as margin
                 .padding(bottom = 30.dp) // Almost touching the bottom bar
-                .shadow(8.dp, RoundedCornerShape(16.dp)) // Match Calendar Mode Shape
-                .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 16.dp, vertical = 16.dp) // Adjust inner padding
+                .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
+                .padding(12.dp) // Adjust inner padding to match calendar
         ) {
             // 1. 상단 헤더 영역
             if (showCalendarButton) {
@@ -442,16 +446,23 @@ fun GridGalleryContent(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 22.sp,
                             ),
-                            color = androidx.compose.ui.graphics.Color.White
+                            color = androidx.compose.ui.graphics.Color.White,
+                            modifier = Modifier.padding(start = 8.dp) // 헤더를 오른쪽으로 조금 더 이동
                         )
                     }
                 }
             }
 
             // Grid Area
-            Box(modifier = Modifier.weight(1f)) {
+            Box(modifier = Modifier.fillMaxSize()
+                .background(background.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp)))
+            {
                 GalleryGridFrameless(
                     medias = medias,
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                        start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp
+                    ),
                     onClick = onMediaClick,
                 )
             }

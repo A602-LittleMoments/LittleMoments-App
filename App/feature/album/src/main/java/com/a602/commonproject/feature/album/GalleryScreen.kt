@@ -328,7 +328,7 @@ fun CalendarScreen(
                     .padding(horizontal = 16.dp)
             ) {
                 // 상단 버튼과 위의 거리
-                Spacer(Modifier.height(30.dp))
+                Spacer(Modifier.height(24.dp))
 
                 GalleryToggleRow(
                     isCalendarMode = isCalendarMode,
@@ -338,7 +338,7 @@ fun CalendarScreen(
                     onHighlight = onHighLightClick
                 )
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(20.dp))
 
                 Column(
                     modifier = Modifier
@@ -346,19 +346,20 @@ fun CalendarScreen(
                         .weight(1f)
                         .navigationBarsPadding()
                         .padding(bottom = NavigationBarHeight + 16.dp) // Clear the App Bottom Bar
-                        .shadow(8.dp, RoundedCornerShape(16.dp))
-                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                        .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
-                        .padding(8.dp) // Reduced from 12.dp to make it more compact
+                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                        .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
+                        .padding(12.dp)
                 ) {
                     if (isCalendarMode) {
                         // --- Calendar View ---
-                        Column(modifier = Modifier.fillMaxSize()) {
+                        Column(modifier = Modifier.fillMaxSize()
+                            .background(background.copy(alpha = 0.1f), RoundedCornerShape(24.dp)) // 안쪽 살짝 하얀 배경 추가
+                            .clip(RoundedCornerShape(24.dp)))
+                        {
                              // 월 헤더 (<  >)
                             Row(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
+                                    .fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -403,9 +404,7 @@ fun CalendarScreen(
                                 }
                             }
 
-                            Spacer(Modifier.height(4.dp))
-
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(16.dp))
 
                             // 좌우 스와이프
                             HorizontalPager(
@@ -433,10 +432,15 @@ fun CalendarScreen(
                         }
                     } else {
                         // --- Grid View (Date Grouped) ---
-                        DateGroupedGridView(
-                            medias = medias,
-                            onMediaClick = onMediaClick
-                        )
+                        Column(modifier = Modifier.fillMaxSize()
+                            .background(background.copy(alpha = 0.1f), RoundedCornerShape(24.dp)) // 안쪽 살짝 하얀 배경 추가
+                            .clip(RoundedCornerShape(24.dp)))
+                        {
+                            DateGroupedGridView(
+                                medias = medias,
+                                onMediaClick = onMediaClick
+                            )
+                        }
                     }
                 }
             }
@@ -469,9 +473,11 @@ fun DateGroupedGridView(
         modifier = Modifier
             .fillMaxSize()
             .simpleVerticalScrollbar(listState),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp), // 사진 간 세로 간격
+        horizontalArrangement = Arrangement.spacedBy(12.dp), // 사진 간 가로 간격
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp 
+        ) // 안쪽 영역에 닿지 않게 충분한 여백
     ) {
         grouped.forEach { (dateHeader, dateMedias) ->
             // Header Item
@@ -482,16 +488,14 @@ fun DateGroupedGridView(
                     color = Color.White,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 4.dp, top = 16.dp, bottom = 8.dp)
+                        .padding(start = 8.dp, top = 16.dp, bottom = 8.dp) // 날짜를 오른쪽으로 조금 더 이동
                 )
             }
 
-            // Grid Items
             items(dateMedias) { media ->
                 com.a602.coommonproject.ui.FramelessPhotoItem(
                     media = media,
-                    modifier = Modifier.padding(2.dp),
-                    onClick = { onMediaClick(media) }
+                    onClick = { onMediaClick(media) } // 🚀 [FIX] Removed item padding
                 )
             }
         }

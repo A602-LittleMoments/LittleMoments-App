@@ -127,19 +127,19 @@ fun FramelessPhotoItem(
     }
 }
 
-// 🚀 [NEW] 프레임 없는 그리드 리스트
 @Composable
 fun GalleryGridFrameless(
     medias: List<SharedMedia>,
     modifier: Modifier = Modifier,
-    state: androidx.compose.foundation.lazy.grid.LazyGridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState(), // 🚀 [FIX] Allow hoisting state
+    state: androidx.compose.foundation.lazy.grid.LazyGridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState(),
+    contentPadding: PaddingValues = PaddingValues(12.dp), // 🚀 [FIX] Added parameter with default
     onClick: (SharedMedia) -> Unit = {}
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3), // 프레임 없으니 3열로 꽉 차게? 사용자 요청은 "그리드 배열"인데 보통 프레임 없으면 3열이 이쁨. 일단 3열로 시도.
+        columns = GridCells.Fixed(3),
         modifier = modifier.fillMaxSize(),
-        state = state, // 🚀 [FIX] Use hoisted state
-        contentPadding = PaddingValues(12.dp), // 여백 더 넓힘 (8dp -> 12.dp)
+        state = state,
+        contentPadding = contentPadding, // 🚀 [FIX] Use the parameter
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
