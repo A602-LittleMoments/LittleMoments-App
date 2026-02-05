@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.clickable
@@ -213,7 +212,7 @@ fun MypageScreen(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             // 3. 메인 콘텐츠 (단일 카드 형태)
             Column(
                 modifier = Modifier
@@ -237,16 +236,20 @@ fun MypageScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 32.dp, horizontal = 24.dp),
+                                .padding(top = 24.dp, bottom = 32.dp, start = 24.dp, end = 24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // 3-1. 상단 아이콘 (Clapperboard 대체 - 임시로 AutoAwesome 사용하거나 리소스 확인)
-                            // 이미지상 슬레이트 아이콘. R.drawable.slate가 없으므로 Memory 아이콘 사용 또는 로켓
-                            // 3-1. 상단 아이콘 (film 이미지)
+                            // 3-1. 상단 아이콘 (나의 권한에 맞는 아이콘 표시)
+                            val profileIconRes = if (uiState.group?.role == GroupRole.VIEWER) {
+                                com.a602.commonproject.designsystem.R.drawable.telescope
+                            } else {
+                                com.a602.commonproject.designsystem.R.drawable.camera
+                            }
+
                              Image(
-                                 painter = painterResource(id = com.a602.commonproject.designsystem.R.drawable.film),
+                                 painter = painterResource(id = profileIconRes),
                                  contentDescription = "Profile Icon",
-                                 modifier = Modifier.size(80.dp) // 사이즈 약간 키움
+                                 modifier = Modifier.size(80.dp)
                              )
                             Spacer(modifier = Modifier.height(16.dp))
 
@@ -417,12 +420,12 @@ fun MypageScreen(
                                                     color = NavyBlue,
                                                     fontSize = 20.sp
                                                 ),
-                                                modifier = Modifier.widthIn(min = 50.dp),
+                                                modifier = Modifier.weight(1f),
                                                 maxLines = 1,
                                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                             )
 
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Spacer(modifier = Modifier.width(12.dp))
 
                                             val relationKorean = when(member.relation.uppercase()) {
                                                 "MOTHER" -> "엄마"

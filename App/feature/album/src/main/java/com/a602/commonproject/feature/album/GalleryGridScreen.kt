@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.pager.HorizontalPager
@@ -55,6 +56,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 
 
 @Composable
@@ -75,6 +78,20 @@ fun GridRoute(
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // ✨ [Fix] 화면 복귀 시 (예: 상세화면에서 삭제 후) 데이터 갱신
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                 viewModel.refreshData()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     // Params decide UI mode immediately
     val showCalendarButton = keywordId == null
@@ -115,13 +132,17 @@ fun GridRoute(
         )
 
         val scope = androidx.compose.runtime.rememberCoroutineScope()
+        var initialDateSynced by rememberSaveable { mutableStateOf(false) }
 
         // Fix: Data loading delay causes initialPage to be 0 (oldest).
         // Sync pager to the correct date once data is available.
-        LaunchedEffect(availableDates.size) {
-            val idx = availableDates.indexOf(date)
-            if (idx != -1 && pagerState.currentPage != idx) {
-                pagerState.scrollToPage(idx)
+        LaunchedEffect(availableDates, date) {
+            if (!initialDateSynced && availableDates.isNotEmpty()) {
+                val idx = availableDates.indexOf(date)
+                if (idx != -1) {
+                    pagerState.scrollToPage(idx)
+                    initialDateSynced = true
+                }
             }
         }
 

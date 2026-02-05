@@ -47,11 +47,15 @@ import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.designsystem.R as DesignR
 import kotlinx.coroutines.launch
 import android.graphics.Bitmap
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import coil.compose.AsyncImagePainter.State.Empty.painter
 
 // import com.a602.coommonproject.ui.SharedMediaDetailScreen // REMOVED
 
@@ -60,12 +64,21 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 @Composable
 fun MediaDetailRoute(
     mediaId: String,
+    date: String? = null,
+    keywordId: String? = null,
+    babyId: String? = null,
+    year: Int? = null,
+    isTemp: Boolean = false,
     onBack: () -> Unit,
-    onEdit: () -> Unit,
+    onEdit: (String) -> Unit,
     onDeleted: () -> Unit,
     viewModel: MediaDetailViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(mediaId) { viewModel.setMediaId(mediaId) }
+    var currentId by rememberSaveable { mutableStateOf(mediaId) }
+
+    LaunchedEffect(currentId, date, keywordId, babyId, year, isTemp) {
+        viewModel.setMediaId(currentId, date, keywordId, babyId, year, isTemp)
+    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -73,9 +86,14 @@ fun MediaDetailRoute(
 
     val scope = rememberCoroutineScope()
 
-    // 삭제 성공 → 뒤로가기
+    // 삭제 성공 → 스낵바 후 뒤로가기
     LaunchedEffect(uiState.deleteSuccess) {
         if (uiState.deleteSuccess) {
+            scope.launch {
+                snackbarHostState.showSnackbar("삭제되었습니다")
+            }
+            // 스낵바가 보여질 시간을 확보 (너무 길지 않게)
+            kotlinx.coroutines.delay(700)
             viewModel.onDeleteSuccessConsumed()
             onDeleted()
         }
@@ -100,12 +118,31 @@ fun MediaDetailRoute(
         viewModel.clearError()
     }
 
+    // ✨ [Fix] 화면이 다시 보일 때(코멘트 수정 후 복귀 등) 데이터 갱신
+    val lifecycleOwner = LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                // 키워드 컬렉션 데이터 등은 일회성 Fetch이므로, 화면 복귀 시 갱신 필요
+                viewModel.refreshData()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             when {
+                // 삭제 성공 시 에러 메시지 방지 (스낵바 유지하면서 대기)
+                uiState.deleteSuccess -> {
+                   // 빈 화면 유지
+                }
                 uiState.isLoading -> Text("불러오는 중…")
                 uiState.media != null -> {
                     // [Navigation Fix] Use ALL medias, sorted by date descending (Newest first)
@@ -124,11 +161,13 @@ fun MediaDetailRoute(
                         title = "자세히 보기",
                         initialIndex = initialIndex,
                         medias = sortedMedias,
+                        isTemp = isTemp, // Pass isTemp
                         onBack = onBack,
                         onDelete = viewModel::deleteMedia,
                         onDownload = viewModel::downloadMedia, // Legacy 원본 다운로드
                         onSaveBitmap = viewModel::saveBitmapToGallery, // ✨ 꾸며진 사진 저장
                         onEdit = onEdit,
+                        onMediaIdChange = { currentId = it }
                     )
                 }
                 else -> Text("사진을 불러오지 못했어요")
@@ -152,11 +191,13 @@ fun MediaDetailScreen(
     title: String,
     initialIndex: Int,
     medias: List<SharedMedia>,
+    isTemp: Boolean = false, // Added param
     onBack: () -> Unit,
     onDelete: (String) -> Unit,
     onDownload: (SharedMedia) -> Unit,
     onSaveBitmap: (Bitmap) -> Unit,
-    onEdit: () -> Unit,
+    onEdit: (String) -> Unit,
+    onMediaIdChange: (String) -> Unit = {},
 ) {
     val pagerState = rememberPagerState(
         initialPage = initialIndex,
@@ -166,10 +207,34 @@ fun MediaDetailScreen(
     // Capture Trigger
     var captureTrigger by remember { mutableStateOf<Long?>(null) }
 
+    // Delete Dialog State
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var deleteTargetId by remember { mutableStateOf<String?>(null) }
+
+    if (showDeleteDialog) {
+        ConfirmDeleteDialog(
+            onConfirm = {
+                deleteTargetId?.let { onDelete(it) }
+                showDeleteDialog = false
+                deleteTargetId = null
+            },
+            onDismiss = {
+                showDeleteDialog = false
+                deleteTargetId = null
+            }
+        )
+    }
+
     // Fix: Ensure pager reflects the correct initial page when data loads asynchronously
     LaunchedEffect(initialIndex, medias.size) {
         if (medias.isNotEmpty() && pagerState.currentPage != initialIndex) {
              pagerState.scrollToPage(initialIndex)
+        }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        medias.getOrNull(pagerState.currentPage)?.let {
+            onMediaIdChange(it.id)
         }
     }
 
@@ -248,7 +313,7 @@ fun MediaDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .align(Alignment.TopStart)
-                                    .padding(top = 20.dp)
+                                    .padding(top = 5.dp)
                                     .offset(x = (-10).dp)
                                     .size(50.dp)
                                     .rotate(-15f),
@@ -261,7 +326,6 @@ fun MediaDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
-                                    .padding(top = 10.dp)
                                     .offset(x = 15.dp)
                                     .size(60.dp)
                                     .rotate(20f),
@@ -274,7 +338,7 @@ fun MediaDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
-                                    .padding(top = 40.dp, end = 50.dp)
+                                    .padding(top = 25.dp, end = 50.dp)
                                     .size(30.dp)
                                     .rotate(-10f),
                                 tint = Color(0xFFFFF9C4) // Cream
@@ -287,7 +351,7 @@ fun MediaDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .align(Alignment.BottomStart)
-                                    .offset(x = (-20).dp, y = (-70).dp) // Moved up to avoid caption
+                                    .offset(x = (-20).dp, y = (-68).dp) // Moved up to avoid caption
                                     .size(70.dp)
                                     .rotate(-30f),
                                 tint = Color(0xFFFFF59D) // Pastel Yellow
@@ -307,49 +371,24 @@ fun MediaDetailScreen(
                         Spacer(Modifier.height(16.dp))
 
                         // 액션바
-                        IconActionBar(
-                            modifier = Modifier.fillMaxWidth(),
-                            onDelete = { onDelete(media.id) },
-                            onDownload = {
-                                // 캡처 트리거 실행
-                                captureTrigger = System.currentTimeMillis()
-                            },
-                            onEdit = onEdit,
-                        )
+                        if (!isTemp) {
+                            IconActionBar(
+                                modifier = Modifier.fillMaxWidth(),
+                                onDelete = {
+                                    deleteTargetId = media.id
+                                    showDeleteDialog = true
+                                },
+                                onDownload = {
+                                    // 캡처 트리거 실행 (현재 보고 있는 페이지만 캡처됨)
+                                    captureTrigger = System.currentTimeMillis()
+                                },
+                                onEdit = { onEdit(media.id) },
+                            )
+                        }
                     }
                 }
             }
 
-            // Swipe Hint (Temporary Popup)
-            var showSwipeHint by remember { androidx.compose.runtime.mutableStateOf(true) }
-            LaunchedEffect(Unit) {
-                kotlinx.coroutines.delay(3000)
-                showSwipeHint = false
-            }
-
-            androidx.compose.animation.AnimatedVisibility(
-                visible = showSwipeHint,
-                enter = androidx.compose.animation.fadeIn(),
-                exit = androidx.compose.animation.fadeOut(),
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 120.dp) // Positioned above the action bar area
-            ) {
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = Color.Black.copy(alpha = 0.6f),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(30.dp)
-                        )
-                        .padding(horizontal = 24.dp, vertical = 12.dp)
-                ) {
-                   Text(
-                       text = "좌우로 넘겨서 다른 사진을 볼 수 있어요",
-                       color = Color.White,
-                       style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
-                   )
-                }
-            }
         }
     }
 }

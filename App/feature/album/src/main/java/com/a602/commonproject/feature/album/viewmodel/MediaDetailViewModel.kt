@@ -9,12 +9,16 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.a602.commonproject.data.repository.CollectionRepository
 import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.model.data.SharedMedia
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.IOException
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,6 +29,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 
 data class MediaDetailUiState(
     val mediaId: String? = null,
@@ -46,56 +52,133 @@ data class MediaDetailUiState(
 @HiltViewModel
 class MediaDetailViewModel @Inject constructor(
     private val repository: SharedMediaRepository,
+    private val collectionRepository: CollectionRepository,
+    private val tempRepository: com.a602.commonproject.data.repository.TempMediaRepository, // Added
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val mediaIdFlow = MutableStateFlow<String?>(null)
+    private val dateFlow = MutableStateFlow<String?>(null)
+    private val keywordIdFlow = MutableStateFlow<String?>(null)
+    private val babyIdFlow = MutableStateFlow<String?>(null)
+    private val yearFlow = MutableStateFlow<Int?>(null)
+    private val isTempFlow = MutableStateFlow(false) // Added
+    private val keywordMediasFlow = MutableStateFlow<List<SharedMedia>>(emptyList())
     private val actionState = MutableStateFlow(
         MediaDetailUiState(
             isLoading = true
         )
     )
 
-    val uiState: StateFlow<MediaDetailUiState> =
-        combine(
-            repository.getSharedAlbumStream(),
-            mediaIdFlow,
-            actionState
-        ) { medias, mediaId, action ->
-            if (mediaId == null) {
-                return@combine action.copy(
-                    mediaId = null,
-                    media = null,
-                    isLoading = true,
-                    errorMessage = null
-                )
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<MediaDetailUiState> = kotlinx.coroutines.flow.combine(babyIdFlow, yearFlow, isTempFlow) { b, y, t -> Triple(b, y, t) }
+        .flatMapLatest { (babyId, year, isTemp) ->
+            val sourceStream = if (isTemp) {
+                tempRepository.getTempMediaStream().map { tempList ->
+                    tempList.map { tm ->
+                        SharedMedia(
+                            id = tm.id,
+                            type = SharedMedia.MediaType.PHOTO,
+                            localUri = tm.localUri,
+                            remoteUrl = null,
+                            thumbnailUrl = null,
+                            subLocalUri = tm.subLocalUri,
+                            subRemoteUrl = null,
+                            subThumbnailUrl = null,
+                            cameraFacing = if (tm.subLocalUri != null) "DUAL" else "REAR",
+                            caption = null,
+                            dateTaken = tm.takenAt,
+                            orientation = 0,
+                            uploaderName = null,
+                            syncStatus = SharedMedia.SyncStatus.SYNCED
+                        )
+                    }
+                }
+            } else {
+                repository.getSharedAlbumStream(babyId, year)
             }
 
-            val media = medias.firstOrNull { it.id == mediaId }
+            combine(
+                sourceStream,
+                mediaIdFlow,
+                dateFlow,
+                keywordIdFlow,
+                keywordMediasFlow,
+                actionState
+            ) { flows ->
+                val medias = flows[0] as List<SharedMedia>
+                val mediaId = flows[1] as? String
+                val dateStr = flows[2] as? String
+                val keywordIdStr = flows[3] as? String
+                val kMedias = flows[4] as List<SharedMedia>
+                val action = flows[5] as MediaDetailUiState
 
-            when {
-                media != null -> action.copy(
-                    mediaId = mediaId,
-                    media = media,
-                    allMedias = medias,
-                    isLoading = false,
-                    errorMessage = null
-                )
+                if (mediaId == null) {
+                    return@combine action.copy(
+                        mediaId = null,
+                        media = null,
+                        isLoading = true,
+                        errorMessage = null
+                    )
+                }
 
-                medias.isEmpty() -> action.copy(
-                    mediaId = mediaId,
-                    media = null,
-                    allMedias = emptyList(),
-                    isLoading = true
-                )
+                // 1. 먼저 어떤 리스트를 보여줄지 결정합니다 (필터링 적용)
+                val filteredMedias = when {
+                    isTemp -> medias // Temp는 필터링 없음 (현재)
+                    dateStr != null -> {
+                        val targetDate = LocalDate.parse(dateStr)
+                        medias.filter {
+                            Instant.ofEpochMilli(it.dateTaken)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate() == targetDate
+                        }
+                    }
+                    keywordIdStr != null -> {
+                        kMedias
+                    }
+                    else -> {
+                        medias
+                    }
+                }
 
-                else -> action.copy(
-                    mediaId = mediaId,
-                    media = null,
-                    allMedias = medias,
-                    isLoading = false,
-                    errorMessage = "사진을 불러오지 못했어요"
-                )
+                // 2. 결정된 리스트 안에서 현재 보고 있는 사진을 찾습니다.
+                // (키워드/날짜 모드일 경우 medias에는 없고 filteredMedias에만 있을 수 있음)
+                val media = filteredMedias.firstOrNull { it.id == mediaId }
+
+                when {
+                    media != null -> action.copy(
+                        mediaId = mediaId,
+                        media = media,
+                        // ✨ [Fix] 삭제 성공 상태라면 리스트에서 사라져도 에러가 아님 (화면 닫히기 전)
+                        allMedias = if (action.deleteSuccess) emptyList() else filteredMedias,
+                        isLoading = false,
+                        errorMessage = null
+                    )
+
+                    // ✨ [Fix] 삭제 중이거나 삭제에 성공했을 때, 데이터가 사라져도 에러로 처리하지 않음
+                    action.isDeleting || action.deleteSuccess -> action.copy(
+                        mediaId = mediaId,
+                        media = null,
+                        allMedias = filteredMedias,
+                        isLoading = action.isDeleting, // 삭제 중이면 로딩 표시
+                        errorMessage = null // 에러 메시지 띄우지 않음
+                    )
+
+                    filteredMedias.isEmpty() -> action.copy(
+                        mediaId = mediaId,
+                        media = null,
+                        allMedias = emptyList(),
+                        isLoading = true // 로딩 중일 수도 있음
+                    )
+
+                    else -> action.copy(
+                        mediaId = mediaId,
+                        media = null,
+                        allMedias = filteredMedias,
+                        isLoading = false,
+                        errorMessage = "사진을 불러오지 못했어요"
+                    )
+                }
             }
         }.stateIn(
             scope = viewModelScope,
@@ -103,11 +186,39 @@ class MediaDetailViewModel @Inject constructor(
             initialValue = MediaDetailUiState(isLoading = true)
         )
 
-    fun setMediaId(mediaId: String) {
+    fun setMediaId(mediaId: String, date: String? = null, keywordId: String? = null, babyId: String? = null, year: Int? = null, isTemp: Boolean = false) {
+        // 모든 값이 동일하면 무시
+        if (mediaIdFlow.value == mediaId && 
+            dateFlow.value == date && 
+            keywordIdFlow.value == keywordId &&
+            babyIdFlow.value == babyId &&
+            yearFlow.value == year &&
+            isTempFlow.value == isTemp) return
+
+        // 상태 업데이트 전 기존 키워드 확인
+        val previousKeywordId = keywordIdFlow.value
+
         mediaIdFlow.value = mediaId
+        dateFlow.value = date
+        keywordIdFlow.value = keywordId
+        babyIdFlow.value = babyId
+        yearFlow.value = year
+        isTempFlow.value = isTemp
+
+        // 키워드가 실제로 '변경'되었거나, 처음 들어왔을 때만 로딩
+        if (keywordId != null && keywordId != previousKeywordId) {
+            viewModelScope.launch {
+                val result = collectionRepository.getCollectionDetail(keywordId)
+                keywordMediasFlow.value = result.getOrElse { emptyList() }
+            }
+        }
+        
+        // ... (remaining unchanged logic implicitly covered by updating the flow triggers)
+        
         actionState.update {
             it.copy(
-                isLoading = true,
+                // 키워드 변경 시에는 로딩 보여주기, 단순 스와이프(ID 변경) 시에는 로딩 안 함
+                isLoading = keywordId != previousKeywordId,
                 errorMessage = null,
                 deleteSuccess = false,
                 downloadSuccess = false,
@@ -126,18 +237,32 @@ class MediaDetailViewModel @Inject constructor(
         viewModelScope.launch {
             actionState.update { it.copy(isDeleting = true, errorMessage = null) }
 
-            repository.deleteMedia(id)
-                .onSuccess {
-                    actionState.update { it.copy(isDeleting = false, deleteSuccess = true) }
-                }
-                .onFailure { e ->
-                    actionState.update {
-                        it.copy(
-                            isDeleting = false,
-                            errorMessage = e.message ?: "삭제에 실패했어요"
-                        )
+            if (isTempFlow.value) {
+                // 임시 앨범 삭제
+                tempRepository.deleteTempMedia(listOf(id))
+                    .onSuccess {
+                        actionState.update { it.copy(isDeleting = false, deleteSuccess = true) }
                     }
-                }
+                    .onFailure { e ->
+                        actionState.update {
+                            it.copy(isDeleting = false, errorMessage = e.message ?: "삭제에 실패했어요")
+                        }
+                    }
+            } else {
+                // 공유 앨범 삭제
+                repository.deleteMedia(id)
+                    .onSuccess {
+                        actionState.update { it.copy(isDeleting = false, deleteSuccess = true) }
+                    }
+                    .onFailure { e ->
+                        actionState.update {
+                            it.copy(
+                                isDeleting = false,
+                                errorMessage = e.message ?: "삭제에 실패했어요"
+                            )
+                        }
+                    }
+            }
         }
     }
 
@@ -174,7 +299,7 @@ class MediaDetailViewModel @Inject constructor(
 
                     val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
                     dm.enqueue(request)
-                    
+
                     actionState.update { it.copy(isDownloading = false, downloadSuccess = true) }
                 } else if (!localUriPath.isNullOrBlank()) {
                     // 2. Local File -> Save to Gallery
@@ -234,7 +359,7 @@ class MediaDetailViewModel @Inject constructor(
     fun saveBitmapToGallery(bitmap: Bitmap) {
         viewModelScope.launch {
             actionState.update { it.copy(isSavingBitmap = true, errorMessage = null) }
-            
+
             val success = withContext(Dispatchers.IO) {
                 try {
                     val contentValues = ContentValues().apply {
@@ -242,10 +367,10 @@ class MediaDetailViewModel @Inject constructor(
                         put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
                         put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
                     }
- 
+
                     val resolver = context.contentResolver
                     val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return@withContext false
- 
+
                     resolver.openOutputStream(uri)?.use { outputStream ->
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
                     }
@@ -255,7 +380,7 @@ class MediaDetailViewModel @Inject constructor(
                     false
                 }
             }
- 
+
             if (success) {
                 actionState.update { it.copy(isSavingBitmap = false, saveBitmapSuccess = true) }
             } else {
@@ -263,8 +388,23 @@ class MediaDetailViewModel @Inject constructor(
             }
         }
     }
- 
+
     fun clearError() {
         actionState.update { it.copy(errorMessage = null) }
+    }
+
+    fun refreshData() {
+        val keywordId = keywordIdFlow.value
+        if (keywordId != null) {
+            viewModelScope.launch {
+                // 로딩 시작
+                actionState.update { it.copy(isLoading = true) }
+                // 데이터 다시 불러오기
+                val result = collectionRepository.getCollectionDetail(keywordId)
+                keywordMediasFlow.value = result.getOrElse { emptyList() }
+                // 로딩 끝
+                actionState.update { it.copy(isLoading = false) }
+            }
+        }
     }
 }

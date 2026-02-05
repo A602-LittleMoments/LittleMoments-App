@@ -46,8 +46,10 @@ class GridGalleryViewmodel @Inject constructor(
         filterState.value = GridNavKey(keywordId, title, babyId, year)
     }
 
+    private val refreshSignal = MutableStateFlow(0)
+
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<GridGalleryUiState> = filterState
+    val uiState: StateFlow<GridGalleryUiState> = kotlinx.coroutines.flow.combine(filterState, refreshSignal) { filter, _ -> filter }
         .flatMapLatest { filter ->
             val mediaFlow = if (filter.keywordId != null) {
                 // Keyword Filtered
@@ -75,7 +77,10 @@ class GridGalleryViewmodel @Inject constructor(
                 // Determine Title
                 val displayTitle = when {
                     filter.title != null -> filter.title // Passed title has priority
-                    babyName != null && filter.year != null -> "${babyName}와의 ${filter.year}년 추억"
+                    babyName != null && filter.year != null -> {
+                        val formattedName = formatBabyName(babyName)
+                        "${formattedName}와의 ${filter.year}년 추억"
+                    }
                     else -> "갤러리"
                 }
 
@@ -92,5 +97,21 @@ class GridGalleryViewmodel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = GridGalleryUiState(isLoading = true)
         )
+    
+    fun refreshData() {
+        refreshSignal.value++
+    }
+
+    private fun formatBabyName(name: String): String {
+        if (name.isEmpty()) return name
+        // 1. 성 떼기 (첫 글자 제외) - 외자/세글자 이상 대응을 위해
+        val givenName = if (name.length >= 2) name.substring(1) else name
+        
+        // 2. 받침 유무 확인하여 '이' 붙이기
+        val lastChar = givenName.last()
+        val hasBatchim = (lastChar - '\uAC00') % 28 > 0
+        
+        return if (hasBatchim) "${givenName}이" else givenName
+    }
 }
 

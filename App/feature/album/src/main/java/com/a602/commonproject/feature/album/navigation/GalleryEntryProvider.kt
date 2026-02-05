@@ -35,7 +35,9 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             onGridClick = { navigator.navigate(GridNavKey()) },
             onTempAlbumClick = { navigator.navigate(TempAlbumNavKey) },
             onHighLightClick = { navigator.navigate(HighlightCalendarNavKey) },
-            onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(mediaId = media.id)) }
+            onMediaClick = { media ->
+                navigator.navigate(MediaDetailNavKey(mediaId = media.id))
+            }
         )
     }
     // 2. 그리드 보기
@@ -48,7 +50,14 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             onBackClick = navigator::goBack,
             onCalendarClick = { navigator.navigate(GalleryNavKey) },
             onMediaClick = { media ->
-                navigator.navigate(MediaDetailNavKey(mediaId = media.id))
+                navigator.navigate(
+                    MediaDetailNavKey(
+                        mediaId = media.id,
+                        keywordId = key.keywordId,
+                        babyId = key.babyId,
+                        year = key.year
+                    )
+                )
             }
         )
     }
@@ -58,7 +67,12 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             date = key.date,
             onBackClick = navigator::goBack,
             onCalendarClick = { navigator.navigate(GalleryNavKey) },
-            onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(media.id)) } // 예시
+            onMediaClick = { media -> 
+                val mediaDate = java.time.Instant.ofEpochMilli(media.dateTaken)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate()
+                navigator.navigate(MediaDetailNavKey(mediaId = media.id, date = mediaDate.toString())) 
+            }
         )
     }
 
@@ -67,8 +81,13 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     entry<MediaDetailNavKey> { key ->
         MediaDetailRoute(
             mediaId = key.mediaId,
+            date = key.date,
+            keywordId = key.keywordId,
+            babyId = key.babyId,
+            year = key.year,
+            isTemp = key.isTemp,
             onBack = navigator::goBack,
-            onEdit = { navigator.navigate(CommentEditNavKey(key.mediaId)) },
+            onEdit = { currentMediaId -> navigator.navigate(CommentEditNavKey(currentMediaId, isTemp = key.isTemp)) },
             onDeleted = navigator::goBack
         )
     }
@@ -77,16 +96,16 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     entry<CommentEditNavKey> { key ->
         CommentEditRoute(
             mediaId = key.mediaId,
+            isTemp = key.isTemp,
             onBack = navigator::goBack,
             onDone = navigator::goBack
         )
     }
-// 5. 임시 앨범
+// 5. 임시 앨범 (상세보기 추가)
     entry<TempAlbumNavKey> {
         TempGridGalleryRoute(
             onMediaClick = { media ->
-                // TODO: 임시 앨범의 상세보기 화면 정의 필요
-                // 현재는 PhotoDetailNavKey 재사용
+                 navigator.navigate(MediaDetailNavKey(mediaId = media.id, isTemp = true))
             },
             onBackClick = navigator::goBack,
             onNavigateToUpload = { ids ->

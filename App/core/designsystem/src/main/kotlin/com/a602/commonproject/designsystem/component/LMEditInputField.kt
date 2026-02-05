@@ -44,18 +44,18 @@ fun LMEditInputField(
             label = {
                 Text(
                     label,
-                    color = color ?: NavyBlue,
-                    style = MaterialTheme.typography.labelMedium,
+                    color = (color ?: NavyBlue).copy(alpha = 0.8f),
+                    style = MaterialTheme.typography.labelSmall,
                 )
             },
             placeholder = {
                 Text(
                     text = placeholder,
-                    color = color ?: NavyBlue,
-                    style = MaterialTheme.typography.titleMedium,
+                    color = (color ?: NavyBlue).copy(alpha = 0.5f),
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             },
-            textStyle = MaterialTheme.typography.titleMedium.copy(
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
                 color = color ?: NavyBlue
             ),
             modifier = Modifier.fillMaxWidth(),

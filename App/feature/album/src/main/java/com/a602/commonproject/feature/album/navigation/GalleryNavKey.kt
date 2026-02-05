@@ -29,14 +29,20 @@ data class DayGridNavKey(val date: LocalDate) : NavKey
 
 @Serializable
 data class MediaDetailNavKey(
-    val mediaId: String
+    val mediaId: String,
+    val date: String? = null,
+    val keywordId: String? = null,
+    val babyId: String? = null,
+    val year: Int? = null,
+    val isTemp: Boolean = false
 ) : NavKey
 
 
 // 코멘트 수정
 @Serializable
 data class CommentEditNavKey(
-    val mediaId: String
+    val mediaId: String,
+    val isTemp: Boolean = false
 ) : NavKey
 
 
