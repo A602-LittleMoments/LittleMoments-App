@@ -44,6 +44,7 @@ import com.a602.commonproject.designsystem.component.GroupRoleChangeDialog
 import com.a602.commonproject.designsystem.component.GroupCodeDialog
 import com.a602.commonproject.designsystem.icon.LMicons
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import com.a602.commonproject.feature.mypage.navigation.GroupCreateKey
 import com.a602.commonproject.feature.mypage.navigation.GroupJoinKey
@@ -67,6 +68,13 @@ import com.a602.commonproject.designsystem.component.LMEditInputField
 fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel =hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    // 로그아웃 성공 시 로그인 화면으로 이동
+    LaunchedEffect(uiState.isLogoutSuccess) {
+        if (uiState.isLogoutSuccess) {
+            navigator.replaceRoot(LoginNavKey)
+        }
+    }
+
     if (uiState.isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -81,11 +89,7 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel =hiltVi
             onNavigateToGroupManagement = { viewModel.openGroupEditDialog() },
             onNavigateToGroupJoin = { navigator.navigate(GroupJoinKey) },
             onNavigateToGroupCreate = { navigator.navigate(GroupCreateKey) }, // 그룹 만들기 화면으로 이동
-            onLogoutClick = {
-                viewModel.logout()
-                // SplashNavKey로 이동 - 스플래시가 로그아웃 상태를 감지하고 로그인 화면으로 리다이렉트
-                navigator.replaceRoot(SplashNavKey)
-            },
+            onLogoutClick = { viewModel.logout() },
             onGroupEditDismiss = viewModel::closeGroupEditDialog,
             onGroupNameChange = viewModel::onGroupNameChange,
             onGroupSave = viewModel::saveGroupName,
@@ -752,6 +756,19 @@ fun MypageScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
+            }
+        }
+
+        // 로그아웃 중 로딩 표시
+        if (uiState.isLoggingOut) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable(enabled = false) {},
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.White)
             }
         }
     }

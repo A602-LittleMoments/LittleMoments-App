@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -80,14 +82,13 @@ fun HighlightResultRoute(
         viewModel.observeSlideshow(slideshowId)
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = background
-    ) { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize().background(background)) {
         HighlightResultScreen(
             slideshow = uiState.slideshow,
             isLoading = uiState.isLoading,
             errorMessage = uiState.errorMessage,
+            isDownloading = uiState.isDownloading,
+            downloadProgress = uiState.downloadProgress,
             onBack = onBack,
             onDownload = {
                 viewModel.downloadSlideshow(
@@ -120,9 +121,13 @@ fun HighlightResultRoute(
                     }
                 )
             },
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier = Modifier.fillMaxSize()
+        )
+        
+        // Snackbar를 하단에 표시
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
 }
@@ -132,6 +137,8 @@ fun HighlightResultScreen(
     slideshow: Slideshow?,
     isLoading: Boolean,
     errorMessage: String?,
+    isDownloading: Boolean = false,
+    downloadProgress: Float = 0f,
     onBack: () -> Unit = {},
     onDownload: () -> Unit = {},
     onDelete: () -> Unit = {},
@@ -160,7 +167,9 @@ fun HighlightResultScreen(
         )
 
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
         ) {
         LMTopAppBar(
             title = "하이라이트",
@@ -261,12 +270,37 @@ fun HighlightResultScreen(
 
             Spacer(Modifier.height(24.dp))
 
+            // 다운로드 진행률 표시
+            if (isDownloading) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "다운로드 중... ${(downloadProgress * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = { downloadProgress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp)),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+            }
+
             // 삭제 버튼
             if (slideshow != null) {
                 Button(
                     onClick = { showDeleteDialog = true },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading
+                    enabled = !isLoading && !isDownloading
                 ) {
                     Text("삭제")
                 }

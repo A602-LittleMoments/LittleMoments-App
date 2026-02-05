@@ -16,7 +16,9 @@ import javax.inject.Inject
 data class HighlightResultUiState(
     val slideshow: Slideshow? = null,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isDownloading: Boolean = false,
+    val downloadProgress: Float = 0f // 0.0f ~ 1.0f (0% ~ 100%)
 )
 @HiltViewModel
 class HighlightResultViewModel @Inject constructor(
@@ -61,15 +63,29 @@ class HighlightResultViewModel @Inject constructor(
 
     fun downloadSlideshow(slideshowId: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(
+                isDownloading = true,
+                downloadProgress = 0f
+            )
 
-            repository.downloadSlideshow(slideshowId)
+            repository.downloadSlideshowWithProgress(
+                slideshowId = slideshowId,
+                onProgress = { progress ->
+                    _uiState.value = _uiState.value.copy(downloadProgress = progress)
+                }
+            )
                 .onSuccess {
-                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    _uiState.value = _uiState.value.copy(
+                        isDownloading = false,
+                        downloadProgress = 1f
+                    )
                     onSuccess()
                 }
                 .onFailure { error ->
-                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    _uiState.value = _uiState.value.copy(
+                        isDownloading = false,
+                        downloadProgress = 0f
+                    )
                     onFailure(error.message ?: "다운로드 실패")
                 }
         }
@@ -91,3 +107,4 @@ class HighlightResultViewModel @Inject constructor(
         }
     }
 }
+

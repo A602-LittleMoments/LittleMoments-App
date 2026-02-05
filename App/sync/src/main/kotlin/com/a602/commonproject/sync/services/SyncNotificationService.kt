@@ -84,7 +84,7 @@ class SyncNotificationService : FirebaseMessagingService() {
             val slideshowId = message.data["slideshowId"]
 
             // 딥링크 예시 (슬라이드쇼 목록으로 이동)
-            val deepLink = "littlemoments://slideshows"
+            val deepLink = "littlemoments://slideshow/$slideshowId"
 
             // 1. 알림 띄우기
             notifier.postNotification(

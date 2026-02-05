@@ -111,11 +111,13 @@ fun EntryProviderScope<NavKey>.galleryEntries(
         )
     }
 
-    // 7. 하이라이트 캘린더
+    // 7. 하이라이트 캘린더 (날짜 선택 + API 호출)
     entry<HighlightCalendarNavKey> {
         HighlightCalendarRoute(
-            onDateRangeSelected = { _,_->
-
+            onDateRangeSelected = { _, _ ->
+                // API 호출은 ViewModel에서 처리됨
+                // 성공 시 알림이 오면 딥링크로 상세 화면 이동
+                navigator.goBack()
             },
             onBack = navigator::goBack
         )

@@ -176,6 +176,81 @@ class OfflineFirstSlideshowRepository @Inject constructor(
     }
 
     // =================================================================
+    // 5-1. 영상 다운로드 (진행률 추적)
+    // =================================================================
+    override suspend fun downloadSlideshowWithProgress(
+        slideshowId: String,
+        onProgress: (Float) -> Unit
+    ): Result<File> {
+        return withContext(Dispatchers.IO) {
+            var tempFile: File? = null
+            try {
+                val groupId = getGroupIdOrThrow()
+
+                // 1. URL 발급
+                val exportResponse = networkDataSource.exportSlideshow(
+                    groupId,
+                    slideshowId,
+                    ExportSlideshowRequest()
+                )
+                val downloadUrl = exportResponse.data.downloadUrl
+                val fileName = "${slideshowId}.mp4"
+
+                // 2. 임시 파일(.tmp) 준비
+                val finalFile = File(context.filesDir, fileName)
+                tempFile = File(context.filesDir, "${fileName}.tmp")
+
+                // 3. 스트림 다운로드 (진행률 추적)
+                val connection = URL(downloadUrl).openConnection()
+                connection.connect()
+
+                val contentLength = connection.contentLength.toLong()
+                var bytesDownloaded = 0L
+
+                connection.getInputStream().use { input ->
+                    FileOutputStream(tempFile).use { output ->
+                        val buffer = ByteArray(8192)
+                        var bytesRead: Int
+
+                        while (input.read(buffer).also { bytesRead = it } != -1) {
+                            output.write(buffer, 0, bytesRead)
+                            bytesDownloaded += bytesRead
+
+                            // 진행률 콜백 (0.0f ~ 1.0f)
+                            if (contentLength > 0) {
+                                val progress = (bytesDownloaded.toFloat() / contentLength).coerceIn(0f, 1f)
+                                withContext(Dispatchers.Main) {
+                                    onProgress(progress)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 4. 이름 변경 (Atomic Move) -> 성공 시에만 DB 업데이트
+                if (tempFile.renameTo(finalFile)) {
+                    val entity = exportResponse.toEntity(finalFile.absolutePath)
+                    slideshowDao.insertSlideshow(entity)
+
+                    // 완료 표시
+                    withContext(Dispatchers.Main) {
+                        onProgress(1f)
+                    }
+
+                    Result.success(finalFile)
+                } else {
+                    throw Exception("파일 저장 중 오류 발생 (Rename Failed)")
+                }
+
+            } catch (e: Exception) {
+                // 실패 시 임시 파일 정리
+                tempFile?.delete()
+                Result.failure(e)
+            }
+        }
+    }
+
+    // =================================================================
     // 6. 삭제
     // =================================================================
     override suspend fun deleteSlideshow(slideshowId: String): Result<Unit> {
@@ -204,3 +279,4 @@ class OfflineFirstSlideshowRepository @Inject constructor(
     userPreferences.userGroupId.first()
             ?: throw IllegalStateException("그룹 정보가 없습니다.")
 }
+

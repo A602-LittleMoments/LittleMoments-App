@@ -81,6 +81,10 @@ class LoginViewModel @Inject constructor(
     fun clearError() {
         _uiState.update { LoginUiState.Idle }
     }
+
+    fun resetState() {
+        _uiState.update { LoginUiState.Idle }
+    }
 }
 
 sealed interface LoginUiState {

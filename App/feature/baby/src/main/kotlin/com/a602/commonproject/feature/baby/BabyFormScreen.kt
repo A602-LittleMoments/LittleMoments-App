@@ -36,6 +36,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.component.ProfileFullAstronaut
 import com.a602.commonproject.designsystem.icon.LMicons
+import com.a602.commonproject.designsystem.component.GenderButton
 import com.a602.commonproject.model.data.Baby
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -108,11 +109,11 @@ fun BabyFormScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 18.dp),
+                    .padding(horizontal = 20.dp),
 
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(20.dp)) // Lower components
+                Spacer(modifier = Modifier.height(30.dp)) // Lower components
 
                 // Profile Image Area (Fully Clickable)
                 Box(contentAlignment = Alignment.BottomEnd) {
@@ -143,14 +144,14 @@ fun BabyFormScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(20.dp))
                         .background(Color.White.copy(alpha = 0.65f))
-                        .padding(vertical = 32.dp, horizontal = 16.dp),
+                        .padding(vertical = 16.dp, horizontal = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(24.dp) // Unified spacing
                 ) {
                     // Name Input
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
                             text = "이름",
@@ -171,7 +172,7 @@ fun BabyFormScreen(
                     // BirthDate Input
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
                             text = "생년월일",
@@ -248,7 +249,7 @@ fun BabyFormScreen(
 
                         Button(
                             onClick = {
-                                viewModel.deleteBaby(babyId = babyId!!) {
+                                viewModel.deleteBaby(babyId = babyId) {
                                     onDeleteClick?.invoke()
                                 }
                             },
@@ -303,38 +304,6 @@ fun BabyFormScreen(
 // Removed BabyFormField
 
 
-@Composable
-fun GenderButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .height(56.dp)
-            .clip(RoundedCornerShape(24.dp)) // [Theme] 24.dp match
-            .background(
-                // Selected: PointYellow, Unselected: Opaque Gray
-                if (isSelected) com.a602.commonproject.designsystem.theme.PointYellow else Color(0xFFEEEEEE)
-            )
-            .clickable { onClick() }
-            .border(
-                width = 1.dp,
-                // Selected: None, Unselected: Gray alpha
-                color = if (isSelected) Color.Transparent else Color.Gray.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(24.dp)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            // Selected: NavyBlue, Unselected: Dark Gray
-            color = if (isSelected) com.a602.commonproject.designsystem.theme.NavyBlue else Color.Gray,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
+// GenderButton moved to com.a602.commonproject.designsystem.component
 
 

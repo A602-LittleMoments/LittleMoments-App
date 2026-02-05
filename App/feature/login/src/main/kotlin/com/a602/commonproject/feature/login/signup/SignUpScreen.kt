@@ -108,7 +108,7 @@ fun SignUpScreen(
                 com.a602.commonproject.designsystem.component.LMTopAppBar(
                     title = when {
                         uiState.showBabyForm -> "아이 등록"
-                        // uiState.showGroupDialog -> "그룹 생성" // TopBar not shown in original code for group dialog? 
+                        // uiState.showGroupDialog -> "그룹 생성" // TopBar not shown in original code for group dialog?
                         // Actually original code showed "Group Create" text.
                         else -> "회원 가입"
                     },
@@ -116,8 +116,8 @@ fun SignUpScreen(
                     // If we want to hide back button on some states, we might need a custom icon or logic.
                     // But here onBackClick is passed.
                     // IMPORTANT: The original code hid back button if showGroupDialog is true.
-                    // But here inside topBar, we can just render it. 
-                    // Wait, if showGroupDialog is true, do we show TopBar? 
+                    // But here inside topBar, we can just render it.
+                    // Wait, if showGroupDialog is true, do we show TopBar?
                     // Yes, original code showed "Group Create" title.
                     // But back button was hidden.
                 )
@@ -129,19 +129,19 @@ fun SignUpScreen(
                     navigationIcon = androidx.compose.ui.graphics.vector.ImageVector.Builder(
                         defaultWidth = 0.dp, defaultHeight = 0.dp, viewportWidth = 0f, viewportHeight = 0f
                     ).build(), // Empty icon or Transparent? LMTopAppBar doesn't support hiding icon easily without passing empty vector or modifying it.
-                    // Let's just pass a transparent icon or similar if we want to hide it, 
+                    // Let's just pass a transparent icon or similar if we want to hide it,
                     // OR use a different overload if available (it's not).
-                    // Actually, we can just pass a dummy icon and empty click. 
+                    // Actually, we can just pass a dummy icon and empty click.
                     // Or better, let's look at the parameters of LMTopAppBar.
-                    // navigationIcon is ImageVector = LMicons.Back default. 
+                    // navigationIcon is ImageVector = LMicons.Back default.
                     // If we pass an empty vector it might crash or show nothing.
-                    // Let's try to show it but with no-op click? 
+                    // Let's try to show it but with no-op click?
                     // Design: "Group Create" screen usually doesn't have back button if it's a required step?
                     // User's previous code: `if (!uiState.showGroupDialog) { IconButton(...) }`
                     // So back button is hidden.
-                    // I'll skip TopBar for group dialog if it's a dialog? 
+                    // I'll skip TopBar for group dialog if it's a dialog?
                     // No, `uiState.showGroupDialog` -> "Group Create" text was shown in the custom box.
-                    
+
                     // Hack: use a transparent/empty icon for now if needed.
                     // Or generic check.
                  )
@@ -154,16 +154,16 @@ fun SignUpScreen(
                     uiState.showGroupDialog -> "그룹 생성"
                     else -> "회원 가입"
                 },
-                navigationIcon = if (uiState.showGroupDialog) androidx.compose.material.icons.Icons.Default.ArrowBack else androidx.compose.material.icons.Icons.Default.ArrowBack, // Placeholder, 
+                navigationIcon = if (uiState.showGroupDialog) androidx.compose.material.icons.Icons.Default.ArrowBack else androidx.compose.material.icons.Icons.Default.ArrowBack, // Placeholder,
                 // We need to hide navigation icon if showGroupDialog is true.
-                // LMTopAppBar takes `navigationIcon`. 
+                // LMTopAppBar takes `navigationIcon`.
                 // Let's pass a transparent color tint if possible? No.
-                // Pass a blank icon? 
-                onNavigationClick = if (!uiState.showGroupDialog) onBackClick else { {} },
+                // Pass a blank icon?
+                onNavigationClick = onBackClick,
                 colors = androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = com.a602.commonproject.designsystem.theme.background, // Ivory
                     titleContentColor = com.a602.commonproject.designsystem.theme.color3, // Navy
-                    navigationIconContentColor = if (!uiState.showGroupDialog) com.a602.commonproject.designsystem.theme.color3 else androidx.compose.ui.graphics.Color.Transparent // Hide icon by making it transparent
+                    navigationIconContentColor = com.a602.commonproject.designsystem.theme.color3
                 )
             )
         },

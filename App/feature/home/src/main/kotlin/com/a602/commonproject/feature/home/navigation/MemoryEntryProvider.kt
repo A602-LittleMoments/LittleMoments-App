@@ -15,6 +15,7 @@ import com.a602.commonproject.feature.home.NotificationScreen
 import kotlinx.coroutines.delay
 import com.a602.commonproject.feature.home.LoadingContent
 import com.a602.commonproject.feature.home.MemoryMainContainer
+import com.a602.commonproject.feature.home.viewmodel.SlideshowEntryViewModel
 
 fun EntryProviderScope<NavKey>.memoryEntries(
     navigator: Navigator
@@ -62,10 +63,23 @@ fun EntryProviderScope<NavKey>.memoryEntries(
     }
 
     entry<SlideshowEntryKey> { key ->
-        // Auto-dismiss Success Screen
-        LaunchedEffect(Unit) {
-            delay(2000) // 2 seconds delay
-            navigator.goBack()
+        val viewModel = hiltViewModel<SlideshowEntryViewModel>()
+        
+        // API 호출 (한 번만 실행)
+        LaunchedEffect(key.request) {
+            viewModel.createSlideshow(
+                request = key.request,
+                onSuccess = {
+                    // 성공 시 2초 후 뒤로 가기
+                    delay(2000)
+                    navigator.goBack()
+                },
+                onFailure = {
+                    // 실패 시에도 뒤로 가기
+                    delay(1000)
+                    navigator.goBack()
+                }
+            )
         }
 
         LoadingContent(

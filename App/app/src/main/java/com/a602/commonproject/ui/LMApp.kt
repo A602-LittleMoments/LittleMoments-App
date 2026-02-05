@@ -38,16 +38,21 @@ import com.a602.commonproject.feature.camera.navigation.cameraEntries
 import com.a602.commonproject.feature.album.GridNavKey
 import com.a602.commonproject.feature.album.navigation.galleryEntries
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import com.a602.commonproject.designsystem.component.ChangeStatusBarColor
+import com.a602.commonproject.feature.album.HighlightResultNavKey
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LMApp() {
+fun LMApp(
+    deepLinkUri: android.net.Uri? = null,
+    onDeepLinkHandled: () -> Unit = {}
+) {
     val appState = rememberLMAppState()
     val context = androidx.compose.ui.platform.LocalContext.current
     var backPressedTime by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0L) }
@@ -65,6 +70,29 @@ fun LMApp() {
         color = Color.Transparent,
         isAppearanceLightStatusBars = useDarkIcons
     )
+
+    // 딥링크 처리: littlemoments://slideshow/{slideshowId}
+    LaunchedEffect(deepLinkUri) {
+        if (deepLinkUri != null) {
+            val host = deepLinkUri.host
+            val pathSegments = deepLinkUri.pathSegments
+
+            when (host) {
+                "slideshow" -> {
+                    // littlemoments://slideshow/{slideshowId}
+                    val slideshowId = pathSegments.firstOrNull()
+                    if (!slideshowId.isNullOrBlank()) {
+                        // 먼저 홈을 루트로 설정 (뒤로 가기 시 홈으로 돌아가도록)
+                        appState.navigator.replaceRoot(MemoryNavKey)
+                        // 그 후 상세 화면으로 이동
+                        appState.navigator.navigate(HighlightResultNavKey(slideshowId))
+                    }
+                }
+                // 다른 딥링크 호스트 처리 가능
+            }
+            onDeepLinkHandled()
+        }
+    }
 
     // [Fix] BackHandler로 백버튼 제어 (NavDisplay.onBack이 제대로 동작하지 않음)
     BackHandler {
@@ -86,7 +114,7 @@ fun LMApp() {
                 val currentTime = System.currentTimeMillis()
                 if (currentTime - backPressedTime > 2000) {
                     backPressedTime = currentTime
-                    android.widget.Toast.makeText(context, "한 번 더 뒤로가기를 누르면 종료됩니다.", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, "'뒤로' 버튼을 한번 더 누르면 종료됩니다.", android.widget.Toast.LENGTH_SHORT).show()
                 } else {
                     (context as? android.app.Activity)?.finish()
                 }
@@ -167,7 +195,7 @@ fun LMApp() {
                             val currentTime = System.currentTimeMillis()
                             if (currentTime - backPressedTime > 2000) {
                                 backPressedTime = currentTime
-                                android.widget.Toast.makeText(context, "한 번 더 뒤로가기를 누르면 종료됩니다.", android.widget.Toast.LENGTH_SHORT).show()
+                                android.widget.Toast.makeText(context, "'뒤로' 버튼을 한번 더 누르면 종료됩니다.", android.widget.Toast.LENGTH_SHORT).show()
                             } else {
                                 (context as? android.app.Activity)?.finish()
                             }

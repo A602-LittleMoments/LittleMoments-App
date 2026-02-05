@@ -126,6 +126,7 @@ class OfflineFirstBabyRepository @Inject constructor(
 
             Result.success(Unit)
         } catch (e: Exception) {
+            e.printStackTrace()
             Result.failure(e)
         }
     }

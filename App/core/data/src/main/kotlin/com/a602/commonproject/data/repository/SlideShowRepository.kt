@@ -22,6 +22,14 @@ interface SlideshowRepository {
     // 5. 영상 다운로드 (서버 URL 발급 -> 파일 다운로드 -> DB 경로 업데이트)
     suspend fun downloadSlideshow(slideshowId: String): Result<File>
 
+    // 5-1. 영상 다운로드 (진행률 콜백 포함)
+    // onProgress: 0.0f ~ 1.0f (0% ~ 100%)
+    suspend fun downloadSlideshowWithProgress(
+        slideshowId: String,
+        onProgress: (Float) -> Unit
+    ): Result<File>
+
     // 6. 슬라이드쇼 삭제 (DB + 파일 삭제)
     suspend fun deleteSlideshow(slideshowId: String): Result<Unit>
 }
+

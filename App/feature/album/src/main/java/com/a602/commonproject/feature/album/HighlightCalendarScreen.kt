@@ -1,4 +1,4 @@
-package com.a602.commonproject.feature.album
+    package com.a602.commonproject.feature.album
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,7 +69,19 @@ fun HighlightCalendarRoute(
     HighlightCalendarScreen(
         onDateRangeSelected = { start, end ->
             viewModel.selectDateRange(start, end)
-            onDateRangeSelected(start, end)
+            // 하이라이트 생성 API 호출
+            viewModel.createHighlight(
+                startMillis = start,
+                endMillis = end,
+                onSuccess = {
+                    // API 호출 성공 시 콜백 (뒤로 가기)
+                    onDateRangeSelected(start, end)
+                },
+                onFailure = { errorMessage ->
+                    // 에러 처리 (토스트 등은 추후 추가)
+                    android.util.Log.e("HighlightCalendar", "하이라이트 생성 실패: $errorMessage")
+                }
+            )
         },
         onBack = {
             viewModel.clearSelection()

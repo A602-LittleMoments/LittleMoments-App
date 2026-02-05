@@ -45,6 +45,9 @@
 
                 <data android:host="slideshows" />
 
+                <data android:host="slideshow" />
+                <data android:pathPattern="/.*" />
+
                 <data android:host="album" />
 
             </intent-filter>
