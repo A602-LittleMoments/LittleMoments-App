@@ -82,9 +82,14 @@ fun MediaDetailRoute(
 
     val scope = rememberCoroutineScope()
 
-    // 삭제 성공 → 뒤로가기
+    // 삭제 성공 → 스낵바 후 뒤로가기
     LaunchedEffect(uiState.deleteSuccess) {
         if (uiState.deleteSuccess) {
+            scope.launch {
+                snackbarHostState.showSnackbar("삭제되었습니다")
+            }
+            // 스낵바가 보여질 시간을 확보 (너무 길지 않게)
+            kotlinx.coroutines.delay(700)
             viewModel.onDeleteSuccessConsumed()
             onDeleted()
         }
@@ -130,6 +135,10 @@ fun MediaDetailRoute(
             contentAlignment = Alignment.Center
         ) {
             when {
+                // 삭제 성공 시 에러 메시지 방지 (스낵바 유지하면서 대기)
+                uiState.deleteSuccess -> {
+                   // 빈 화면 유지
+                }
                 uiState.isLoading -> Text("불러오는 중…")
                 uiState.media != null -> {
                     // [Navigation Fix] Use ALL medias, sorted by date descending (Newest first)
@@ -191,6 +200,24 @@ fun MediaDetailScreen(
 
     // Capture Trigger
     var captureTrigger by remember { mutableStateOf<Long?>(null) }
+    
+    // Delete Dialog State
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var deleteTargetId by remember { mutableStateOf<String?>(null) }
+
+    if (showDeleteDialog) {
+        ConfirmDeleteDialog(
+            onConfirm = {
+                deleteTargetId?.let { onDelete(it) }
+                showDeleteDialog = false
+                deleteTargetId = null
+            },
+            onDismiss = {
+                showDeleteDialog = false
+                deleteTargetId = null
+            }
+        )
+    }
 
     // Fix: Ensure pager reflects the correct initial page when data loads asynchronously
     LaunchedEffect(initialIndex, medias.size) {
@@ -340,7 +367,10 @@ fun MediaDetailScreen(
                         // 액션바
                         IconActionBar(
                             modifier = Modifier.fillMaxWidth(),
-                            onDelete = { onDelete(media.id) },
+                            onDelete = {
+                                deleteTargetId = media.id
+                                showDeleteDialog = true
+                            },
                             onDownload = {
                                 // 캡처 트리거 실행 (현재 보고 있는 페이지만 캡처됨)
                                 captureTrigger = System.currentTimeMillis()

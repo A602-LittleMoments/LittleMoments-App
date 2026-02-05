@@ -120,9 +120,19 @@ class MediaDetailViewModel @Inject constructor(
                     media != null -> action.copy(
                         mediaId = mediaId,
                         media = media,
-                        allMedias = filteredMedias,
+                        // ✨ [Fix] 삭제 성공 상태라면 리스트에서 사라져도 에러가 아님 (화면 닫히기 전)
+                        allMedias = if (action.deleteSuccess) emptyList() else filteredMedias,
                         isLoading = false,
                         errorMessage = null
+                    )
+
+                    // ✨ [Fix] 삭제 중이거나 삭제에 성공했을 때, 데이터가 사라져도 에러로 처리하지 않음
+                    action.isDeleting || action.deleteSuccess -> action.copy(
+                        mediaId = mediaId,
+                        media = null,
+                        allMedias = filteredMedias,
+                        isLoading = action.isDeleting, // 삭제 중이면 로딩 표시
+                        errorMessage = null // 에러 메시지 띄우지 않음
                     )
 
                     filteredMedias.isEmpty() -> action.copy(

@@ -79,6 +79,20 @@ fun GridRoute(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    // ✨ [Fix] 화면 복귀 시 (예: 상세화면에서 삭제 후) 데이터 갱신
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                 viewModel.refreshData()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     // Params decide UI mode immediately
     val showCalendarButton = keywordId == null
     val topBarTitle = title ?: uiState.title
