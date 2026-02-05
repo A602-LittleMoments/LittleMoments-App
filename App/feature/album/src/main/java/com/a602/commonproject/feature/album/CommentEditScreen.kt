@@ -160,7 +160,7 @@ fun CommentEditScreen(
         ) {
             // 1. Background Image
             Image(
-                painter = painterResource(id = R.drawable.gallery_background),
+                painter = painterResource(R.drawable.gallery_background),
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier.fillMaxSize()
