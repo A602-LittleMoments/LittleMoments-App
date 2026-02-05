@@ -64,6 +64,7 @@ fun buildPlanetsUiLaneLayout(
     bottomSafeArea: Dp = 96.dp,
     topSafeArea: Dp = 80.dp,
     sideSafeArea: Dp = 16.dp,
+    seed: Long? = null,
 ): PlanetLayoutResult {
 
     val limited = items.take(MAX_PLANETS)
@@ -108,8 +109,8 @@ fun buildPlanetsUiLaneLayout(
     val labelHeight = 32.dp.value // 24dp -> 32dp (여유분 확보)
     val margin = 4.dp.value 
     
-    val globalSeed = limited.sumOf { it.keywordId.hashCode() }
-    val rng = Random(globalSeed)
+    val calculatedSeed = seed ?: limited.sumOf { it.keywordId.hashCode() }.toLong()
+    val rng = Random(calculatedSeed)
     
     // 1. 큰 것부터 배치 (내림차순 정렬) - 사용자 요청
     val sortedItems = limited.sortedByDescending { it.collectionSize }

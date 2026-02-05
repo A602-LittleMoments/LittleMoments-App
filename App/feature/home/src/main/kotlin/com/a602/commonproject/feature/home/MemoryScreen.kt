@@ -29,9 +29,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.graphicsLayer
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.model.data.Collection
 import com.a602.commonproject.designsystem.R
+import kotlinx.coroutines.delay
+import kotlin.math.absoluteValue
 
 @Composable
 fun MemoryScreen(
@@ -59,16 +65,16 @@ fun MemoryScreen(
         val bottomReservedSpace = 340.dp // [Fix] Increased to avoid overlap with higher buttons
 
         // 5. Layout Calculation on Background Thread
-        // 계산량이 많아짐(Best Fit, Box Collision 등)에 따라 UI 스레드에서 돌면 버벅일 수 있음.
-        // Background 스레드에서 계산 후 결과만 UI로 전달.
-        val layout by produceState<PlanetLayoutResult?>(initialValue = null, items, maxWidth, maxHeight) {
+        val layoutSeed = remember { kotlin.random.Random.nextLong() }
+        val layout by produceState<PlanetLayoutResult?>(initialValue = null, items, maxWidth, maxHeight, layoutSeed) {
             value = withContext(Dispatchers.Default) {
                 buildPlanetsUiLaneLayout(
                     items = items,
                     viewportWidth = maxWidth,
                     viewportHeight = maxHeight - bottomReservedSpace,
                     bottomSafeArea = 60.dp,
-                    topSafeArea = 80.dp
+                    topSafeArea = 80.dp,
+                    seed = layoutSeed
                 )
             }
         }
@@ -191,44 +197,142 @@ private fun PlanetsScrollContent(
             BoxWithConstraints(Modifier.fillMaxSize()) {
                 val maxW = maxWidth
                 planets.forEach { p ->
-                    val x = ((maxW * p.xRatio) - (p.size / 2)).coerceIn(0.dp, maxW - p.size)
-
-                    Column (
-                        modifier = Modifier
-                            .offset(x = x, y = p.y)
-                            .width(p.size)
-                            .clickable { onPlanetClick(p.keywordId, p.label) }, // Pass label too
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(modifier = Modifier.size(p.size)) {
-                            Image(
-                                painter = painterResource(id = p.planetResId),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
-                            )
-                        }
-                        Spacer(Modifier.height(6.dp))
-
-                        Text(
-                            text = p.label,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = Color.White,
-                                shadow = androidx.compose.ui.graphics.Shadow(
-                                    color = Color.Black,
-                                    offset = androidx.compose.ui.geometry.Offset(2f, 2f),
-                                    blurRadius = 4f
-                                )
-                            ),
-                        )
-                    }
+                    MovingPlanetItem(
+                        p = p,
+                        maxW = maxW,
+                        onPlanetClick = onPlanetClick
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun MovingPlanetItem(
+    p: KeywordPlanetUi,
+    maxW: Dp,
+    onPlanetClick: (String, String) -> Unit
+) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+
+    // 1. Entrance animation state
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(p.keywordId) {
+        // Random delayed appearance for "pretty" entrance
+        val delayTime = (p.keywordId.hashCode() % 600).absoluteValue.toLong()
+        delay(delayTime)
+        isVisible = true
+    }
+
+    val entranceAlpha by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 1000, easing = EaseOutCubic),
+        label = "entranceAlpha"
+    )
+    val entranceScale by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0.4f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "entranceScale"
+    )
+    val entranceOffset by animateDpAsState(
+        targetValue = if (isVisible) 0.dp else 20.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessVeryLow
+        ),
+        label = "entranceOffset"
+    )
+
+    // 2. Continuous Floating (Bobbing & Rotating) animation
+    val infiniteTransition = rememberInfiniteTransition(label = "floating")
+    val floatOffset by infiniteTransition.animateFloat(
+        initialValue = -6f,
+        targetValue = 6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 2500 + (p.keywordId.hashCode() % 1200).absoluteValue,
+                easing = EaseInOutSine
+            ),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "floatOffset"
+    )
+    val floatRotation by infiniteTransition.animateFloat(
+        initialValue = -3f,
+        targetValue = 3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 3500 + (p.keywordId.hashCode() % 1500).absoluteValue,
+                easing = EaseInOutSine
+            ),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "floatRotation"
+    )
+
+    // 3. Click (Press) animation
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val clickScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.85f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioHighBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "clickScale"
+    )
+
+    val x = ((maxW * p.xRatio) - (p.size / 2)).coerceIn(0.dp, maxW - p.size)
+
+    Column(
+        modifier = Modifier
+            .offset(x = x, y = p.y + floatOffset.dp + entranceOffset)
+            .width(p.size)
+            .graphicsLayer {
+                alpha = entranceAlpha
+                scaleX = entranceScale * clickScale
+                scaleY = entranceScale * clickScale
+                rotationZ = floatRotation
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null, // Custom click animation handled via scale
+                onClick = {
+                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    onPlanetClick(p.keywordId, p.label)
+                }
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(modifier = Modifier.size(p.size)) {
+            Image(
+                painter = painterResource(id = p.planetResId),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+
+        Text(
+            text = p.label,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = Color.White,
+                shadow = androidx.compose.ui.graphics.Shadow(
+                    color = Color.Black,
+                    offset = androidx.compose.ui.geometry.Offset(2f, 2f),
+                    blurRadius = 4f
+                )
+            ),
+        )
     }
 }
 
