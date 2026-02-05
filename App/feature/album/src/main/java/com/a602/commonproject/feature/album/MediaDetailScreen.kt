@@ -60,12 +60,14 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 @Composable
 fun MediaDetailRoute(
     mediaId: String,
+    date: String? = null,
+    keywordId: String? = null,
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onDeleted: () -> Unit,
     viewModel: MediaDetailViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(mediaId) { viewModel.setMediaId(mediaId) }
+    LaunchedEffect(mediaId, date, keywordId) { viewModel.setMediaId(mediaId, date, keywordId) }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

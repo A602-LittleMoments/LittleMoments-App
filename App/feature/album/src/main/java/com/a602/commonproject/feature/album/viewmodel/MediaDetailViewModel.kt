@@ -9,12 +9,16 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.a602.commonproject.data.repository.CollectionRepository
 import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.model.data.SharedMedia
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.IOException
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,10 +50,14 @@ data class MediaDetailUiState(
 @HiltViewModel
 class MediaDetailViewModel @Inject constructor(
     private val repository: SharedMediaRepository,
+    private val collectionRepository: CollectionRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val mediaIdFlow = MutableStateFlow<String?>(null)
+    private val dateFlow = MutableStateFlow<String?>(null)
+    private val keywordIdFlow = MutableStateFlow<String?>(null)
+    private val keywordMediasFlow = MutableStateFlow<List<SharedMedia>>(emptyList())
     private val actionState = MutableStateFlow(
         MediaDetailUiState(
             isLoading = true
@@ -60,8 +68,18 @@ class MediaDetailViewModel @Inject constructor(
         combine(
             repository.getSharedAlbumStream(),
             mediaIdFlow,
+            dateFlow,
+            keywordIdFlow,
+            keywordMediasFlow,
             actionState
-        ) { medias, mediaId, action ->
+        ) { flows ->
+            val medias = flows[0] as List<SharedMedia>
+            val mediaId = flows[1] as? String
+            val dateStr = flows[2] as? String
+            val keywordIdStr = flows[3] as? String
+            val kMedias = flows[4] as List<SharedMedia>
+            val action = flows[5] as MediaDetailUiState
+
             if (mediaId == null) {
                 return@combine action.copy(
                     mediaId = null,
@@ -72,12 +90,28 @@ class MediaDetailViewModel @Inject constructor(
             }
 
             val media = medias.firstOrNull { it.id == mediaId }
+            val filteredMedias = when {
+                dateStr != null -> {
+                    val targetDate = LocalDate.parse(dateStr)
+                    medias.filter {
+                        Instant.ofEpochMilli(it.dateTaken)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate() == targetDate
+                    }
+                }
+                keywordIdStr != null -> {
+                    kMedias
+                }
+                else -> {
+                    medias
+                }
+            }
 
             when {
                 media != null -> action.copy(
                     mediaId = mediaId,
                     media = media,
-                    allMedias = medias,
+                    allMedias = filteredMedias,
                     isLoading = false,
                     errorMessage = null
                 )
@@ -103,8 +137,18 @@ class MediaDetailViewModel @Inject constructor(
             initialValue = MediaDetailUiState(isLoading = true)
         )
 
-    fun setMediaId(mediaId: String) {
+    fun setMediaId(mediaId: String, date: String? = null, keywordId: String? = null) {
         mediaIdFlow.value = mediaId
+        dateFlow.value = date
+        keywordIdFlow.value = keywordId
+        
+        if (keywordId != null) {
+            viewModelScope.launch {
+                val result = collectionRepository.getCollectionDetail(keywordId)
+                keywordMediasFlow.value = result.getOrElse { emptyList() }
+            }
+        }
+
         actionState.update {
             it.copy(
                 isLoading = true,

@@ -35,7 +35,9 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             onGridClick = { navigator.navigate(GridNavKey()) },
             onTempAlbumClick = { navigator.navigate(TempAlbumNavKey) },
             onHighLightClick = { navigator.navigate(HighlightCalendarNavKey) },
-            onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(mediaId = media.id)) }
+            onMediaClick = { media ->
+                navigator.navigate(MediaDetailNavKey(mediaId = media.id))
+            }
         )
     }
     // 2. 그리드 보기
@@ -48,7 +50,7 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             onBackClick = navigator::goBack,
             onCalendarClick = { navigator.navigate(GalleryNavKey) },
             onMediaClick = { media ->
-                navigator.navigate(MediaDetailNavKey(mediaId = media.id))
+                navigator.navigate(MediaDetailNavKey(mediaId = media.id, keywordId = key.keywordId))
             }
         )
     }
@@ -58,7 +60,7 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             date = key.date,
             onBackClick = navigator::goBack,
             onCalendarClick = { navigator.navigate(GalleryNavKey) },
-            onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(media.id)) } // 예시
+            onMediaClick = { media -> navigator.navigate(MediaDetailNavKey(mediaId = media.id, date = key.date.toString())) } // 예시
         )
     }
 
@@ -67,6 +69,8 @@ fun EntryProviderScope<NavKey>.galleryEntries(
     entry<MediaDetailNavKey> { key ->
         MediaDetailRoute(
             mediaId = key.mediaId,
+            date = key.date,
+            keywordId = key.keywordId,
             onBack = navigator::goBack,
             onEdit = { navigator.navigate(CommentEditNavKey(key.mediaId)) },
             onDeleted = navigator::goBack
