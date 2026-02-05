@@ -144,6 +144,12 @@ class MediaDetailViewModel @Inject constructor(
         )
 
     fun setMediaId(mediaId: String, date: String? = null, keywordId: String? = null, babyId: String? = null, year: Int? = null) {
+        if (mediaIdFlow.value == mediaId && 
+            dateFlow.value == date && 
+            keywordIdFlow.value == keywordId &&
+            babyIdFlow.value == babyId &&
+            yearFlow.value == year) return
+
         mediaIdFlow.value = mediaId
         dateFlow.value = date
         keywordIdFlow.value = keywordId

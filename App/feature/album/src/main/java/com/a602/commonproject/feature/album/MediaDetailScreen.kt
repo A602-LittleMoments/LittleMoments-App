@@ -48,6 +48,7 @@ import com.a602.commonproject.designsystem.R as DesignR
 import kotlinx.coroutines.launch
 import android.graphics.Bitmap
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
@@ -65,12 +66,14 @@ fun MediaDetailRoute(
     babyId: String? = null,
     year: Int? = null,
     onBack: () -> Unit,
-    onEdit: () -> Unit,
+    onEdit: (String) -> Unit,
     onDeleted: () -> Unit,
     viewModel: MediaDetailViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(mediaId, date, keywordId, babyId, year) { 
-        viewModel.setMediaId(mediaId, date, keywordId, babyId, year) 
+    var currentId by rememberSaveable { mutableStateOf(mediaId) }
+
+    LaunchedEffect(currentId, date, keywordId, babyId, year) {
+        viewModel.setMediaId(currentId, date, keywordId, babyId, year)
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -135,6 +138,7 @@ fun MediaDetailRoute(
                         onDownload = viewModel::downloadMedia, // Legacy 원본 다운로드
                         onSaveBitmap = viewModel::saveBitmapToGallery, // ✨ 꾸며진 사진 저장
                         onEdit = onEdit,
+                        onMediaIdChange = { currentId = it }
                     )
                 }
                 else -> Text("사진을 불러오지 못했어요")
@@ -162,7 +166,8 @@ fun MediaDetailScreen(
     onDelete: (String) -> Unit,
     onDownload: (SharedMedia) -> Unit,
     onSaveBitmap: (Bitmap) -> Unit,
-    onEdit: () -> Unit,
+    onEdit: (String) -> Unit,
+    onMediaIdChange: (String) -> Unit = {},
 ) {
     val pagerState = rememberPagerState(
         initialPage = initialIndex,
@@ -176,6 +181,12 @@ fun MediaDetailScreen(
     LaunchedEffect(initialIndex, medias.size) {
         if (medias.isNotEmpty() && pagerState.currentPage != initialIndex) {
              pagerState.scrollToPage(initialIndex)
+        }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        medias.getOrNull(pagerState.currentPage)?.let {
+            onMediaIdChange(it.id)
         }
     }
 
@@ -316,45 +327,15 @@ fun MediaDetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             onDelete = { onDelete(media.id) },
                             onDownload = {
-                                // 캡처 트리거 실행
+                                // 캡처 트리거 실행 (현재 보고 있는 페이지만 캡처됨)
                                 captureTrigger = System.currentTimeMillis()
                             },
-                            onEdit = onEdit,
+                            onEdit = { onEdit(media.id) },
                         )
                     }
                 }
             }
 
-            // Swipe Hint (Temporary Popup)
-            var showSwipeHint by remember { androidx.compose.runtime.mutableStateOf(true) }
-            LaunchedEffect(Unit) {
-                kotlinx.coroutines.delay(3000)
-                showSwipeHint = false
-            }
-
-            androidx.compose.animation.AnimatedVisibility(
-                visible = showSwipeHint,
-                enter = androidx.compose.animation.fadeIn(),
-                exit = androidx.compose.animation.fadeOut(),
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 120.dp) // Positioned above the action bar area
-            ) {
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = Color.Black.copy(alpha = 0.6f),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(30.dp)
-                        )
-                        .padding(horizontal = 24.dp, vertical = 12.dp)
-                ) {
-                   Text(
-                       text = "좌우로 넘겨서 다른 사진을 볼 수 있어요",
-                       color = Color.White,
-                       style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
-                   )
-                }
-            }
         }
     }
 }
