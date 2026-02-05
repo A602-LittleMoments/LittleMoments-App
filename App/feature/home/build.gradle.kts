@@ -26,5 +26,6 @@ dependencies {
     implementation(libs.coil.kt.compose)
     implementation(libs.coil.kt.svg)
     implementation(libs.androidx.paging.common)
+    implementation(libs.androidx.ui.graphics)
 
 }

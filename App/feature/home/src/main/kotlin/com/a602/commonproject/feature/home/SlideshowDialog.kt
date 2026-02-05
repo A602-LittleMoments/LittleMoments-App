@@ -51,17 +51,8 @@ fun SlideshowCreationDialog(
         collections.distinctBy { it.keywordId }
     }
 
-    // Helper to get planet resource for keyword
-    fun getPlanetRes(category: String): Int {
-         return when(category) {
-             "물건" -> DsR.drawable.game
-             "음식" -> DsR.drawable.food1
-             "인물" -> DsR.drawable.bear
-             "기념" -> DsR.drawable.cupcake
-             "여행" -> DsR.drawable.rocket
-             else -> DsR.drawable.planet
-         }
-    }
+    // Helper to get planet resource for keyword - REMOVED (using planetUtil.kt)
+    // fun getPlanetRes(category: String): Int { ... }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -85,7 +76,7 @@ fun SlideshowCreationDialog(
             ) {
                 // 1. Title
                 Text(
-                    text = "영상 만들기",
+                    text = "하이라이트 만들기",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.sp
@@ -177,7 +168,7 @@ fun SlideshowCreationDialog(
                                                 .padding(6.dp)
                                         ) {
                                             Image(
-                                                painter = painterResource(id = getPlanetRes(item.categoryValue)),
+                                                painter = painterResource(id = pickStablePlanetRes(item.categoryValue, item.keywordId)),
                                                 contentDescription = null,
                                                 modifier = Modifier.fillMaxSize(),
                                                 contentScale = ContentScale.Fit
