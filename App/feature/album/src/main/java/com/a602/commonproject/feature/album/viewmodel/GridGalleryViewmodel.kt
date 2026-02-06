@@ -18,12 +18,17 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.a602.commonproject.feature.album.GridNavKey
 
+enum class SortOrder {
+    LATEST, OLDEST
+}
+
 data class GridGalleryUiState(
     val medias: List<SharedMedia> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val title: String = "갤러리",
-    val showCalendarButton: Boolean = true
+    val showCalendarButton: Boolean = true,
+    val sortOrder: SortOrder = SortOrder.LATEST
 )
 
 
@@ -34,6 +39,8 @@ class GridGalleryViewmodel @Inject constructor(
     private val babyRepository: com.a602.commonproject.data.repository.BabyRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val sortOrder = MutableStateFlow(SortOrder.LATEST)
 
     private val filterState = MutableStateFlow(
         GridNavKey(
@@ -49,8 +56,12 @@ class GridGalleryViewmodel @Inject constructor(
     private val refreshSignal = MutableStateFlow(0)
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<GridGalleryUiState> = kotlinx.coroutines.flow.combine(filterState, refreshSignal) { filter, _ -> filter }
-        .flatMapLatest { filter ->
+    val uiState: StateFlow<GridGalleryUiState> = kotlinx.coroutines.flow.combine(
+        filterState, 
+        sortOrder,
+        refreshSignal
+    ) { filter, sort, _ -> Triple(filter, sort, Unit) }
+        .flatMapLatest { (filter, sort, _) ->
             val mediaFlow = if (filter.keywordId != null) {
                 // Keyword Filtered
                 flow {
@@ -74,6 +85,13 @@ class GridGalleryViewmodel @Inject constructor(
             }
 
             kotlinx.coroutines.flow.combine(mediaFlow, babyNameFlow) { medias, babyName ->
+                // Sort medias
+                val sortedMedias = if (sort == SortOrder.LATEST) {
+                    medias.sortedByDescending { it.dateTaken }
+                } else {
+                    medias.sortedBy { it.dateTaken }
+                }
+
                 // Determine Title
                 val displayTitle = when {
                     filter.title != null -> filter.title // Passed title has priority
@@ -85,10 +103,11 @@ class GridGalleryViewmodel @Inject constructor(
                 }
 
                 GridGalleryUiState(
-                    medias = medias,
+                    medias = sortedMedias,
                     isLoading = false,
                     title = displayTitle,
-                    showCalendarButton = filter.keywordId == null
+                    showCalendarButton = filter.keywordId == null,
+                    sortOrder = sort
                 )
             }
         }
@@ -98,6 +117,10 @@ class GridGalleryViewmodel @Inject constructor(
             initialValue = GridGalleryUiState(isLoading = true)
         )
     
+    fun toggleSortOrder() {
+        sortOrder.value = if (sortOrder.value == SortOrder.LATEST) SortOrder.OLDEST else SortOrder.LATEST
+    }
+
     fun refreshData() {
         refreshSignal.value++
     }
