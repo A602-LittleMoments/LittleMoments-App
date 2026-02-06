@@ -199,7 +199,9 @@ fun GalleryToggleRow(
         Row(
             modifier = Modifier
                 .height(48.dp)
-                .background(com.a602.commonproject.designsystem.theme.background.copy(alpha = 0.9f), CircleShape)
+                .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+                .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp))
                 .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -228,7 +230,9 @@ fun GalleryToggleRow(
             Row(
                 modifier = Modifier
                     .height(48.dp)
-                    .background(com.a602.commonproject.designsystem.theme.background.copy(alpha = 0.9f), CircleShape)
+                    .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(24.dp))
                     .clickable(onClick = onTempAlbum)
                     .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -237,7 +241,7 @@ fun GalleryToggleRow(
                 Icon(
                     imageVector = Icons.Default.AutoAwesome, // 반짝이는 별 (별똥별 느낌)
                     contentDescription = null,
-                    tint = com.a602.commonproject.designsystem.theme.main,
+                    tint = Color.White,
                     modifier = Modifier.size(20.dp)
                 )
                 Text(
@@ -246,7 +250,7 @@ fun GalleryToggleRow(
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     ),
-                    color = com.a602.commonproject.designsystem.theme.main
+                    color = Color.White
                 )
             }
         }
@@ -261,7 +265,7 @@ fun GalleryToggleButton(
     description: String
 ) {
     val backgroundColor = if (isActive) com.a602.commonproject.designsystem.theme.main else Color.Transparent
-    val iconColor = if (isActive) Color.White else Color.Gray
+    val iconColor = if (isActive) Color.White else Color.White.copy(alpha = 0.6f)
 
     Box(
         modifier = Modifier
@@ -815,7 +819,7 @@ fun MonthYearPickerDialog(
                     color = com.a602.commonproject.designsystem.theme.color3,
                     fontWeight = FontWeight.Bold
                 )
-                
+
                 Spacer(Modifier.height(24.dp))
 
                 Row(
