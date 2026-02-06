@@ -14,10 +14,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import androidx.core.graphics.createBitmap
 
 class OfflineFirstTempMediaRepository @Inject constructor(
     private val mediaDao: MediaDao,
-    private val userPreferences: UserPreferencesDataSource
+    private val userPreferences: UserPreferencesDataSource,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
 ) : TempMediaRepository {
 
     // ⏳ 임시 보관 기간 (예: 3일)
@@ -52,7 +54,7 @@ class OfflineFirstTempMediaRepository @Inject constructor(
                 takenAt = takenAt,
                 cameraFacing = cameraFacing,
                 orientation = orientation,
-                expirationDate = expirationDate //
+                expirationDate = expirationDate, //
             )
 
             // DB 저장
@@ -118,7 +120,7 @@ class OfflineFirstTempMediaRepository @Inject constructor(
 
     override suspend fun moveToShared(
         tempIds: List<String>,
-        captions: Map<String, String>?
+        captions: Map<String, String>?,
     ): Result<Unit> {
         return try {
             // ✨ 1. 업로더 이름(내 닉네임) 가져오기
@@ -130,15 +132,16 @@ class OfflineFirstTempMediaRepository @Inject constructor(
             // (여기서는 개별 조회를 해도 사용자가 선택한 소수 파일이라 괜찮음)
             tempIds.forEach { tempId ->
                 val tempEntity = mediaDao.getTempMediaById(tempId).firstOrNull()
+                val safeLocalUri = tempEntity?.localUri
 
-                if (tempEntity != null && tempEntity.localUri != null) {
+                if (tempEntity != null && safeLocalUri != null) {
                     // ✨ Temp -> Shared 변환 로직
                     // ✨ ShareMediaEntity 필드에 맞춰 매핑
                     val shareEntity = ShareMediaEntity(
                         mediaId = tempEntity.tempId, // ID 유지
 
                         // 파일 경로 (업로드 전이므로 로컬만 있음)
-                        localUri = tempEntity.localUri,
+                        localUri = safeLocalUri,
                         remoteUrl = null,
                         thumbnailUrl = null,
 
@@ -158,9 +161,12 @@ class OfflineFirstTempMediaRepository @Inject constructor(
                         uploaderName = myNickname, // ✨ 아까 가져온 닉네임 사용
 
                         // 상태 설정 (WorkManager가 감지하여 업로드함)
-                        syncStatus = "NOT_UPLOADED"
+                        syncStatus = "NOT_UPLOADED",
                     )
                     entitiesToMove.add(shareEntity)
+
+                    // 📸 갤러리 저장 (합성 포함)
+                    saveImageToGallery(safeLocalUri, tempEntity.subLocalUri, tempEntity.orientation)
                 }
             }
 
@@ -175,6 +181,135 @@ class OfflineFirstTempMediaRepository @Inject constructor(
         }
     }
 
+
+    // =================================================================
+    // Gallery Saving & Image Merging
+    // =================================================================
+
+    override suspend fun saveImageToGallery(mainUri: String, subUri: String?, orientation: Int): Boolean {
+        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val mainFile = File(mainUri)
+                if (!mainFile.exists()) return@withContext false
+
+                val resolver = context.contentResolver
+                val contentValues = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "CommonProject_${System.currentTimeMillis()}.jpg")
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/아이랑나랑")
+                }
+
+                val uri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                    ?: return@withContext false
+
+                resolver.openOutputStream(uri)?.use { outputStream ->
+                    if (subUri != null && File(subUri).exists()) {
+                        // 🖼️ Merge Images (PIP)
+                        val mainInternalWithOrientation = rotateBitmapIfNeeded(mainFile.absolutePath, android.graphics.BitmapFactory.decodeFile(mainFile.path), orientation)
+                        val subInternalWithOrientation = rotateBitmapIfNeeded(subUri, android.graphics.BitmapFactory.decodeFile(subUri), orientation)
+
+                            if (mainInternalWithOrientation != null && subInternalWithOrientation != null) {
+                                val mergedBitmap = combineImages(mainInternalWithOrientation, subInternalWithOrientation)
+                                mergedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 100, outputStream)
+                                mainInternalWithOrientation.recycle()
+                                subInternalWithOrientation.recycle()
+                                mergedBitmap.recycle()
+                            } else {
+                                // Fail safe: copy main only
+                                java.io.FileInputStream(mainFile).copyTo(outputStream)
+                            }
+                        } else {
+                            // 📄 Single Image: Direct Copy (Exif 보존을 위해 그냥 복사)
+                            // 단, 사용자가 "모양이 이상하다"고 했으므로, 여기서도 Rotation을 적용해서 다시 저장하는게 안전할 수 있음.
+                            // 하지만 원본 복사가 품질 저하가 없음. 
+                            // 일단 Single은 원본 복사 + Exif가 갤러리에서 처리되길 기대하지만,
+                            // 만약 갤러리 앱이 Exif를 무시하는 커스텀 뷰라면 회전된 비트맵을 저장해야 함.
+                            // 안전하게 "비트맵 로드 -> 회전 -> 저장"으로 통일.
+                            
+                            val original = android.graphics.BitmapFactory.decodeFile(mainFile.path)
+                            val rotated = rotateBitmapIfNeeded(mainFile.path, original, orientation)
+                            if (rotated != null) {
+                                rotated.compress(android.graphics.Bitmap.CompressFormat.JPEG, 100, outputStream)
+                                rotated.recycle()
+                            } else {
+                                java.io.FileInputStream(mainFile).copyTo(outputStream)
+                            }
+                        }
+                    }
+                    return@withContext true
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    return@withContext false
+                }
+            }
+        }
+
+    private fun rotateBitmapIfNeeded(path: String, bitmap: android.graphics.Bitmap?, fallbackOrientation: Int = 0): android.graphics.Bitmap? {
+        if (bitmap == null) return null
+        return try {
+            val ei = android.media.ExifInterface(path)
+            val orientation = ei.getAttributeInt(
+                android.media.ExifInterface.TAG_ORIENTATION,
+                android.media.ExifInterface.ORIENTATION_NORMAL
+            )
+
+            when (orientation) {
+                android.media.ExifInterface.ORIENTATION_ROTATE_90 -> rotateImage(bitmap, 90f)
+                android.media.ExifInterface.ORIENTATION_ROTATE_180 -> rotateImage(bitmap, 180f)
+                android.media.ExifInterface.ORIENTATION_ROTATE_270 -> rotateImage(bitmap, 270f)
+                android.media.ExifInterface.ORIENTATION_NORMAL, android.media.ExifInterface.ORIENTATION_UNDEFINED -> {
+                    // Fallback to DB orientation (assuming degrees)
+                    if (fallbackOrientation != 0) {
+                        rotateImage(bitmap, fallbackOrientation.toFloat())
+                    } else {
+                        bitmap
+                    }
+                }
+                else -> bitmap
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Exception reading EXIF -> Use fallback
+            if (fallbackOrientation != 0) {
+                 try {
+                     rotateImage(bitmap, fallbackOrientation.toFloat())
+                 } catch (e2: Exception) {
+                     bitmap
+                 }
+            } else {
+                bitmap
+            }
+        }
+    }
+
+    private fun rotateImage(source: android.graphics.Bitmap, angle: Float): android.graphics.Bitmap {
+        val matrix = android.graphics.Matrix()
+        matrix.postRotate(angle)
+        return android.graphics.Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
+    }
+
+    private fun combineImages(mainBitmap: android.graphics.Bitmap, subBitmap: android.graphics.Bitmap): android.graphics.Bitmap {
+        val width = mainBitmap.width
+        val height = mainBitmap.height
+        val result = createBitmap(width, height, mainBitmap.config ?: android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(result)
+
+        // Draw Main
+        canvas.drawBitmap(mainBitmap, 0f, 0f, null)
+
+        // Draw Sub (PIP) - Resize to 25% of width
+        val subScale = (width * 0.25f) / subBitmap.width
+        val subWidth = (subBitmap.width * subScale).toInt()
+        val subHeight = (subBitmap.height * subScale).toInt()
+
+        // Position: Top-Left with padding
+        val padding = 50f
+        val scaledSub = android.graphics.Bitmap.createScaledBitmap(subBitmap, subWidth, subHeight, true)
+
+        canvas.drawBitmap(scaledSub, padding, padding, null)
+
+        return result
+    }
 
     private fun deleteFile(path: String): Boolean {
         return try {

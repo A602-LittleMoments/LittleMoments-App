@@ -39,4 +39,7 @@ interface TempMediaRepository {
         tempIds: List<String>,
         captions: Map<String, String>?,
     ): Result<Unit>
+
+    // 7. 갤러리 저장 (공통 로직) - 실패 시 false 반환
+    suspend fun saveImageToGallery(mainUri: String, subUri: String?, orientation: Int = 0): Boolean
 }

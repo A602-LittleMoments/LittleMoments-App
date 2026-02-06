@@ -150,7 +150,7 @@ fun MemoryScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(bottom = 200.dp), // [Fix] Raised further as requested (160dp -> 200dp)
+                .padding(bottom = 170.dp), // [Fix] Raised further as requested (160dp -> 200dp) -> Modified to 150dp to account for text labels
             contentAlignment = Alignment.BottomCenter
         ) {
             Row(
@@ -161,24 +161,58 @@ fun MemoryScreen(
                 verticalAlignment = Alignment.Bottom
             ) {
                 // 왼쪽: 소년 (카메라)
-                Image(
-                    painter = painterResource(id = R.drawable.boy_camera),
-                    contentDescription = "Camera",
-                    modifier = Modifier
-                        .size(160.dp) // 136dp -> 160dp
-                        .clickable { onCameraClick() },
-                    contentScale = ContentScale.Fit
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable { onCameraClick() }
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.boy_camera),
+                        contentDescription = "Camera",
+                        modifier = Modifier.size(160.dp), // 136dp -> 160dp
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = "사진 찍기",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 20.sp,
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(2f, 2f),
+                                blurRadius = 4f
+                            )
+                        )
+                    )
+                }
 
                 // 오른쪽: 소녀 (슬라이드쇼)
-                Image(
-                    painter = painterResource(id = R.drawable.girl_slideshow),
-                    contentDescription = "Slideshow",
-                    modifier = Modifier
-                        .size(160.dp) // 136dp -> 160dp
-                        .clickable { onMakeSlideshowClick() },
-                    contentScale = ContentScale.Fit
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable { onMakeSlideshowClick() }
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.girl_slideshow),
+                        contentDescription = "Slideshow",
+                        modifier = Modifier.size(160.dp), // 136dp -> 160dp
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = "하이라이트 생성",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 20.sp,
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(2f, 2f),
+                                blurRadius = 4f
+                            )
+                        )
+                    )
+                }
             }
         }
     }

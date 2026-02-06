@@ -62,7 +62,9 @@ import java.time.ZoneId
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
@@ -218,8 +220,13 @@ fun HighlightResultScreen(
                             // [Fix] displaySmall -> headlineSmall
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
-                            fontSize = 30.sp
-                        )
+                            fontSize = 30.sp,
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(4f, 4f),
+                                blurRadius = 7f
+                            )
+                        ),
                     )
 
                     // [Fix] Increased spacing

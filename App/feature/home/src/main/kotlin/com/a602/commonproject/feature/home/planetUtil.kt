@@ -41,6 +41,42 @@ internal fun pickStablePlanetRes(categoryValue: String, keywordId: String): Int 
     return pool[stableIndex(keywordId, pool.size)]
 }
 
+/**
+ * 카테고리별로 사용 가능한 행성 아이콘을 최대한 골고루(Round-robin) 배정합니다.
+ * 동일한 keywordsId에는 동일한 아이콘이 배정되도록 map에 기록합니다.
+ */
+fun assignDiversePlanets(items: List<Collection>): Map<String, Int> {
+    val assignment = mutableMapOf<String, Int>()
+    
+    // 1. 카테고리별로 아이템 그룹화
+    val grouped = items.groupBy { it.categoryValue }
+
+    grouped.forEach { (category, categoryItems) ->
+        val pool = categoryToPlanetPool[category].orEmpty()
+        
+        if (pool.isNotEmpty()) {
+            // 2. 풀을 섞어서 매번 다른 느낌을 주되 (diversity)
+            //    목록 내에서는 최대한 겹치지 않게 순서대로 배정
+            val shuffledPool = pool.shuffled()
+            val poolSize = shuffledPool.size
+            
+            // keywordId 기준으로 중복 제거된 목록만 순회해야 함 (동일 키워드는 같은 아이콘)
+            // (입력 items에 동일 키워드가 중복되어 있을 수 있으므로)
+            val uniqueItems = categoryItems.distinctBy { it.keywordId }
+
+            uniqueItems.forEachIndexed { index, item ->
+                // Round-robin selection
+                val resId = shuffledPool[index % poolSize]
+                assignment[item.keywordId] = resId
+            }
+        } else {
+            // 풀이 없으면 기본 아이콘
+            categoryItems.forEach { assignment[it.keywordId] = defaultPlanetRes }
+        }
+    }
+    return assignment
+}
+
 
 // collectionSize 기반 크기
 // collectionSize 기반 크기 (사용자 요청: 좀 더 크게)
@@ -106,6 +142,10 @@ fun buildPlanetsUiLaneLayout(
     
     // 1. 큰 것부터 배치 (내림차순 정렬) - 사용자 요청
     val sortedItems = limited.sortedByDescending { it.collectionSize }
+
+    // [Fix] Planet Diversity Algorithm
+    // 카테고리별로 골고루 배정된 매핑 테이블 생성
+    val planetMap = assignDiversePlanets(limited)
 
     sortedItems.forEach { item ->
         val baseSize = sizeFromCollectionSize(item.collectionSize)
@@ -230,9 +270,8 @@ fun buildPlanetsUiLaneLayout(
             placedBoxes.add(PlacedBox(cLeft, cTop, cRight, cBottom))
         }
 
-        // [Fix] Use shared stable logic instead of local round-robin
-        // This ensures the planet matches what is shown in SlideshowDialog and elsewhere.
-        val planetRes = pickStablePlanetRes(item.categoryValue, item.keywordId)
+        // [Fix] Use the diverse map
+        val planetRes = planetMap[item.keywordId] ?: defaultPlanetRes
         val label = item.keywordValue.takeIf{ it.isNotBlank() } ?: item.categoryValue
 
         planets.add(

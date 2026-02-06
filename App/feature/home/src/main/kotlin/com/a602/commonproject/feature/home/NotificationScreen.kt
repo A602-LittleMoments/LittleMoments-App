@@ -183,6 +183,10 @@ fun NotificationItem(item: NotificationEntity) {
          iconBgColor = Color(0xFFFFF8E1) 
     }
 
+    // 시간 포맷팅
+    val timeFormat = java.text.SimpleDateFormat("a h:mm", java.util.Locale.KOREA)
+    val formattedTime = timeFormat.format(java.util.Date(item.timestamp))
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = com.a602.commonproject.designsystem.theme.lightbackground), // OffWhite
@@ -232,16 +236,29 @@ fun NotificationItem(item: NotificationEntity) {
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                // 제목 (한 줄 제한)
-                Text(
-                    text = item.title,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                )
-                
+                // 제목 (한 줄 제한) + 시간 (우측 정렬)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = item.title,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false) // 제목이 너무 길면 줄어들도록
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = formattedTime,
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(4.dp))
                 
                 // 내용 (한 줄 제한)
@@ -254,6 +271,62 @@ fun NotificationItem(item: NotificationEntity) {
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                 }
+            }
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun PreviewNotificationItem() {
+    com.a602.commonproject.designsystem.theme.LMTheme {
+        Column(modifier = Modifier.padding(10.dp)) {
+            NotificationItem(
+                item = NotificationEntity(
+                    id = "1",
+                    title = "새로운 추억이 도착했습니다",
+                    body = "아이와의 소중한 순간을 확인해보세요.",
+                    timestamp = System.currentTimeMillis(),
+                    type = "MEMORY",
+                    isRead = false
+                )
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            NotificationItem(
+                item = NotificationEntity(
+                    id = "2",
+                    title = "하이라이트 생성 완료",
+                    body = "멋진 하이라이트 영상이 만들어졌어요!",
+                    timestamp = System.currentTimeMillis() - 3600000, // 1 hour ago
+                    type = "HIGHLIGHT",
+                    isRead = true
+                )
+            )
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun PreviewNotificationScreen() {
+    com.a602.commonproject.designsystem.theme.LMTheme {
+        val now = System.currentTimeMillis()
+        val dummyNotifications = listOf(
+            // 오늘
+            NotificationEntity(id = "1", title = "오늘의 추억", body = "오늘 찍은 사진을 확인하세요.", timestamp = now - 3600000, type = "MEMORY", isRead = false),
+            // 이번주 (2일 전)
+            NotificationEntity(id = "2", title = "이번주 하이라이트", body = "멋진 영상이 준비되었습니다.", timestamp = now - (2 * 86400000), type = "HIGHLIGHT", isRead = true),
+            // 이전 알림 (10일 전)
+            NotificationEntity(id = "3", title = "오래된 알림", body = "지난 추억을 되돌아보세요.", timestamp = now - (10 * 86400000), type = "FAMILY", isRead = true)
+        )
+        
+        Scaffold(
+            topBar = {
+                LMTopAppBar(title = "알림", navigationIcon = LMicons.Back, onNavigationClick = {})
+            }
+        ) { padding ->
+            Box(modifier = Modifier.padding(padding)) {
+                NotificationList(notifications = dummyNotifications)
             }
         }
     }

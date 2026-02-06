@@ -183,39 +183,46 @@ private fun SlideshowCreationDialogContent(
                         if (uniqueKeywords.isEmpty()) {
                             Text("생성된 추억 행성이 없습니다.", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
                         } else {
+                            // Diverse Planet Assignment
+                            val diversePlanetMap = remember(uniqueKeywords) {
+                                assignDiversePlanets(uniqueKeywords)
+                            }
+                            
                             LazyRow(
                                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                items(uniqueKeywords) { item ->
-                                    // [Fix] Use keywordId for logic, keywordValue for display
-                                    val isSelected = selectedKeyword == item.keywordId
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier
-                                            .width(110.dp) // 80 -> 110
-                                            .clickable { onKeywordSelect(item.keywordId) }
-                                            .scaleEffect(isSelected)
-                                    ) {
-                                        Box(
+                                    items(uniqueKeywords) { item ->
+                                        // [Fix] Use keywordId for logic, keywordValue for display
+                                        val isSelected = selectedKeyword == item.keywordId
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
                                             modifier = Modifier
-                                                .size(100.dp) // 76 -> 100
-                                                .border(
-                                                    width = if (isSelected) 3.dp else 0.dp,
-                                                    color = if (isSelected) com.a602.commonproject.designsystem.theme.main else Color.Transparent,
-                                                    shape = CircleShape
-                                                )
-                                                .padding(8.dp) // 6 -> 8
+                                                .width(110.dp) // 80 -> 110
+                                                .clickable { onKeywordSelect(item.keywordId) }
+                                                .scaleEffect(isSelected)
                                         ) {
-                                            Image(
-                                                painter = painterResource(id = pickStablePlanetRes(item.categoryValue, item.keywordId)),
-                                                contentDescription = null,
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentScale = ContentScale.Fit
-                                            )
-                                        }
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(100.dp) // 76 -> 100
+                                                    .border(
+                                                        width = if (isSelected) 3.dp else 0.dp,
+                                                        color = if (isSelected) com.a602.commonproject.designsystem.theme.main else Color.Transparent,
+                                                        shape = CircleShape
+                                                    )
+                                                    .padding(8.dp) // 6 -> 8
+                                            ) {
+                                                // [Fix] Use diverse map
+                                                val planetRes = diversePlanetMap[item.keywordId] ?: DsR.drawable.planet
+                                                Image(
+                                                    painter = painterResource(id = planetRes),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = ContentScale.Fit
+                                                )
+                                            }
                                         Spacer(modifier = Modifier.height(12.dp)) // 8 -> 12
                                         Text(
                                             text = item.keywordValue,
