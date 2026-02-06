@@ -279,6 +279,9 @@ class OfflineFirstSlideshowRepository @Inject constructor(
                         onProgress(1f)
                     }
 
+                    // 📸 갤러리에도 저장 (Movies/아이랑나랑)
+                    saveVideoToGallery(finalFile)
+
                     Result.success(finalFile)
                 } else {
                     throw Exception("파일 저장 중 오류 발생 (Rename Failed)")
@@ -318,7 +321,34 @@ class OfflineFirstSlideshowRepository @Inject constructor(
 
     // 🔒 헬퍼: 그룹 ID 조회
     private suspend fun getGroupIdOrThrow(): String =
-    userPreferences.userGroupId.first()
+        userPreferences.userGroupId.first()
             ?: throw IllegalStateException("그룹 정보가 없습니다.")
+
+    // 🔒 헬퍼: 비디오 갤러리 저장
+    private suspend fun saveVideoToGallery(videoFile: File): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (!videoFile.exists()) return@withContext false
+
+                val resolver = context.contentResolver
+                val contentValues = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "CommonProject_Highlight_${System.currentTimeMillis()}.mp4")
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/아이랑나랑")
+                }
+
+                val uri = resolver.insert(android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues)
+                    ?: return@withContext false
+
+                resolver.openOutputStream(uri)?.use { outputStream ->
+                    java.io.FileInputStream(videoFile).copyTo(outputStream)
+                }
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+        }
+    }
 }
 

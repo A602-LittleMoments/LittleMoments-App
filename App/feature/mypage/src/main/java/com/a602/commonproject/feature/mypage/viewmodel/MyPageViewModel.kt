@@ -91,6 +91,10 @@ class MyPageViewModel @Inject constructor(
     private val groupRepository: GroupRepository // 그룹 데이터
 ) : ViewModel() {
 
+    fun onLogoutComplete() {
+        _localState.update { it.copy(isLogoutSuccess = false) }
+    }
+
     fun logout() {
         viewModelScope.launch {
             _localState.update { it.copy(isLoggingOut = true) }

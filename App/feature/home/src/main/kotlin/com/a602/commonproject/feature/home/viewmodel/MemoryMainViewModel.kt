@@ -28,11 +28,12 @@ class MemoryMainViewModel @Inject constructor(
     val sideEffect: SharedFlow<MemoryMainSideEffect> = _sideEffect.asSharedFlow()
 
     init {
-        loadCollections()
+        refreshCollections()
     }
 
-    private fun loadCollections() {
+    fun refreshCollections() {
         viewModelScope.launch {
+            // [Fix] Clear existing data to prevent showing stale planets from previous user
             _uiState.value = MemoryMainUiState.Loading
 
             collectionRepository.getCollections(limit = 7)
@@ -40,14 +41,10 @@ class MemoryMainViewModel @Inject constructor(
                     if (list.isEmpty()) {
                         _uiState.value = MemoryMainUiState.Empty
                     } else {
-                        // "Make" state might be for "Creating Memory..." animation
-                        // [Fix] Remove artificial delay and loading screen
                         _uiState.value = MemoryMainUiState.Main(list)
                     }
                 }
                 .onFailure {
-                    // [Fix] Offline Support: Even if collections fail, show Main screen so buttons work.
-                    // We can log the error or show a Snackbar later if needed.
                     _uiState.value = MemoryMainUiState.Main(emptyList()) 
                 }
         }

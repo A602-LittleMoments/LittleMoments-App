@@ -70,6 +70,7 @@ fun MyPageMainContainer(navigator: Navigator, viewModel: MyPageViewModel =hiltVi
     // 로그아웃 성공 시 로그인 화면으로 이동
     LaunchedEffect(uiState.isLogoutSuccess) {
         if (uiState.isLogoutSuccess) {
+            viewModel.onLogoutComplete()
             navigator.replaceRoot(LoginNavKey)
         }
     }

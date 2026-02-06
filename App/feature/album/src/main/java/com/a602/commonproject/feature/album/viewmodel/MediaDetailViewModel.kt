@@ -302,10 +302,10 @@ class MediaDetailViewModel @Inject constructor(
 
                     actionState.update { it.copy(isDownloading = false, downloadSuccess = true) }
                 } else if (!localUriPath.isNullOrBlank()) {
-                    // 2. Local File -> Save to Gallery
-                    val success = withContext(Dispatchers.IO) {
-                        saveLocalFileToGallery(localUriPath, media.id)
-                    }
+                    // 2. Local File -> Save to Gallery (Use Shared Repository Logic)
+                    // ✨ [Refactor] 공통 로직 사용 및 결과 처리
+                    val success = tempRepository.saveImageToGallery(localUriPath, media.subLocalUri)
+                    
                     if (success) {
                         actionState.update { it.copy(isDownloading = false, downloadSuccess = true) }
                     } else {
@@ -323,32 +323,6 @@ class MediaDetailViewModel @Inject constructor(
                     )
                 }
             }
-        }
-    }
-
-    private suspend fun saveLocalFileToGallery(localPath: String, mediaId: String): Boolean {
-        return try {
-            val sourceFile = File(localPath)
-            if (!sourceFile.exists()) return false
-
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, "a602_${mediaId}_${System.currentTimeMillis()}.jpg")
-                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-            }
-
-            val resolver = context.contentResolver
-            val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return false
-
-            resolver.openOutputStream(uri)?.use { outputStream ->
-                sourceFile.inputStream().use { inputStream ->
-                    inputStream.copyTo(outputStream)
-                }
-            }
-            true
-        } catch (e: IOException) {
-            e.printStackTrace()
-            false
         }
     }
 

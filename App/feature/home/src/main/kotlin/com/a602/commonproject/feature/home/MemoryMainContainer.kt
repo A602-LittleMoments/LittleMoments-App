@@ -57,6 +57,13 @@ fun MemoryMainContainer(
         }
     }
 
+    // [Fix] Refresh Data on Screen Entry
+    // This ensures that if the user logged out and back in (and ViewModel was reused),
+    // we fetch fresh data instead of showing old user's planets.
+    LaunchedEffect(Unit) {
+        viewModel.refreshCollections()
+    }
+
     // Status Bar 색상 제어 (이 화면에서는 흰색 아이콘 사용)
     // Status Bar 색상 및 아이콘은 이제 글로벌 테마(Theme.kt)에서 관리합니다.
     // NavyBlue 배경 + White 아이콘으로 통일되었습니다.
