@@ -1,7 +1,8 @@
 package com.a602.coommonproject.ui
 
-import Polaroid
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -28,6 +29,7 @@ import coil.compose.AsyncImage
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import Polaroid
 
 @Composable
 fun GridPolaroid(
@@ -76,11 +78,15 @@ fun GalleryGridPolaroid(
 }
 
 // 🚀 [NEW] 프레임 없는 사진 아이템 (사용자 요청)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FramelessPhotoItem(
     media: SharedMedia,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
+    isSelectMode: Boolean = false,
+    isSelected: Boolean = false,
+    onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {}
 ) {
     // Polaroid.kt의 내부 로직 재사용 (프레임만 제거)
     // 썸네일 우선 사용
@@ -93,7 +99,10 @@ fun FramelessPhotoItem(
             .aspectRatio(3f / 4f)
             .clip(RoundedCornerShape(12.dp)) // Round applied
             .background(Color.LightGray) // 로딩 전 배경
-            .clickable { onClick() }
+            .combinedClickable(
+                onClick = { onClick() },
+                onLongClick = { onLongClick() }
+            )
     ) {
         // Rear (Main)
         AsyncImage(
@@ -124,6 +133,38 @@ fun FramelessPhotoItem(
                 contentScale = ContentScale.Crop
             )
         }
+
+        // 🚀 [ADD] Selection UI
+        if (isSelectMode) {
+            // Selected Overlay
+            if (isSelected) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.2f))
+                )
+            }
+
+            // Checkbox
+            Surface(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .size(24.dp)
+                    .align(Alignment.TopStart),
+                shape = CircleShape,
+                color = if (isSelected) main else Color.White.copy(alpha = 0.7f),
+                border = BorderStroke(1.dp, if (isSelected) main else Color.LightGray)
+            ) {
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -131,15 +172,18 @@ fun FramelessPhotoItem(
 fun GalleryGridFrameless(
     medias: List<SharedMedia>,
     modifier: Modifier = Modifier,
+    isSelectMode: Boolean = false,
+    selectedIds: Set<String> = emptySet(),
     state: androidx.compose.foundation.lazy.grid.LazyGridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState(),
-    contentPadding: PaddingValues = PaddingValues(12.dp), // 🚀 [FIX] Added parameter with default
-    onClick: (SharedMedia) -> Unit = {}
+    contentPadding: PaddingValues = PaddingValues(12.dp),
+    onClick: (SharedMedia) -> Unit = {},
+    onLongClick: (SharedMedia) -> Unit = {}
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = modifier.fillMaxSize(),
         state = state,
-        contentPadding = contentPadding, // 🚀 [FIX] Use the parameter
+        contentPadding = contentPadding,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -149,7 +193,10 @@ fun GalleryGridFrameless(
         ) { item ->
             FramelessPhotoItem(
                 media = item,
-                onClick = { onClick(item) }
+                isSelectMode = isSelectMode,
+                isSelected = selectedIds.contains(item.id),
+                onClick = { onClick(item) },
+                onLongClick = { onLongClick(item) }
             )
         }
     }

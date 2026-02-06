@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material3.Surface
 import coil.compose.AsyncImage
 import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.component.LMNavigationDefaults.NavigationBarHeight
@@ -76,6 +77,7 @@ import com.a602.commonproject.designsystem.theme.lightbackground
 import com.a602.commonproject.designsystem.theme.lightblue
 import com.a602.commonproject.designsystem.theme.main
 import com.a602.commonproject.feature.album.viewmodel.CalendarViewModel
+import com.a602.commonproject.feature.album.viewmodel.SortOrder
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.model.data.SharedMedia.SyncStatus.SYNCED
 import java.time.Instant
@@ -91,7 +93,12 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import kotlinx.coroutines.launch
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun CalendarRoute(
@@ -110,6 +117,8 @@ fun CalendarRoute(
         uiState.error != null -> Text(uiState.error!!)
         else -> CalendarScreen(
             medias = uiState.medias,
+            sortOrder = uiState.sortOrder,
+            onToggleSort = viewModel::toggleSortOrder,
             onDateClick = onDateClick,
             onGridClick = onGridClick,
             onTempAlbumClick = onTempAlbumClick,
@@ -190,7 +199,9 @@ fun GalleryToggleRow(
         Row(
             modifier = Modifier
                 .height(48.dp)
-                .background(com.a602.commonproject.designsystem.theme.background.copy(alpha = 0.9f), CircleShape)
+                .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+                .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp))
                 .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -215,19 +226,31 @@ fun GalleryToggleRow(
 
         // Right Action Buttons
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Temp Album Button
-            Box(
+            // Temp Album Button (Shooting Star & Text for better intuition)
+            Row(
                 modifier = Modifier
-                    .size(48.dp)
-                    .background(com.a602.commonproject.designsystem.theme.background.copy(alpha = 0.9f), CircleShape)
-                    .clickable(onClick = onTempAlbum),
-                contentAlignment = Alignment.Center
+                    .height(48.dp)
+                    .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(24.dp))
+                    .clickable(onClick = onTempAlbum)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.temporary),
-                    contentDescription = "임시 앨범",
-                    tint = com.a602.commonproject.designsystem.theme.main,
-                    modifier = Modifier.size(28.dp)
+                    imageVector = Icons.Default.AutoAwesome, // 반짝이는 별 (별똥별 느낌)
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "한달 앨범",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    ),
+                    color = Color.White
                 )
             }
         }
@@ -242,7 +265,7 @@ fun GalleryToggleButton(
     description: String
 ) {
     val backgroundColor = if (isActive) com.a602.commonproject.designsystem.theme.main else Color.Transparent
-    val iconColor = if (isActive) Color.White else Color.Gray
+    val iconColor = if (isActive) Color.White else Color.White.copy(alpha = 0.6f)
 
     Box(
         modifier = Modifier
@@ -264,6 +287,8 @@ fun GalleryToggleButton(
 @Composable
 fun CalendarScreen(
     medias: List<SharedMedia>,
+    sortOrder: SortOrder,
+    onToggleSort: () -> Unit,
     initialMonth: YearMonth = YearMonth.now(),
     onDateClick: (LocalDate) -> Unit,
     onGridClick: () -> Unit,
@@ -273,11 +298,13 @@ fun CalendarScreen(
 ) {
     val scope = rememberCoroutineScope()
     val baseMonth = remember { initialMonth }
-    val centerPage = 100
+    val centerPage = 1000 // 범위를 1000으로 늘려 약 80년 전후를 커버
     val pagerState = rememberPagerState(
         initialPage = centerPage,
-        pageCount = { 200 }
+        pageCount = { 2000 }
     )
+
+    var showDatePicker by remember { mutableStateOf(false) }
 
     // Local state for view mode
     var isCalendarMode by rememberSaveable { mutableStateOf(true) }
@@ -326,8 +353,8 @@ fun CalendarScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                // 상단 버튼과 위의 거리
-                Spacer(Modifier.height(24.dp))
+                // 상단 버튼과 위의 거리 (MemoryScreen의 padding 16.dp와 일치)
+                Spacer(Modifier.height(16.dp))
 
                 GalleryToggleRow(
                     isCalendarMode = isCalendarMode,
@@ -379,14 +406,22 @@ fun CalendarScreen(
                                 val currentMonth = baseMonth.plusMonths(
                                     pagerState.currentPage - centerPage.toLong()
                                 )
-                                Text(
-                                    text = "${currentMonth.year}년 ${currentMonth.monthValue}월",
-                                    style = MaterialTheme.typography.titleLarge.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 22.sp
-                                    ),
-                                    color = Color.White
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable { showDatePicker = true }
+                                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "${currentMonth.year}년 ${currentMonth.monthValue}월",
+                                        style = MaterialTheme.typography.titleLarge.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 22.sp
+                                        ),
+                                        color = Color.White
+                                    )
+                                }
 
                                 IconButton(
                                     onClick = {
@@ -437,6 +472,8 @@ fun CalendarScreen(
                         {
                             DateGroupedGridView(
                                 medias = medias,
+                                sortOrder = sortOrder,
+                                onToggleSort = onToggleSort,
                                 onMediaClick = onMediaClick
                             )
                         }
@@ -444,23 +481,46 @@ fun CalendarScreen(
                 }
             }
         }
-        }
     }
+
+    if (showDatePicker) {
+        val currentMonth = baseMonth.plusMonths(pagerState.currentPage - centerPage.toLong())
+        MonthYearPickerDialog(
+            initialMonth = currentMonth,
+            onDismissRequest = { showDatePicker = false },
+            onDateSelected = { selected ->
+                val diff = ChronoUnit.MONTHS.between(baseMonth, selected).toInt()
+                scope.launch {
+                    pagerState.scrollToPage(centerPage + diff)
+                }
+                showDatePicker = false
+            }
+        )
     }
+}
+}
 }
 
 @Composable
 fun DateGroupedGridView(
     medias: List<SharedMedia>,
+    sortOrder: SortOrder,
+    onToggleSort: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit
 ) {
     // Group medias by date string (e.g. "2026.02.02")
-    val grouped = remember(medias) {
-        medias.groupBy {
+    val grouped = remember(medias, sortOrder) {
+        val g = medias.groupBy {
             val date = Instant.ofEpochMilli(it.dateTaken)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate()
             "${date.year}.${String.format("%02d", date.monthValue)}.${String.format("%02d", date.dayOfMonth)}"
+        }
+        // 헤더(날짜 문자열) 정렬도 반영
+        if (sortOrder == SortOrder.LATEST) {
+            g.toSortedMap(compareByDescending { it })
+        } else {
+            g.toSortedMap(compareBy { it })
         }
     }
 
@@ -475,9 +535,26 @@ fun DateGroupedGridView(
         verticalArrangement = Arrangement.spacedBy(16.dp), // 사진 간 세로 간격
         horizontalArrangement = Arrangement.spacedBy(12.dp), // 사진 간 가로 간격
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp 
+            start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp
         ) // 안쪽 영역에 닿지 않게 충분한 여백
     ) {
+        // Sort Button
+        item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(3) }) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    text = if (sortOrder == SortOrder.LATEST) "최신순 ↓" else "오래된순 ↑",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier
+                        .clickable(onClick = onToggleSort)
+                        .padding(8.dp)
+                )
+            }
+        }
+
         grouped.forEach { (dateHeader, dateMedias) ->
             // Header Item
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(3) }) {
@@ -659,6 +736,8 @@ fun CalendarScreenPreview() {
 
         CalendarScreen(
             medias = sampleMedias,
+            sortOrder = SortOrder.LATEST,
+            onToggleSort = {},
             initialMonth = YearMonth.now(),
             onDateClick = {},
             onGridClick = {},
@@ -703,6 +782,109 @@ fun Modifier.simpleVerticalScrollbar(
                 alpha = alpha,
                 cornerRadius = CornerRadius(width.toPx())
             )
+        }
+    }
+}
+@Composable
+fun MonthYearPickerDialog(
+    initialMonth: YearMonth,
+    onDismissRequest: () -> Unit,
+    onDateSelected: (YearMonth) -> Unit
+) {
+    var selectedYear by remember { mutableStateOf(initialMonth.year) }
+    var selectedMonth by remember { mutableStateOf(initialMonth.monthValue) }
+
+    val years = remember { (2000..2100).toList() }
+    val months = remember { (1..12).toList() }
+
+    val yearListState = rememberLazyListState(initialFirstVisibleItemIndex = years.indexOf(selectedYear).coerceAtLeast(0))
+    val monthListState = rememberLazyListState(initialFirstVisibleItemIndex = months.indexOf(selectedMonth).coerceAtLeast(0))
+
+    Dialog(onDismissRequest = onDismissRequest) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = com.a602.commonproject.designsystem.theme.lightbackground,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            shadowElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "이동할 날짜 선택",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = com.a602.commonproject.designsystem.theme.color3,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    // Year List
+                    LazyColumn(
+                        state = yearListState,
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        items(years) { year ->
+                            val isSelected = year == selectedYear
+                            Text(
+                                text = "${year}년",
+                                style = if (isSelected) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
+                                color = if (isSelected) main else com.a602.commonproject.designsystem.theme.color4.copy(alpha = 0.6f),
+                                modifier = Modifier
+                                    .padding(vertical = 12.dp)
+                                    .clickable { selectedYear = year }
+                            )
+                        }
+                    }
+
+                    // Month List
+                    LazyColumn(
+                        state = monthListState,
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        items(months) { month ->
+                            val isSelected = month == selectedMonth
+                            Text(
+                                text = "${month}월",
+                                style = if (isSelected) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
+                                color = if (isSelected) main else com.a602.commonproject.designsystem.theme.color4.copy(alpha = 0.6f),
+                                modifier = Modifier
+                                    .padding(vertical = 12.dp)
+                                    .clickable { selectedMonth = month }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    androidx.compose.material3.TextButton(onClick = onDismissRequest) {
+                        Text("취소", color = com.a602.commonproject.designsystem.theme.color3)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    androidx.compose.material3.Button(
+                        onClick = { onDateSelected(YearMonth.of(selectedYear, selectedMonth)) },
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = main)
+                    ) {
+                        Text("선택", color = Color.White)
+                    }
+                }
+            }
         }
     }
 }

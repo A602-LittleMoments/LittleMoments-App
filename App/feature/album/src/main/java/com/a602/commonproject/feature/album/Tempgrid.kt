@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -49,9 +50,9 @@ fun TempImageGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 80.dp), // 하단 버튼 가림 방지
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 16.dp, bottom = 80.dp), // 여백 조정
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(
             items = medias,
@@ -62,20 +63,38 @@ fun TempImageGrid(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f)
+                    .aspectRatio(3f / 4f)
+                    .clip(RoundedCornerShape(12.dp)) // 🚀 8dp에서 12dp로 메인 갤러리와 통일
                     .background(Color.LightGray) // 로딩 전 배경
                     .combinedClickable(
                         onClick = { onClick(media) },
                         onLongClick = { onLongClick(media) }
                     )
             ) {
-                // 이미지
+                // 1. 후면 이미지 (Rear)
                 AsyncImage(
                     model = media.localUri,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
+
+                // 2. 전면 이미지 (Front / PIP) - 있으면 표시
+                if (media.subLocalUri != null) {
+                    AsyncImage(
+                        model = media.subLocalUri,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(6.dp)
+                            .width(32.dp) // 너비 설정
+                            .aspectRatio(3f / 4f) // 🚀 [FIX] PIP도 3:4 비율 적용
+                            .clip(RoundedCornerShape(4.dp))
+                            .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                            .background(Color.Black.copy(alpha = 0.3f)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
                 // 선택 모드일 때만 오버레이 표시
                 if (isSelectMode) {

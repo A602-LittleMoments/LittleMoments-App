@@ -142,7 +142,7 @@ fun TempGridGallery(
         )
         Column(modifier = Modifier.fillMaxSize()) {
             LMTopAppBar(
-                title = "임시 앨범",
+                title = "한달 앨범",
                 navigationIcon = LMicons.Back,
                 onNavigationClick = onBackClick,
             )
@@ -158,7 +158,7 @@ fun TempGridGallery(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "30일 뒤 사라질 우리들의 순간을 담아봐요",
+                    text = "공유 앨범에 저장하지 않으면\n30일 후 삭제됩니다",
                     style = MaterialTheme.typography.bodyLarge,
                     color = background.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
@@ -179,6 +179,7 @@ fun TempGridGallery(
                 ) {
                     if (medias.isNotEmpty()) {
                         // 전체 선택 / 해제 버튼
+                        // 1. [전체선택] 버튼 - 선택 모드일 때만 왼쪽 상단에 옵션으로 등장
                         if (isSelectMode) {
                             FillWrapButton(
                                 onClick = {
@@ -192,24 +193,9 @@ fun TempGridGallery(
                                 text = if (selectedIds.size == medias.size) "선택해제" else "전체선택",
                                 modifier = Modifier.align(Alignment.CenterStart),
                             )
-                        } else {
-                            // 일반 모드일 때는 전체 선택 버튼 (Design Guide image 1 - Left button seems to be '전체선택' even in normal mode?
-                            // Or maybe it's cleaner to show it only when relevant.
-                            // The user said "임의의 사진 하나를 꾹 누르면...".
-                            // Let's keep "전체선택" visible if desired, or maybe just "Select" button.
-                            // Image 1 shows "전체선택" on left and "선택" on right.
-                             FillWrapButton(
-                                onClick = {
-                                    isSelectMode = true
-                                    selectedIds.clear()
-                                    selectedIds.addAll(medias.map { it.id })
-                                },
-                                text = "전체선택",
-                                modifier = Modifier.align(Alignment.CenterStart),
-                            )
                         }
 
-                        // 선택 / 취소 버튼
+                        // 2. [선택 / 취소] 버튼 - 항상 우측에 위치
                         FillWrapButton(
                             onClick = {
                                 isSelectMode = !isSelectMode
@@ -366,7 +352,7 @@ fun TempAlbumEmptyState(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "임시 앨범이 비어있어요",
+                text = "한달 앨범이 비어있어요",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.ExtraBold,
                     shadow = Shadow(
@@ -386,7 +372,7 @@ fun TempAlbumEmptyState(
             )
 
             Text(
-                text = "촬영한 사진이 임시로 저장되며\n가족 앨범에 고스란히 공유할 수 있어요.",
+                text = "촬영한 사진이 임시로 저장되며\n공유 앨범에 고스란히 공유할 수 있어요.",
                 style = MaterialTheme.typography.bodyLarge.copy(
                     shadow = Shadow(
                         color = main.copy(alpha = 0.5f),

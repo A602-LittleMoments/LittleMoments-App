@@ -55,7 +55,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import coil.compose.AsyncImagePainter.State.Empty.painter
+
 
 // import com.a602.coommonproject.ui.SharedMediaDetailScreen // REMOVED
 

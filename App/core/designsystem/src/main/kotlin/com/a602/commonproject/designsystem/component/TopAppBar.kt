@@ -32,6 +32,7 @@ fun LMTopAppBar(
     colors: TopAppBarColors = LMTopAppBarDefaults.colors(),
     onNavigationClick: () -> Unit = {},
     onActionClick: () -> Unit = {},
+    actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {},
 ) {
     val view = androidx.compose.ui.platform.LocalView.current
     if (!view.isInEditMode) {
@@ -67,6 +68,7 @@ fun LMTopAppBar(
             }
         },
         actions = {
+            actions()
             actionIcon?.let {
                 IconButton(onClick = onActionClick) {
                     Icon(
