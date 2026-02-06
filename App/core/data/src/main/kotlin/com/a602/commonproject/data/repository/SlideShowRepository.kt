@@ -13,7 +13,10 @@ interface SlideshowRepository {
     // 2. 목록 새로고침 (서버 -> DB 동기화)
     suspend fun refreshSlideshows(): Result<Unit>
 
-    // 3. 슬라이드쇼 생성 요청
+    // 7.1 슬라이드쇼 생성 (타이틀 = 생성 소스 라벨)
+    suspend fun createSlideshow(request: CreateSlideshowRequest, title: String): Result<Unit>
+
+    // 7.1-2 [Overload] 기존 코드 호환용 (기본 타이틀 사용)
     suspend fun createSlideshow(request: CreateSlideshowRequest): Result<Unit>
 
     // 4. 상세 정보 갱신 (제작 상태 확인용 polling 등)

@@ -61,6 +61,7 @@ fun LMApp(
     // Dark Background Screens (Home, Gallery, Baby, Camera) -> White Icons (isAppearanceLightStatusBars = false)
     // Light Background Screens (MyPage, Login, etc.) -> Black Icons (isAppearanceLightStatusBars = true)
     val currentKey = appState.navigationState.currentKey
+    // [Fix] Added HighlightResultNavKey to use White Icons (Dark Theme)
     val useDarkIcons = when (currentKey) {
         MemoryNavKey, GalleryNavKey, GridNavKey, BabyNavKey, CameraNavKey, MyPageNavKey -> false
         else -> true

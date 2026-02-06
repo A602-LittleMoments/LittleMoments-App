@@ -37,6 +37,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.sp
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.model.data.Collection
 import com.a602.commonproject.designsystem.R
@@ -69,7 +70,8 @@ fun MemoryScreen(
         val bottomReservedSpace = 340.dp // [Fix] Increased to avoid overlap with higher buttons
 
         // 5. Layout Calculation on Background Thread
-        val layoutSeed = remember { kotlin.random.Random.nextLong() }
+        // [Fix] Use rememberSaveable to keep the layout consistent across navigation/recomposition
+        val layoutSeed = androidx.compose.runtime.saveable.rememberSaveable { kotlin.random.Random.nextLong() }
         val layout by produceState<PlanetLayoutResult?>(initialValue = null, items, maxWidth, maxHeight, layoutSeed) {
             value = withContext(Dispatchers.Default) {
                 buildPlanetsUiLaneLayout(
@@ -79,7 +81,7 @@ fun MemoryScreen(
                     bottomSafeArea = 60.dp,
                     topSafeArea = 100.dp,
                     seed = layoutSeed
-                    
+
                 )
             }
         }
@@ -323,13 +325,18 @@ private fun MovingPlanetItem(
         }
         Spacer(Modifier.height(6.dp))
 
+        // 2줄 허용 및 글자 수에 따른 크기 조절
+        val isLongText = p.label.length > 4
+
         Text(
             text = p.label,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyLarge.copy(
+            lineHeight = if (isLongText) 18.sp else 24.sp,
+            style = (if (isLongText) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge).copy(
+                fontWeight = FontWeight.Bold,
                 color = Color.White,
                 shadow = androidx.compose.ui.graphics.Shadow(
                     color = Color.Black,

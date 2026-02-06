@@ -85,6 +85,11 @@
             </intent-filter>
         </service>
 
+        <!-- [Fix] 알림 아이콘 설정 (푸시 알림 올 때 기본 아이콘) -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification_rocket" />
+
     </application>
 
 </manifest>

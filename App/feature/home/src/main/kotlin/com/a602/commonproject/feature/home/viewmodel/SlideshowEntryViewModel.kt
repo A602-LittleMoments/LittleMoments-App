@@ -28,38 +28,45 @@ class SlideshowEntryViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                val apiRequest = when (request) {
+                val (apiRequest, title) = when (request) {
                     is SlideshowRequest.ByKeyword -> {
                         // 키워드(행성) 기반 슬라이드쇼 생성
-                        CreateSlideshowRequest(
-                            projectType = "KEYWORD",
-                            startDate = null,
-                            endDate = null,
-                            keywordId = request.keyword
+                        Pair(
+                            CreateSlideshowRequest(
+                                projectType = "KEYWORD",
+                                startDate = null,
+                                endDate = null,
+                                keywordId = request.keyword
+                            ),
+                            request.label // "웃음"
                         )
                     }
                     is SlideshowRequest.ByDateRange -> {
                         // 날짜 범위 기반 슬라이드쇼 생성
+                        // [Fix] DateRangePicker returns UTC start-of-day. Use UTC to preserve the selected date.
                         val startDate = Instant.ofEpochMilli(request.startDate)
-                            .atZone(ZoneId.systemDefault())
+                            .atZone(ZoneId.of("UTC"))
                             .toLocalDate()
                             .toString()
 
                         val endDate = Instant.ofEpochMilli(request.endDate)
-                            .atZone(ZoneId.systemDefault())
+                            .atZone(ZoneId.of("UTC"))
                             .toLocalDate()
                             .toString()
 
-                        CreateSlideshowRequest(
-                            projectType = "PERIOD",
-                            startDate = startDate,
-                            endDate = endDate,
-                            keywordId = null
+                        Pair(
+                            CreateSlideshowRequest(
+                                projectType = "PERIOD",
+                                startDate = startDate,
+                                endDate = endDate,
+                                keywordId = null
+                            ),
+                            request.label // "2023.01.01 ~ 2023.01.31"
                         )
                     }
                 }
 
-                slideshowRepository.createSlideshow(apiRequest)
+                slideshowRepository.createSlideshow(apiRequest, title)
                     .onSuccess {
                         onSuccess()
                     }

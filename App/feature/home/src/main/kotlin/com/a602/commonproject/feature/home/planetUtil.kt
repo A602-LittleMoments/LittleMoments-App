@@ -41,15 +41,16 @@ internal fun pickStablePlanetRes(categoryValue: String, keywordId: String): Int 
     return pool[stableIndex(keywordId, pool.size)]
 }
 
+
 // collectionSize 기반 크기
 // collectionSize 기반 크기 (사용자 요청: 좀 더 크게)
 private fun sizeFromCollectionSize(size: Int): Dp = when {
-    size >= 200 -> 150.dp // 120 -> 150
-    size >= 100 -> 130.dp // 100 -> 130
-    size >= 50 -> 110.dp  // 80 -> 110
-    size >= 20 -> 94.dp   // 70 -> 94
-    size >= 10 -> 80.dp   // 60 -> 80
-    else -> 70.dp         // 50 -> 70
+    size >= 200 -> 180.dp // 150 -> 180
+    size >= 100 -> 160.dp // 130 -> 160
+    size >= 50 -> 140.dp  // 110 -> 140
+    size >= 20 -> 120.dp   // 94 -> 120
+    size >= 10 -> 100.dp   // 80 -> 100
+    else -> 90.dp         // 70 -> 90
 }
 
 /**
@@ -74,18 +75,9 @@ fun buildPlanetsUiLaneLayout(
     // 스크롤 가능 영역 계산 단순화: 기본 높이 아니면 컨텐츠 기반 높이
 
     // 0. 아이콘 중복 최소화 (Round-Robin 배정)
-    val assignedIcons = mutableMapOf<String, Int>()
-    val grouped = limited.groupBy { it.categoryValue }
-    
-    grouped.forEach { (category, items) ->
-        val sortedItems = items.sortedBy { it.keywordId }
-        val pool = categoryToPlanetPool[category].orEmpty()
-        if (pool.isNotEmpty()) {
-            sortedItems.forEachIndexed { index, item ->
-                assignedIcons[item.keywordId] = pool[index % pool.size]
-            }
-        }
-    }
+    // 0. 아이콘 중복 최소화 로직 제거 (Dialog와 일치를 위해 pickStablePlanetRes 사용)
+    // val assignedIcons = mutableMapOf<String, Int>()
+    // val grouped = limited.groupBy { it.categoryValue } ... (removed)
     
     val count = limited.size
     
@@ -106,9 +98,9 @@ fun buildPlanetsUiLaneLayout(
     val placedBoxes = mutableListOf<PlacedBox>()
     val planets = mutableListOf<KeywordPlanetUi>()
     
-    val labelHeight = 32.dp.value // 24dp -> 32dp (여유분 확보)
-    val margin = 4.dp.value 
-    
+    val labelHeight = 80.dp.value // [Fix] Increased even more (60 -> 80)
+    val margin = 8.dp.value // Increased margin
+
     val calculatedSeed = seed ?: limited.sumOf { it.keywordId.hashCode() }.toLong()
     val rng = Random(calculatedSeed)
     
@@ -117,7 +109,7 @@ fun buildPlanetsUiLaneLayout(
 
     sortedItems.forEach { item ->
         val baseSize = sizeFromCollectionSize(item.collectionSize)
-        val densityScale = if (count > 15) 0.6f else if (count > 10) 0.75f else if (count > 6) 0.85f else 1.0f
+        val densityScale = if (count > 15) 0.8f else if (count > 10) 0.9f else 1.0f
         
         var currentScale = 1.0f
         var bestX: Float = minX
@@ -133,10 +125,11 @@ fun buildPlanetsUiLaneLayout(
             val sizeVal = (baseSize * densityScale * scaleFactor).value
             
             // 직사각형 크기 (Planet + Label)
-            val itemW = sizeVal
+            val collisionPadding = 10.dp.value // [Fix] Add explicit padding for visual separation
+            val itemW = sizeVal + collisionPadding 
             val itemH = sizeVal + labelHeight
             
-            val maxTries = 100
+            val maxTries = 500 // [Fix] Try harder to find space (200 -> 500)
             
             // 랜덤 마진 (기존 4.dp 고정 -> 2~12.dp 랜덤)
             // 아이템마다 여백이 달라지면 "열이 맞춰진 느낌"이 깨지고 더 불규칙해 보임.
@@ -181,9 +174,10 @@ fun buildPlanetsUiLaneLayout(
         
         // Fallback: 겹치더라도 "최소한으로" 겹치는 곳 찾기 (Best Fit)
         if (!found) {
-            val minScale = 0.5f
+            val minScale = 0.75f 
             finalSizeVal = (baseSize * densityScale * minScale).value
-            val itemW = finalSizeVal
+            val collisionPadding = 8.dp.value // Fallback padding
+            val itemW = finalSizeVal + collisionPadding
             val itemH = finalSizeVal + labelHeight
             val randomMargin = 2.dp.value // Fallback에선 최소 마진 사용
 
@@ -191,7 +185,7 @@ fun buildPlanetsUiLaneLayout(
             var bestFallbackX = minX
             var bestFallbackY = minY
             
-            val fallbackTries = 50 // 50번 시도해서 가장 덜 겹치는 곳 찾기
+            val fallbackTries = 100 // [Fix] Try harder in fallback too (50 -> 100)
             
             for (k in 0 until fallbackTries) {
                 val candX = minX + rng.nextFloat() * (maxX - minX - itemW)
@@ -236,7 +230,9 @@ fun buildPlanetsUiLaneLayout(
             placedBoxes.add(PlacedBox(cLeft, cTop, cRight, cBottom))
         }
 
-        val planetRes = assignedIcons[item.keywordId] ?: defaultPlanetRes
+        // [Fix] Use shared stable logic instead of local round-robin
+        // This ensures the planet matches what is shown in SlideshowDialog and elsewhere.
+        val planetRes = pickStablePlanetRes(item.categoryValue, item.keywordId)
         val label = item.keywordValue.takeIf{ it.isNotBlank() } ?: item.categoryValue
 
         planets.add(

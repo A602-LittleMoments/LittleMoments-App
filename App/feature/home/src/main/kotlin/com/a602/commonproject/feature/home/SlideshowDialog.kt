@@ -30,8 +30,8 @@ import com.a602.commonproject.feature.home.viewmodel.SlideshowRequest
 import com.a602.commonproject.model.data.Collection
 import com.a602.commonproject.designsystem.R as DsR
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,17 +43,58 @@ fun SlideshowCreationDialog(
     var mode by remember { mutableStateOf(SlideshowMode.KEYWORD) }
     var selectedKeyword by remember { mutableStateOf<String?>(null) }
 
+    // [Fix] Calculate today in UTC to match DatePicker's timestamps
+    val maxDateMillis = remember {
+        LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    }
+
+    val selectableDates = remember(maxDateMillis) {
+        object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis <= maxDateMillis
+            }
+
+            override fun isSelectableYear(year: Int): Boolean {
+                return true
+            }
+        }
+    }
+
     // Date Range State
-    val dateRangePickerState = rememberDateRangePickerState()
+    val dateRangePickerState = rememberDateRangePickerState(
+        initialDisplayedMonthMillis = maxDateMillis,
+        selectableDates = selectableDates
+    )
 
     // Unique keywords for selection
     val uniqueKeywords = remember(collections) {
         collections.distinctBy { it.keywordId }
     }
 
-    // Helper to get planet resource for keyword - REMOVED (using planetUtil.kt)
-    // fun getPlanetRes(category: String): Int { ... }
+    SlideshowCreationDialogContent(
+        mode = mode,
+        onModeChange = { mode = it },
+        selectedKeyword = selectedKeyword,
+        onKeywordSelect = { selectedKeyword = it },
+        dateRangePickerState = dateRangePickerState,
+        uniqueKeywords = uniqueKeywords,
+        onConfirm = onConfirm,
+        onDismiss = onDismiss
+    )
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SlideshowCreationDialogContent(
+    mode: SlideshowMode,
+    onModeChange: (SlideshowMode) -> Unit,
+    selectedKeyword: String?,
+    onKeywordSelect: (String) -> Unit,
+    dateRangePickerState: DateRangePickerState,
+    uniqueKeywords: List<Collection>,
+    onConfirm: (SlideshowRequest) -> Unit,
+    onDismiss: () -> Unit
+) {
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -116,12 +157,12 @@ fun SlideshowCreationDialog(
                     ToggleOption(
                         text = "행성",
                         isSelected = mode == SlideshowMode.KEYWORD,
-                        onClick = { mode = SlideshowMode.KEYWORD }
+                        onClick = { onModeChange(SlideshowMode.KEYWORD) }
                     )
                     ToggleOption(
                         text = "달력",
                         isSelected = mode == SlideshowMode.DATE,
-                        onClick = { mode = SlideshowMode.DATE }
+                        onClick = { onModeChange(SlideshowMode.DATE) }
                     )
                 }
 
@@ -149,23 +190,24 @@ fun SlideshowCreationDialog(
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 items(uniqueKeywords) { item ->
-                                    val isSelected = selectedKeyword == item.keywordValue
+                                    // [Fix] Use keywordId for logic, keywordValue for display
+                                    val isSelected = selectedKeyword == item.keywordId
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier
-                                            .width(80.dp)
-                                            .clickable { selectedKeyword = item.keywordValue }
+                                            .width(110.dp) // 80 -> 110
+                                            .clickable { onKeywordSelect(item.keywordId) }
                                             .scaleEffect(isSelected)
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .size(76.dp)
+                                                .size(100.dp) // 76 -> 100
                                                 .border(
                                                     width = if (isSelected) 3.dp else 0.dp,
                                                     color = if (isSelected) com.a602.commonproject.designsystem.theme.main else Color.Transparent,
                                                     shape = CircleShape
                                                 )
-                                                .padding(6.dp)
+                                                .padding(8.dp) // 6 -> 8
                                         ) {
                                             Image(
                                                 painter = painterResource(id = pickStablePlanetRes(item.categoryValue, item.keywordId)),
@@ -174,10 +216,10 @@ fun SlideshowCreationDialog(
                                                 contentScale = ContentScale.Fit
                                             )
                                         }
-                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Spacer(modifier = Modifier.height(12.dp)) // 8 -> 12
                                         Text(
                                             text = item.keywordValue,
-                                            style = MaterialTheme.typography.labelMedium.copy(
+                                            style = MaterialTheme.typography.bodyMedium.copy( // labelMedium -> bodyMedium
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                                 color = if (isSelected) com.a602.commonproject.designsystem.theme.main else Color.DarkGray
                                             ),
@@ -215,9 +257,10 @@ fun SlideshowCreationDialog(
                                      .requiredWidth(360.dp) // Force width to prevent squashing
                                      .requiredHeight(480.dp) // Force height
                                      .graphicsLayer {
-                                         scaleX = 0.85f
-                                         scaleY = 0.85f
-                                         translationY = -120f // Move up to hide empty header space
+                                         scaleX = 0.9f
+                                         scaleY = 0.9f
+                                         transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0f) // Pivot Top
+                                         translationY = 200f // [Fix] Less aggressive offset to show current month title
                                      }
                              )
                         }
@@ -253,14 +296,19 @@ fun SlideshowCreationDialog(
                     Button(
                         onClick = {
                             if (mode == SlideshowMode.KEYWORD) {
-                                selectedKeyword?.let {
-                                    onConfirm(SlideshowRequest.ByKeyword(it))
+                                selectedKeyword?.let { id ->
+                                    val label = uniqueKeywords.find { it.keywordId == id }?.keywordValue ?: "추억 영상"
+                                    onConfirm(SlideshowRequest.ByKeyword(id, label))
                                 }
                             } else {
                                 val start = dateRangePickerState.selectedStartDateMillis
                                 val end = dateRangePickerState.selectedEndDateMillis
                                 if (start != null && end != null) {
-                                    onConfirm(SlideshowRequest.ByDateRange(start, end))
+                                    val formatter = SimpleDateFormat("yyyy.MM.dd") // Locale default is fine or US
+                                    val startStr = formatter.format(java.util.Date(start))
+                                    val endStr = formatter.format(java.util.Date(end))
+                                    val label = "$startStr ~ $endStr"
+                                    onConfirm(SlideshowRequest.ByDateRange(start, end, label))
                                 }
                             }
                         },
@@ -282,6 +330,51 @@ fun SlideshowCreationDialog(
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@androidx.compose.ui.tooling.preview.Preview(name = "Slideshow - Keyword Mode")
+@Composable
+fun Preview_Slideshow_Keyword() {
+    val items = listOf(
+        Collection("c1", "물건", "k1", "인형", 12),
+        Collection("c2", "음식", "k2", "밥", 20),
+        Collection("c3", "인물", "k3", "엄마", 30)
+    )
+    val dateRangePickerState = rememberDateRangePickerState()
+
+    com.a602.commonproject.designsystem.theme.LMTheme {
+        SlideshowCreationDialogContent(
+            mode = SlideshowMode.KEYWORD,
+            onModeChange = {},
+            selectedKeyword = "인형",
+            onKeywordSelect = {},
+            dateRangePickerState = dateRangePickerState,
+            uniqueKeywords = items,
+            onConfirm = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@androidx.compose.ui.tooling.preview.Preview(name = "Slideshow - Date Mode")
+@Composable
+fun Preview_Slideshow_Date() {
+    val dateRangePickerState = rememberDateRangePickerState()
+
+    com.a602.commonproject.designsystem.theme.LMTheme {
+        SlideshowCreationDialogContent(
+            mode = SlideshowMode.DATE,
+            onModeChange = {},
+            selectedKeyword = null,
+            onKeywordSelect = {},
+            dateRangePickerState = dateRangePickerState,
+            uniqueKeywords = emptyList(),
+            onConfirm = {},
+            onDismiss = {}
+        )
     }
 }
 

@@ -59,7 +59,7 @@ class SystemTrayNotifier @Inject constructor(
 
         // 4. 알림 생성
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.core_notifications_ic_nia_notification)
+            .setSmallIcon(com.a602.commonproject.designsystem.R.drawable.ic_notification_rocket) // [Fix] Changed to rocket icon
             .setContentTitle(title)
             .setContentText(content)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
