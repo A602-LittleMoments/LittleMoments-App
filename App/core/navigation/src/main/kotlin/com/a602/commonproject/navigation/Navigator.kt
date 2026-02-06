@@ -65,14 +65,15 @@ class Navigator(val state: NavigationState) {
      */
     private fun goToTopLevel(key: NavKey) {
         state.topLevelStack.apply {
-            // 1. 기존의 쌓여 있던 탭 기록을 모두 지움
-            clear()
             // 2. 무조건 바닥에 현재 루트(Root)를 깔기
             // startKey가 아니라, 현재 스택의 가장 바닥에 있는 키를 유지해야 함.
             // (로그인 후에는 Home이 Root가 되었을 테니까)
+            // [Fix] clear() 하기 전에 먼저 가져와야 함!
             val currentRoot = if (isNotEmpty()) first() else state.startKey
-            
+
+            // 1. 기존의 쌓여 있던 탭 기록을 모두 지움
             clear()
+
             add(currentRoot)
 
             // 3. 이동하려는 곳이 '현재 루트'가 아니라면 그 위에 얹기

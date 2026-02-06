@@ -65,6 +65,8 @@ fun EntryProviderScope<NavKey>.memoryEntries(
     entry<SlideshowEntryKey> { key ->
         val viewModel = hiltViewModel<SlideshowEntryViewModel>()
         
+        val context = androidx.compose.ui.platform.LocalContext.current
+        
         // API 호출 (한 번만 실행)
         LaunchedEffect(key.request) {
             viewModel.createSlideshow(
@@ -74,8 +76,9 @@ fun EntryProviderScope<NavKey>.memoryEntries(
                     delay(2000)
                     navigator.goBack()
                 },
-                onFailure = {
-                    // 실패 시에도 뒤로 가기
+                onFailure = { errorMessage ->
+                    // 실패 시 에러 토스트 표시 후 뒤로 가기
+                    android.widget.Toast.makeText(context, "생성 실패: $errorMessage", android.widget.Toast.LENGTH_LONG).show()
                     delay(1000)
                     navigator.goBack()
                 }

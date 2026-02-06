@@ -10,6 +10,7 @@ android {
 
 dependencies {
     api(projects.core.model)
+    implementation(projects.core.designsystem)
     implementation(projects.core.common)
     compileOnly(platform(libs.androidx.compose.bom))
 }

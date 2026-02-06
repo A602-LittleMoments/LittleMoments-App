@@ -1,6 +1,7 @@
 
 package com.a602.commonproject.feature.album
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -57,16 +58,17 @@ import com.a602.commonproject.model.data.Slideshow
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.sp
 import com.a602.commonproject.designsystem.R
 
-private val koreanDateFormatter: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("yyyy.MM.dd", Locale.KOREA)
+
 
 @Composable
 fun HighlightResultRoute(
@@ -82,56 +84,52 @@ fun HighlightResultRoute(
         viewModel.observeSlideshow(slideshowId)
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(background)) {
-        HighlightResultScreen(
-            slideshow = uiState.slideshow,
-            isLoading = uiState.isLoading,
-            errorMessage = uiState.errorMessage,
-            isDownloading = uiState.isDownloading,
-            downloadProgress = uiState.downloadProgress,
-            onBack = onBack,
-            onDownload = {
-                viewModel.downloadSlideshow(
-                    slideshowId = slideshowId,
-                    onSuccess = {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("다운로드 완료!")
-                        }
-                    },
-                    onFailure = { message ->
-                        scope.launch {
-                            snackbarHostState.showSnackbar(message)
-                        }
+
+
+    HighlightResultScreen(
+        slideshow = uiState.slideshow,
+        isLoading = uiState.isLoading,
+        errorMessage = uiState.errorMessage,
+        isDownloading = uiState.isDownloading,
+        downloadProgress = uiState.downloadProgress,
+        snackbarHostState = snackbarHostState, // [Fix] Pass host state
+        onBack = onBack,
+        onDownload = {
+            viewModel.downloadSlideshow(
+                slideshowId = slideshowId,
+                onSuccess = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("다운로드 완료!")
                     }
-                )
-            },
-            onDelete = {
-                viewModel.deleteSlideshow(
-                    slideshowId = slideshowId,
-                    onSuccess = {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("삭제 완료")
-                        }
-                        onBack()
-                    },
-                    onFailure = { message ->
-                        scope.launch {
-                            snackbarHostState.showSnackbar(message)
-                        }
+                },
+                onFailure = { message ->
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message)
                     }
-                )
-            },
-            modifier = Modifier.fillMaxSize()
-        )
-        
-        // Snackbar를 하단에 표시
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
-    }
+                }
+            )
+        },
+        onDelete = {
+            viewModel.deleteSlideshow(
+                slideshowId = slideshowId,
+                onSuccess = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("삭제 완료")
+                    }
+                    onBack()
+                },
+                onFailure = { message ->
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message)
+                    }
+                }
+            )
+        },
+        modifier = Modifier.fillMaxSize()
+    )
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HighlightResultScreen(
     slideshow: Slideshow?,
@@ -139,6 +137,7 @@ fun HighlightResultScreen(
     errorMessage: String?,
     isDownloading: Boolean = false,
     downloadProgress: Float = 0f,
+    snackbarHostState: SnackbarHostState? = null, // [Fix] Added parameter
     onBack: () -> Unit = {},
     onDownload: () -> Unit = {},
     onDelete: () -> Unit = {},
@@ -158,232 +157,238 @@ fun HighlightResultScreen(
             slideshow.localVideoPath.isNullOrBlank()
     }
 
-    Box(modifier = modifier) {
-        Image(
-            painter = painterResource(id = R.drawable.gallery_background),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize()
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-        ) {
-        LMTopAppBar(
-            title = "하이라이트",
-            navigationIcon = LMicons.Back,
-            onNavigationClick = onBack,
-            actionIcon = if (canDownload) LMicons.Download else null,
-            actionIconContentDescription = "저장",
-            onActionClick = { if (canDownload) onDownload() }
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(Modifier.height(24.dp))
-
-            // 제목
-            Text(
-                text = slideshow?.title ?: "하이라이트 영상",
-                style = MaterialTheme.typography.titleLarge
+    // [Fix] Refactor to Scaffold
+    Scaffold(
+        modifier = modifier,
+        containerColor = Color.Transparent, // Ensure background shows through
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0), // Edge-to-Edge
+        topBar = {
+            // [Fix] TopAppBar: Remove Download button, static title
+            LMTopAppBar(
+                title = "하이라이트", // [Fix] Changed from "추억 하이라이트"
+                navigationIcon = LMicons.Back,
+                onNavigationClick = onBack,
+                actionIcon = null, // Download moved to bottom
+                onActionClick = {}
+            )
+        },
+        snackbarHost = {
+            if (snackbarHostState != null) {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier.padding(bottom = 100.dp) // [Fix] Raised position
+                )
+            }
+        }
+    ) {  paddingValues ->
+        // Use paddingValues where appropriate, OR ignore if immersive content
+        // Since we want the background image to be FULL SCREEN (behind topbar), we put it in a Box
+        // and add statusBarsPadding to the content column instead.
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = R.drawable.gallery_background),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
             )
 
-            Spacer(Modifier.height(16.dp))
-
-            // 영상 플레이어 / 썸네일
-            Surface(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
-                    .clip(RoundedCornerShape(20.dp)),
-                tonalElevation = 2.dp,
-                shadowElevation = 4.dp
+                    .fillMaxSize()
+                    .statusBarsPadding()
             ) {
-                when {
-                    isLoading -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                    // 영상 재생 가능
-                    videoUri != null -> {
-                        VideoPlayer(uri = videoUri, modifier = Modifier.fillMaxSize())
-                    }
-                    // 에러 또는 영상 없음
-                    else -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            // 썸네일 표시
-                            if (!slideshow?.thumbnailUrl.isNullOrBlank()) {
-                                AsyncImage(
-                                    model = slideshow?.thumbnailUrl,
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
+                // Placeholder for TopBar height to avoid overlap
+                Spacer(Modifier.height(56.dp))
 
-                            // 에러 메시지
-                            if (errorMessage != null) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // [Fix] Increased top spacing
+                    Spacer(Modifier.height(80.dp))
+
+                    // [Fix] Title style updated: Smaller (headlineSmall) but Bold
+                    // [Fix] The user said "Video upper part title".
+                    Text(
+                        text = "추억 하이라이트",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            // [Fix] displaySmall -> headlineSmall
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontSize = 30.sp
+                        )
+                    )
+
+                    // [Fix] Increased spacing
+                    Spacer(Modifier.height(40.dp))
+
+                    // 영상 플레이어 / 썸네일
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(16f / 9f)
+                            .clip(RoundedCornerShape(20.dp)),
+                        tonalElevation = 2.dp,
+                        shadowElevation = 4.dp
+                    ) {
+                        when {
+                            isLoading -> {
+                                Box(
                                     modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .background(
-                                            MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                                            RoundedCornerShape(12.dp)
-                                        )
-                                        .padding(24.dp)
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = errorMessage,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
+                                    CircularProgressIndicator()
+                                }
+                            }
+                            // 영상 재생 가능
+                            videoUri != null -> {
+                                VideoPlayer(uri = videoUri, modifier = Modifier.fillMaxSize())
+                            }
+                            // 에러 또는 영상 없음
+                            else -> {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    // 썸네일 표시
+                                    if (!slideshow?.thumbnailUrl.isNullOrBlank()) {
+                                        AsyncImage(
+                                            model = slideshow?.thumbnailUrl,
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+
+                                    // 에러 메시지
+                                    if (errorMessage != null) {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            modifier = Modifier
+                                                .align(Alignment.Center)
+                                                .background(
+                                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                                                    RoundedCornerShape(12.dp)
+                                                )
+                                                .padding(24.dp)
+                                        ) {
+                                            Text(
+                                                text = errorMessage,
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+
+                    // [Fix] Increased spacing
+                    Spacer(Modifier.height(40.dp))
+
+                    // [Fix] Source Info (Keyword or Date) only. Removed MetaRow.
+                    // Assuming slideshow.title contains the source info (e.g., "Smile" or "2023.10.01~").
+                    if (slideshow != null) {
+                        SourceInfoChip(slideshow.title)
+                    }
+
+                    // [Fix] Increased spacing
+                    Spacer(Modifier.height(40.dp))
+
+                    // [Fix] Download Button moved here (below Source Info)
+                    if (slideshow != null && canDownload && !isDownloading) {
+                        Button(
+                            onClick = onDownload,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("영상 저장하기", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.height(24.dp))
+                    }
+
+                    // 다운로드 진행률 표시
+                    if (isDownloading) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "저장 중... ${(downloadProgress * 100).toInt()}%",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            LinearProgressIndicator(
+                                progress = { downloadProgress },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(4.dp)),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = Color.Gray.copy(alpha = 0.3f)
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.weight(1f))
                 }
             }
-
-            Spacer(Modifier.height(20.dp))
-
-            // 메타 정보 (사진 수, 길이, 날짜)
-            if (slideshow != null) {
-                SlideshowMetaRow(slideshow)
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            // 다운로드 진행률 표시
-            if (isDownloading) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "다운로드 중... ${(downloadProgress * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        progress = { downloadProgress },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(4.dp)),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                    Spacer(Modifier.height(16.dp))
-                }
-            }
-
-            // 삭제 버튼
-            if (slideshow != null) {
-                Button(
-                    onClick = { showDeleteDialog = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading && !isDownloading
-                ) {
-                    Text("삭제")
-                }
-            }
-
-            Spacer(Modifier.weight(1f))
         }
     }
 }
 
-    // 삭제 확인 다이얼로그
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("하이라이트 삭제") },
-            text = { Text("이 하이라이트 영상을 삭제하시겠어요?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        onDelete()
-                    }
-                ) {
-                    Text("삭제")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("취소")
-                }
-            }
+// [Fix] New Component for Source Info
+@Composable
+private fun SourceInfoChip(sourceText: String) {
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = Color.White.copy(alpha = 0.1f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
+    ) {
+        Text(
+            text = sourceText,
+            color = Color.White,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 10.dp)
         )
     }
 }
 
-@Composable
-private fun SlideshowMetaRow(slideshow: Slideshow) {
-    val createdDateText = remember(slideshow.createdAt) {
-        Instant.ofEpochMilli(slideshow.createdAt)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
-            .format(koreanDateFormatter)
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        InfoChip("사진", "${slideshow.mediaCount}장")
-        InfoChip("길이", "${slideshow.durationSec}초")
-        InfoChip("날짜", createdDateText)
-    }
-}
-
-@Composable
-private fun InfoChip(label: String, value: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-        shadowElevation = 2.dp
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
+// [Fix] Removed SlideshowMetaRow and InfoChip as requested
+// [Fix] Removed koreanDateFormatter unused
 
 @Composable
 private fun VideoPlayer(uri: Uri, modifier: Modifier = Modifier) {
+    // [Fix] 프리뷰 모드인지 확인
+    if (androidx.compose.ui.platform.LocalInspectionMode.current) {
+        Box(
+            modifier = modifier.background(Color.Black),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.gallery_background), // 아무 이미지나
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize().alpha(0.5f)
+            )
+            Text("Video Player (Preview)", color = Color.White)
+        }
+        return
+    }
+
     val context = LocalContext.current
 
     val player = remember(uri) {
@@ -410,7 +415,7 @@ private fun VideoPlayer(uri: Uri, modifier: Modifier = Modifier) {
     )
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 760)
+@Preview(showBackground = true, widthDp = 360, heightDp = 760, showSystemUi = true)
 @Composable
 private fun Preview_HighlightResult_Completed() {
     val fake = Slideshow(
@@ -429,6 +434,43 @@ private fun Preview_HighlightResult_Completed() {
             slideshow = fake,
             isLoading = false,
             errorMessage = null
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 760, showSystemUi = true)
+@Composable
+private fun Preview_HighlightResult_Loading() {
+    LMTheme {
+        HighlightResultScreen(
+            slideshow = null,
+            isLoading = true,
+            errorMessage = null
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 760, showSystemUi = true)
+@Composable
+private fun Preview_HighlightResult_Downloading() {
+    val fake = Slideshow(
+        id = "temp",
+        title = "추억 하이라이트",
+        thumbnailUrl = "https://picsum.photos/600/900",
+        remoteVideoUrl = "https://example.com/video.mp4",
+        status = Slideshow.MakeStatus.COMPLETED,
+        mediaCount = 24,
+        durationSec = 18,
+        localVideoPath = null,
+        createdAt = System.currentTimeMillis()
+    )
+    LMTheme {
+        HighlightResultScreen(
+            slideshow = fake,
+            isLoading = false,
+            errorMessage = null,
+            isDownloading = true,
+            downloadProgress = 0.45f
         )
     }
 }

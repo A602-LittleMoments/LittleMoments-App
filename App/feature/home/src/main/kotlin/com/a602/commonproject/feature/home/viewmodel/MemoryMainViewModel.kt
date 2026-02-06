@@ -82,7 +82,7 @@ sealed interface MemoryMainSideEffect {
 @Serializable
 sealed interface SlideshowRequest {
     @Serializable
-    data class ByKeyword(val keyword: String) : SlideshowRequest
+    data class ByKeyword(val keyword: String, val label: String) : SlideshowRequest
     @Serializable
-    data class ByDateRange(val startDate: Long, val endDate: Long) : SlideshowRequest
+    data class ByDateRange(val startDate: Long, val endDate: Long, val label: String) : SlideshowRequest
 }

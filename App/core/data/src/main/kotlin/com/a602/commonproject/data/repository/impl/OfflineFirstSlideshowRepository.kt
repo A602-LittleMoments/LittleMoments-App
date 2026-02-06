@@ -61,11 +61,16 @@ class OfflineFirstSlideshowRepository @Inject constructor(
                 val isFileExists = cached?.localVideoPath?.let { File(it).exists() } == true
 
                 // ✨ [핵심] 이미 다운로드된 상태라면, 로컬 경로와 상태를 유지합니다.
-                if (cached != null && cached.status == "DOWNLOADED" && cached.localVideoPath != null) {
-                    entity = entity.copy(
-                        localVideoPath = cached.localVideoPath,
-                        status = "DOWNLOADED"
-                    )
+                if (cached != null) {
+                    // [Fix] 기존 타이틀(Source Info) 유지
+                    entity = entity.copy(title = cached.title)
+
+                    if (cached.status == "DOWNLOADED" && cached.localVideoPath != null) {
+                         entity = entity.copy(
+                            localVideoPath = cached.localVideoPath,
+                            status = "DOWNLOADED"
+                        )
+                    }
                 }
 
                 slideshowDao.insertSlideshow(entity) //
@@ -79,7 +84,7 @@ class OfflineFirstSlideshowRepository @Inject constructor(
     // =================================================================
     // 3. 생성 요청
     // =================================================================
-    override suspend fun createSlideshow(request: CreateSlideshowRequest): Result<Unit> {
+    override suspend fun createSlideshow(request: CreateSlideshowRequest, title: String): Result<Unit> {
         return try {
             val groupId = getGroupIdOrThrow()
 
@@ -87,9 +92,10 @@ class OfflineFirstSlideshowRepository @Inject constructor(
             val response = networkDataSource.createSlideshow(groupId, request)
 
             // 2. DB에 "PROCESSING" 상태로 임시 저장 (즉각적인 UI 반응)
+            // [Fix] 전달받은 title (키워드/날짜) 사용
             val initialEntity = SlideshowEntity(
                 slideshowId = response.slideshowId,
-                title = "추억 영상 생성 중...", // 기본값
+                title = title, 
                 createAt = System.currentTimeMillis(),
                 status = response.status // "QUEUED" or "PROCESSING"
             )
@@ -99,6 +105,11 @@ class OfflineFirstSlideshowRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    // 7.1-2 [Overload] 기존 코드 호환용
+    override suspend fun createSlideshow(request: CreateSlideshowRequest): Result<Unit> {
+        return createSlideshow(request, "추억 영상")
     }
 
     // =================================================================
@@ -114,11 +125,16 @@ class OfflineFirstSlideshowRepository @Inject constructor(
             var entity = detail.toEntity(slideshowId)
 
             // 파일이 살아있다면 경로 유지
-            if (current?.localVideoPath != null && File(current.localVideoPath).exists()) {
-                entity = entity.copy(
-                    localVideoPath = current.localVideoPath,
-                    status = "DOWNLOADED"
-                )
+            // [Fix] Title 유지 로직 추가
+            if (current != null) {
+                entity = entity.copy(title = current.title)
+
+                if (current.localVideoPath != null && File(current.localVideoPath).exists()) {
+                     entity = entity.copy(
+                        localVideoPath = current.localVideoPath,
+                        status = "DOWNLOADED"
+                    )
+                }
             }
 
             slideshowDao.insertSlideshow(entity)
@@ -159,8 +175,22 @@ class OfflineFirstSlideshowRepository @Inject constructor(
 
                 // 4. 이름 변경 (Atomic Move) -> 성공 시에만 DB 업데이트
                 if (tempFile.renameTo(finalFile)) {
-                    val entity = exportResponse.toEntity(finalFile.absolutePath)
-                    slideshowDao.insertSlideshow(entity) //
+                    // [Fix] Title Overwrite 방지: toEntity 안쓰고 수동 업데이트
+                    // 기존 정보 가져오기
+                    val currentDao = slideshowDao.getSlideShows().first()
+                    val current = currentDao.find { it.slideshowId == slideshowId }
+
+                    if (current != null) {
+                        val updated = current.copy(
+                            localVideoPath = finalFile.absolutePath,
+                            status = "DOWNLOADED"
+                        )
+                        slideshowDao.insertSlideshow(updated)
+                    } else {
+                        // 만약 DB에 없다면? (거의 없겠지만) -> 그냥 exportResponse 사용하되 title은 파일명
+                        val entity = exportResponse.toEntity(finalFile.absolutePath)
+                        slideshowDao.insertSlideshow(entity)
+                    }
 
                     Result.success(finalFile)
                 } else {
@@ -229,8 +259,20 @@ class OfflineFirstSlideshowRepository @Inject constructor(
 
                 // 4. 이름 변경 (Atomic Move) -> 성공 시에만 DB 업데이트
                 if (tempFile.renameTo(finalFile)) {
-                    val entity = exportResponse.toEntity(finalFile.absolutePath)
-                    slideshowDao.insertSlideshow(entity)
+                     // [Fix] Title Overwrite 방지: toEntity 안쓰고 수동 업데이트
+                    val currentDao = slideshowDao.getSlideShows().first()
+                    val current = currentDao.find { it.slideshowId == slideshowId }
+
+                    if (current != null) {
+                        val updated = current.copy(
+                            localVideoPath = finalFile.absolutePath,
+                            status = "DOWNLOADED"
+                        )
+                        slideshowDao.insertSlideshow(updated)
+                    } else {
+                         val entity = exportResponse.toEntity(finalFile.absolutePath)
+                         slideshowDao.insertSlideshow(entity)
+                    }
 
                     // 완료 표시
                     withContext(Dispatchers.Main) {

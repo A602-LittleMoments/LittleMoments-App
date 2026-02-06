@@ -161,7 +161,15 @@ class UserPreferencesDataSource @Inject constructor(
      */
     suspend fun clear() {
         dataStore.edit { prefs ->
+            // [Fix] Device ID는 기기 식별자이므로 로그아웃/초기화 시에도 유지되어야 합니다.
+            val currentDeviceId = prefs[KEY_DEVICE_ID]
+            
             prefs.clear()
+
+            // Device ID 복구
+            if (currentDeviceId != null) {
+                prefs[KEY_DEVICE_ID] = currentDeviceId
+            }
         }
     }
 
