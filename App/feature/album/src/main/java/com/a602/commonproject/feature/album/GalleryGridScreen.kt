@@ -82,7 +82,31 @@ fun GridRoute(
             sortOrder = uiState.sortOrder,
             onToggleSort = viewModel::toggleSortOrder,
             onBackClick = onBackClick,
-            onMediaClick = onMediaClick
+            onMediaClick = onMediaClick,
+            isSelectMode = uiState.isSelectMode,
+            selectedIds = uiState.selectedIds,
+            onToggleSelectMode = viewModel::toggleSelectMode,
+            onToggleSelect = { viewModel.toggleSelect(it.id) },
+            onLongClick = { media ->
+                if (!uiState.isSelectMode) {
+                    viewModel.toggleSelectMode()
+                }
+                viewModel.toggleSelect(media.id)
+            },
+            onSelectAll = {
+                if (uiState.selectedIds.size == uiState.medias.size && uiState.medias.isNotEmpty()) {
+                    viewModel.clearSelection()
+                } else {
+                    viewModel.selectAll(uiState.medias.map { it.id })
+                }
+            },
+            onDeleteSelected = {
+                viewModel.deleteSelected(
+                    onSuccess = { scope.launch { snackbarHostState.showSnackbar("삭제되었습니다.") } },
+                    onError = { msg -> scope.launch { snackbarHostState.showSnackbar(msg) } }
+                )
+            },
+            snackbarHostState = snackbarHostState
         )
     } else if (date != null) {
         val grouped = remember(uiState.medias) {
@@ -251,8 +275,19 @@ fun YearHistoryLayout(
     sortOrder: SortOrder = SortOrder.LATEST,
     onToggleSort: () -> Unit = {},
     onBackClick: () -> Unit,
-    onMediaClick: (SharedMedia) -> Unit
+    onMediaClick: (SharedMedia) -> Unit,
+    // Selection Params
+    isSelectMode: Boolean = false,
+    selectedIds: Set<String> = emptySet(),
+    onToggleSelectMode: () -> Unit = {},
+    onToggleSelect: (SharedMedia) -> Unit = {},
+    onLongClick: (SharedMedia) -> Unit = {},
+    onSelectAll: () -> Unit = {},
+    onDeleteSelected: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     val groupedFn = remember(medias, sortOrder) {
         val grouped = medias.groupBy {
             Instant.ofEpochMilli(it.dateTaken)
@@ -269,8 +304,24 @@ fun YearHistoryLayout(
     Scaffold(
         topBar = {
             LMTopAppBar(
-                title = title,
+                title = if (isSelectMode) "" else title,
                 onNavigationClick = onBackClick,
+                actions = {
+                    if (medias.isNotEmpty()) {
+                        if (isSelectMode) {
+                            FillWrapButton(
+                                onClick = onSelectAll,
+                                text = if (selectedIds.size == medias.size) "선택해제" else "전체선택",
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                        }
+                        FillWrapButton(
+                            onClick = onToggleSelectMode,
+                            text = if (isSelectMode) "취소" else "선택",
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -304,7 +355,7 @@ fun YearHistoryLayout(
                              .clip(RoundedCornerShape(24.dp)),
                          verticalArrangement = Arrangement.spacedBy(24.dp),
                          contentPadding = PaddingValues(
-                             start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp
+                             start = 12.dp, end = 12.dp, top = 16.dp, bottom = 80.dp
                          )
                      ) {
                          item {
@@ -352,7 +403,13 @@ fun YearHistoryLayout(
                                                  Box(modifier = Modifier.weight(1f).aspectRatio(3f/4f)) {
                                                       FramelessPhotoItem(
                                                           media = media,
-                                                          onClick = { onMediaClick(media) }
+                                                          isSelectMode = isSelectMode,
+                                                          isSelected = selectedIds.contains(media.id),
+                                                          onClick = {
+                                                              if (isSelectMode) onToggleSelect(media)
+                                                              else onMediaClick(media)
+                                                          },
+                                                          onLongClick = { onLongClick(media) }
                                                       )
                                                  }
                                              }
@@ -366,6 +423,107 @@ fun YearHistoryLayout(
                          }
                      }
                  }
+            }
+
+            AnimatedVisibility(
+                visible = isSelectMode && selectedIds.isNotEmpty(),
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                Surface(
+                    tonalElevation = 8.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                        .navigationBarsPadding(),
+                    color = Color.White,
+                    shape = RoundedCornerShape(24.dp),
+                    border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.2f)),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp, horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        FillWrapButton(
+                            text = "삭제",
+                            onClick = { showDeleteDialog = true },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF1B2430)
+                            )
+                        )
+                    }
+                }
+            }
+
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 24.dp),
+            ) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFF001229).copy(alpha = 0.9f),
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+
+            if (showDeleteDialog) {
+                Dialog(onDismissRequest = { showDeleteDialog = false }) {
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = lightbackground,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        shadowElevation = 8.dp
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "사진 삭제",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = color3
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "선택한 ${selectedIds.size}장의 사진을 삭제할까요?",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = color4,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(onClick = { showDeleteDialog = false }) {
+                                    Text("취소", color = color4)
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Button(
+                                    onClick = {
+                                        showDeleteDialog = false
+                                        onDeleteSelected()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = main
+                                    )
+                                ) {
+                                    Text("삭제", color = Color.White)
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -543,8 +701,7 @@ fun GridGalleryContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp)
-                    .navigationBarsPadding() // 네비게이션 바 고려
-                    , // 기존 30dp -> 80dp로 상향 조정
+                    .navigationBarsPadding(), 
                 color = Color.White,
                 shape = RoundedCornerShape(24.dp),
                 border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.2f)),
