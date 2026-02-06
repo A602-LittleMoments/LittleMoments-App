@@ -12,13 +12,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 
 data class CalendarUiState(
     val medias: List<SharedMedia> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val sortOrder: SortOrder = SortOrder.LATEST
 )
 
 
@@ -30,21 +33,29 @@ class CalendarViewModel @Inject constructor(
 
     private var hasAutoRefreshed = false
 
+    private val sortOrder = MutableStateFlow(SortOrder.LATEST)
+
     val uiState: StateFlow<CalendarUiState> =
-        repository.getSharedAlbumStream()
-            .distinctUntilChanged()
-            .map { medias ->
-                CalendarUiState(
-                    medias = medias,
-                    isLoading = false,
-                    error = null
-                )
+        combine(
+            repository.getSharedAlbumStream().distinctUntilChanged(),
+            sortOrder
+        ) { medias, sort ->
+            val sorted = if (sort == SortOrder.LATEST) {
+                medias.sortedByDescending { it.dateTaken }
+            } else {
+                medias.sortedBy { it.dateTaken }
             }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = CalendarUiState(isLoading = true)
+            CalendarUiState(
+                medias = sorted,
+                isLoading = false,
+                error = null,
+                sortOrder = sort
             )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = CalendarUiState(isLoading = true)
+        )
 
     init {
         autoRefreshOnce()
@@ -54,6 +65,10 @@ class CalendarViewModel @Inject constructor(
         if (hasAutoRefreshed) return
         hasAutoRefreshed = true
         refresh(force = true)
+    }
+
+    fun toggleSortOrder() {
+        sortOrder.value = if (sortOrder.value == SortOrder.LATEST) SortOrder.OLDEST else SortOrder.LATEST
     }
 
     fun refresh(force: Boolean = false) {

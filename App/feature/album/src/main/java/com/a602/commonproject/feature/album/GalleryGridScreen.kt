@@ -37,6 +37,7 @@ import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.designsystem.theme.background
 import com.a602.commonproject.feature.album.viewmodel.GridGalleryViewmodel
+import com.a602.commonproject.feature.album.viewmodel.SortOrder
 import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,6 +54,7 @@ import com.a602.commonproject.designsystem.theme.color4
 import com.a602.commonproject.designsystem.theme.lightbackground
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.LaunchedEffect
@@ -106,6 +108,8 @@ fun GridRoute(
         YearHistoryLayout(
             title = uiState.title, // ViewModel sets this to "Namw와의 Year년 추억"
             medias = uiState.medias,
+            sortOrder = uiState.sortOrder,
+            onToggleSort = viewModel::toggleSortOrder,
             onBackClick = onBackClick,
             onMediaClick = onMediaClick
         )
@@ -163,6 +167,8 @@ fun GridRoute(
                     GridGalleryContent(
                         medias = pageMedias,
                         headerText = pageHeaderText,
+                        sortOrder = uiState.sortOrder,
+                        onToggleSort = viewModel::toggleSortOrder,
                         showCalendarButton = true, // 날짜 보기 모드에서는 헤더(날짜+화살표) 표시
                         onCalendarClick = onCalendarClick,
                         onMediaClick = onMediaClick,
@@ -195,6 +201,8 @@ fun GridRoute(
         GridGalleryScreen(
             medias = filtered,
             headerText = headerText,
+            sortOrder = uiState.sortOrder,
+            onToggleSort = viewModel::toggleSortOrder,
             onCalendarClick = onCalendarClick,
             onMediaClick = onMediaClick,
             onBackClick = onBackClick,
@@ -216,16 +224,23 @@ private fun SharedMedia.isSameDay(target: LocalDate): Boolean {
 fun YearHistoryLayout(
     title: String,
     medias: List<SharedMedia>,
+    sortOrder: SortOrder = SortOrder.LATEST,
+    onToggleSort: () -> Unit = {},
     onBackClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit
 ) {
     // 1. Group by Date
-    val groupedFn = remember(medias) {
-        medias.groupBy {
+    val groupedFn = remember(medias, sortOrder) {
+        val grouped = medias.groupBy {
             Instant.ofEpochMilli(it.dateTaken)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate()
-        }.toSortedMap(compareByDescending { it }) // Recent first
+        }
+        if (sortOrder == SortOrder.LATEST) {
+            grouped.toSortedMap(compareByDescending { it })
+        } else {
+            grouped.toSortedMap(compareBy { it })
+        }
     }
 
     Scaffold(
@@ -272,6 +287,23 @@ fun YearHistoryLayout(
                              start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp
                          )
                      ) {
+                         // Sort Button In Year History
+                         item {
+                             Row(
+                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                                 horizontalArrangement = Arrangement.End
+                             ) {
+                                 Text(
+                                     text = if (sortOrder == SortOrder.LATEST) "최신순 ↓" else "오래된순 ↑",
+                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                     color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f),
+                                     modifier = Modifier
+                                         .clickable(onClick = onToggleSort)
+                                         .padding(8.dp)
+                                 )
+                             }
+                         }
+
                          groupedFn.forEach { (date, dailyMedias) ->
                              // Header (Sticky-like behavior within list)
                              // [Design Match] Removed light gray, added transparent/dark style
@@ -376,6 +408,8 @@ fun GridGalleryShell(
 fun GridGalleryContent(
     medias: List<SharedMedia>,
     headerText: String,
+    sortOrder: SortOrder = SortOrder.LATEST,
+    onToggleSort: () -> Unit = {},
     showCalendarButton: Boolean,
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
@@ -446,8 +480,20 @@ fun GridGalleryContent(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 22.sp,
                             ),
-                            color = androidx.compose.ui.graphics.Color.White,
+                             color = androidx.compose.ui.graphics.Color.White,
                             modifier = Modifier.padding(start = 8.dp) // 헤더를 오른쪽으로 조금 더 이동
+                        )
+                    }
+
+                    // Sort Toggle Area (Only if not in Date Pager mode which is usually sorted by date context)
+                    if (onHeaderPrevClick == null) {
+                        Text(
+                            text = if (sortOrder == SortOrder.LATEST) "최신순 ↓" else "오래된순 ↑",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .clickable(onClick = onToggleSort)
+                                .padding(8.dp)
                         )
                     }
                 }
@@ -477,6 +523,8 @@ fun GridGalleryScreen(
     onCalendarClick: () -> Unit,
     onBackClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
+    sortOrder: SortOrder = SortOrder.LATEST,
+    onToggleSort: () -> Unit = {},
     headerText: String = "Recent",
     modifier: Modifier = Modifier,
     title: String = "갤러리",
@@ -486,6 +534,8 @@ fun GridGalleryScreen(
         GridGalleryContent(
             medias = medias,
             headerText = headerText,
+            sortOrder = sortOrder,
+            onToggleSort = onToggleSort,
             showCalendarButton = showCalendarButton,
             onCalendarClick = onCalendarClick,
             onMediaClick = onMediaClick,
