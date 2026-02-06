@@ -370,6 +370,8 @@ fun BabySelectionSection(
 fun FootprintFilterSection(
     onYearSelected: (Int) -> Unit // 0: All, 1: 1year ago...
 ) {
+    val currentYear = remember { java.time.LocalDate.now().year }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -385,7 +387,7 @@ fun FootprintFilterSection(
         // 4년 전 (Far Left) - 가장 먼저 등장
         FootprintItem(
             resId = R.drawable.fourth_footprint,
-            label = "4년 전",
+            label = "${currentYear - 4}년",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .offset(x = (-130).dp, y = (-20).dp), 
@@ -396,7 +398,7 @@ fun FootprintFilterSection(
         // 3년 전 (Mid Left)
         FootprintItem(
             resId = R.drawable.third_footprint,
-            label = "3년 전",
+            label = "${currentYear - 3}년",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .offset(x = (-50).dp, y = (-100).dp), 
@@ -407,7 +409,7 @@ fun FootprintFilterSection(
         // 2년 전 (Mid Right)
         FootprintItem(
             resId = R.drawable.second_footprint,
-            label = "2년 전",
+            label = "${currentYear - 2}년",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .offset(x = 30.dp, y = (-20).dp), 
@@ -418,7 +420,7 @@ fun FootprintFilterSection(
          // 1년 전 (Far Right)
         FootprintItem(
             resId = R.drawable.first_footprint,
-            label = "1년 전",
+            label = "${currentYear - 1}년",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .offset(x = 110.dp, y = (-100).dp), 

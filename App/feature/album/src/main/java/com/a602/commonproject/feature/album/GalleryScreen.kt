@@ -224,19 +224,29 @@ fun GalleryToggleRow(
 
         // Right Action Buttons
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Temp Album Button
-            Box(
+            // Temp Album Button (Shooting Star & Text for better intuition)
+            Row(
                 modifier = Modifier
-                    .size(48.dp)
+                    .height(48.dp)
                     .background(com.a602.commonproject.designsystem.theme.background.copy(alpha = 0.9f), CircleShape)
-                    .clickable(onClick = onTempAlbum),
-                contentAlignment = Alignment.Center
+                    .clickable(onClick = onTempAlbum)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.temporary),
-                    contentDescription = "임시 앨범",
+                    imageVector = Icons.Default.AutoAwesome, // 반짝이는 별 (별똥별 느낌)
+                    contentDescription = null,
                     tint = com.a602.commonproject.designsystem.theme.main,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "한달 앨범",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    ),
+                    color = com.a602.commonproject.designsystem.theme.main
                 )
             }
         }
