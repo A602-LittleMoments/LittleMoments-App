@@ -35,7 +35,7 @@ private fun stableIndex(id: String, mod: Int): Int {
 }
 
 // keywordId 기반: 항상 같은 아이콘 선택
-private fun pickStablePlanetRes(categoryValue: String, keywordId: String): Int {
+internal fun pickStablePlanetRes(categoryValue: String, keywordId: String): Int {
     val pool = categoryToPlanetPool[categoryValue].orEmpty()
     if (pool.isEmpty()) return defaultPlanetRes
     return pool[stableIndex(keywordId, pool.size)]
