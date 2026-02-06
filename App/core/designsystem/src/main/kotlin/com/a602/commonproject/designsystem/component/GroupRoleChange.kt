@@ -47,7 +47,7 @@ fun GroupRoleChangeDialog(
             ) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "권한 선택",
+                        text = "역할 선택",
                         style = AppTypography.headlineMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = NavyBlue,
@@ -107,7 +107,7 @@ fun GroupRoleChangeDialog(
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                 ) {
                     Text(
-                        text = "변경하기",
+                        text = "코드 생성",
                         style = AppTypography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = Color.White
