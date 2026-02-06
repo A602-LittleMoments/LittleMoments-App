@@ -154,9 +154,8 @@ fun mapToCalendarDays(
     for (day in 1..yearMonth.lengthOfMonth()) {
         val date = yearMonth.atDay(day)
         val representative = grouped[date]?.firstOrNull()
-
-        // remoteUrl을 대표 이미지로 사용
-        val imageUrl = representative?.remoteUrl
+        // 썸네일 -> 원본 -> 로컬 순으로 표시할 이미지 결정
+        val imageUrl = representative?.thumbnailUrl ?: representative?.remoteUrl ?: representative?.localUri
         val mediaId = representative?.id
 
         days.add(CalendarDay(date, imageUrl, mediaId))
