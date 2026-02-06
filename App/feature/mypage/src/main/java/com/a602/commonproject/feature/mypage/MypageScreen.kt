@@ -368,19 +368,22 @@ fun MypageScreen(
                                                 fontSize = 24.sp
                                             )
                                         )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Icon(
-                                            imageVector = LMicons.edit_outline,
-                                            contentDescription = "가족 이름 수정",
-                                            tint = NavyBlue,
-                                            modifier = Modifier
-                                                .size(20.dp)
-                                                .clickable {
-                                                    // 편집 시작 시 현재 이름으로 초기화
-                                                    onGroupNameChange(uiState.group?.name ?: "")
-                                                    isEditingGroupName = true
-                                                }
-                                        )
+                                        // OWNER(방장)만 수정 아이콘 표시
+                                        if (uiState.group?.role == GroupRole.OWNER) {
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Icon(
+                                                imageVector = LMicons.edit_outline,
+                                                contentDescription = "가족 이름 수정",
+                                                tint = NavyBlue,
+                                                modifier = Modifier
+                                                    .size(20.dp)
+                                                    .clickable {
+                                                        // 편집 시작 시 현재 이름으로 초기화
+                                                        onGroupNameChange(uiState.group?.name ?: "")
+                                                        isEditingGroupName = true
+                                                    }
+                                            )
+                                        }
                                     }
                                 }
 
@@ -450,33 +453,35 @@ fun MypageScreen(
 
                                 Spacer(modifier = Modifier.height(32.dp))
 
-                                // 3-7. 새 멤버 추가 버튼
-                                Button(
-                                    onClick = onAddNewMemberClick,
-                                    modifier = Modifier
-                                        .fillMaxWidth(0.8f) // 이미지상 너비가 좀 좁음
-                                        .height(50.dp)
-                                        .shadow(8.dp, RoundedCornerShape(12.dp)), // 그림자 추가
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = NavyBlue
-                                    ),
-                                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp) // shadow modifier 사용
-                                ) {
-                                    Icon(
-                                        imageVector = LMicons.person_add,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = "새 멤버 추가",
-                                        style = AppTypography.titleMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
+                                // 3-7. 새 멤버 추가 버튼 (OWNER와 MEMBER만 표시)
+                                if (uiState.group?.role == GroupRole.OWNER || uiState.group?.role == GroupRole.MEMBER) {
+                                    Button(
+                                        onClick = onAddNewMemberClick,
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.8f) // 이미지상 너비가 좀 좁음
+                                            .height(50.dp)
+                                            .shadow(8.dp, RoundedCornerShape(12.dp)), // 그림자 추가
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = NavyBlue
+                                        ),
+                                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp) // shadow modifier 사용
+                                    ) {
+                                        Icon(
+                                            imageVector = LMicons.person_add,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(18.dp)
                                         )
-                                    )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "새 멤버 추가",
+                                            style = AppTypography.titleMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White
+                                            )
+                                        )
+                                    }
                                 }
                             } else {
                                 // 그룹 없음 상태
