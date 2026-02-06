@@ -1,67 +1,54 @@
 package com.a602.commonproject.feature.album
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.ContentScale
-import com.a602.commonproject.designsystem.R
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.a602.commonproject.designsystem.R
 import com.a602.commonproject.designsystem.component.FillWrapButton
-import com.a602.commonproject.designsystem.component.LMNavigationDefaults.NavigationBarHeight
 import com.a602.commonproject.designsystem.component.LMTopAppBar
-import com.a602.commonproject.designsystem.theme.LMTheme
-import com.a602.commonproject.designsystem.theme.background
+import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.feature.album.viewmodel.GridGalleryViewmodel
 import com.a602.commonproject.feature.album.viewmodel.SortOrder
-import androidx.compose.ui.draw.shadow
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.ui.unit.sp
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.coommonproject.ui.GalleryGridFrameless
-import com.a602.coommonproject.ui.GalleryGridPolaroid
+import com.a602.coommonproject.ui.FramelessPhotoItem
+
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import com.a602.commonproject.designsystem.theme.color4
-import com.a602.commonproject.designsystem.theme.lightbackground
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.draw.clip
-
+import kotlinx.coroutines.launch
 
 @Composable
 fun GridRoute(
@@ -75,38 +62,22 @@ fun GridRoute(
     onMediaClick: (SharedMedia) -> Unit,
     viewModel: GridGalleryViewmodel = hiltViewModel(),
 ) {
-    // Import for coroutine scope
-    androidx.compose.runtime.LaunchedEffect(keywordId, title, babyId, year) {
+    LaunchedEffect(keywordId, title, babyId, year) {
         viewModel.setFilter(keywordId, title, babyId, year)
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // ✨ [Fix] 화면 복귀 시 (예: 상세화면에서 삭제 후) 데이터 갱신
-    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
-    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                 viewModel.refreshData()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
-    // Params decide UI mode immediately
+    // Params decide UI mode
     val showCalendarButton = keywordId == null
-    val topBarTitle = title ?: uiState.title
-
-    // [New] Year History Mode Check
+    val topBarTitle = if (uiState.isSelectMode) "" else (title ?: uiState.title)
     val isYearHistoryMode = babyId != null && year != null
 
     if (isYearHistoryMode) {
-        // --- Special UI for Year History ---
         YearHistoryLayout(
-            title = uiState.title, // ViewModel sets this to "Namw와의 Year년 추억"
+            title = uiState.title,
             medias = uiState.medias,
             sortOrder = uiState.sortOrder,
             onToggleSort = viewModel::toggleSortOrder,
@@ -114,8 +85,6 @@ fun GridRoute(
             onMediaClick = onMediaClick
         )
     } else if (date != null) {
-        // ... (Existing Date Pager Logic) ...
-        // 1. Group all available media by Date
         val grouped = remember(uiState.medias) {
             uiState.medias.groupBy {
                 Instant.ofEpochMilli(it.dateTaken)
@@ -125,7 +94,6 @@ fun GridRoute(
         }
         val availableDates = remember(grouped) { grouped.keys.toList() }
 
-        // 2. Find initial page
         val initialPage = remember(availableDates, date) {
             val idx = availableDates.indexOf(date)
             if (idx == -1) 0 else idx
@@ -136,11 +104,8 @@ fun GridRoute(
             pageCount = { availableDates.size }
         )
 
-        val scope = androidx.compose.runtime.rememberCoroutineScope()
         var initialDateSynced by rememberSaveable { mutableStateOf(false) }
 
-        // Fix: Data loading delay causes initialPage to be 0 (oldest).
-        // Sync pager to the correct date once data is available.
         LaunchedEffect(availableDates, date) {
             if (!initialDateSynced && availableDates.isNotEmpty()) {
                 val idx = availableDates.indexOf(date)
@@ -153,7 +118,37 @@ fun GridRoute(
 
         GridGalleryShell(
             title = topBarTitle,
-            onBackClick = onBackClick
+            onBackClick = onBackClick,
+            actions = {
+                if (uiState.medias.isNotEmpty()) {
+                    if (uiState.isSelectMode) {
+                        // 현재 페이지(날짜)에 해당하는 미디어만 선택 대상으로 설정
+                        val currentTargetMedias = if (availableDates.isNotEmpty()) {
+                            val currentDate = availableDates.getOrNull(pagerState.currentPage)
+                            if (currentDate != null) grouped[currentDate] ?: emptyList() else uiState.medias
+                        } else {
+                            uiState.medias
+                        }
+
+                        FillWrapButton(
+                            onClick = {
+                                if (uiState.selectedIds.size == currentTargetMedias.size) {
+                                    viewModel.clearSelection()
+                                } else {
+                                    viewModel.selectAll(currentTargetMedias.map { it.id })
+                                }
+                            },
+                            text = if (uiState.selectedIds.size == currentTargetMedias.size && currentTargetMedias.isNotEmpty()) "선택해제" else "전체선택",
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
+                    FillWrapButton(
+                        onClick = viewModel::toggleSelectMode,
+                        text = if (uiState.isSelectMode) "취소" else "선택",
+                        modifier = Modifier.padding(end = 12.dp)
+                    )
+                }
+            }
         ) { innerPadding ->
             if (availableDates.isNotEmpty()) {
                 HorizontalPager(
@@ -169,10 +164,28 @@ fun GridRoute(
                         headerText = pageHeaderText,
                         sortOrder = uiState.sortOrder,
                         onToggleSort = viewModel::toggleSortOrder,
-                        showCalendarButton = true, // 날짜 보기 모드에서는 헤더(날짜+화살표) 표시
+                        showCalendarButton = true,
                         onCalendarClick = onCalendarClick,
                         onMediaClick = onMediaClick,
                         topPadding = innerPadding.calculateTopPadding(),
+                        isSelectMode = uiState.isSelectMode,
+                        selectedIds = uiState.selectedIds,
+                        onToggleSelectMode = viewModel::toggleSelectMode,
+                        onToggleSelect = { viewModel.toggleSelect(it.id) },
+                        onLongClick = {
+                            if (!uiState.isSelectMode) {
+                                viewModel.toggleSelectMode()
+                                viewModel.toggleSelect(it.id)
+                            }
+                        },
+                        onSelectAll = { viewModel.selectAll(pageMedias.map { it.id }) },
+                        onDeleteSelected = {
+                            viewModel.deleteSelected(
+                                onSuccess = { scope.launch { snackbarHostState.showSnackbar("삭제되었습니다.") } },
+                                onError = { msg -> scope.launch { snackbarHostState.showSnackbar(msg) } }
+                            )
+                        },
+                        snackbarHostState = snackbarHostState,
                         onHeaderPrevClick = {
                             if (pagerState.currentPage > 0) {
                                 scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
@@ -187,38 +200,49 @@ fun GridRoute(
                 }
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("사진이 없습니다.", color = androidx.compose.ui.graphics.Color.White)
+                    Text("사진이 없습니다.", color = Color.White)
                 }
             }
         }
     } else {
-        // Fallback to original single-view logic for keyword/baby/all
-        val filtered = remember(uiState.medias, date) {
-             uiState.medias // date is null here
-        }
-        val headerText = "Recent" // Or dynamic based on filters
-
         GridGalleryScreen(
-            medias = filtered,
-            headerText = headerText,
+            medias = uiState.medias,
+            headerText = "Recent",
             sortOrder = uiState.sortOrder,
             onToggleSort = viewModel::toggleSortOrder,
             onCalendarClick = onCalendarClick,
             onMediaClick = onMediaClick,
             onBackClick = onBackClick,
             title = topBarTitle,
-            showCalendarButton = showCalendarButton
+            showCalendarButton = showCalendarButton,
+            isSelectMode = uiState.isSelectMode,
+            selectedIds = uiState.selectedIds,
+            onToggleSelectMode = viewModel::toggleSelectMode,
+            onToggleSelect = { viewModel.toggleSelect(it.id) },
+            onLongClick = {
+                if (!uiState.isSelectMode) {
+                    viewModel.toggleSelectMode()
+                    viewModel.toggleSelect(it.id)
+                }
+            },
+            onSelectAll = {
+                if (uiState.selectedIds.size == uiState.medias.size && uiState.medias.isNotEmpty()) {
+                    viewModel.clearSelection()
+                } else {
+                    viewModel.selectAll(uiState.medias.map { it.id })
+                }
+            },
+            onDeleteSelected = {
+                viewModel.deleteSelected(
+                    onSuccess = { scope.launch { snackbarHostState.showSnackbar("삭제되었습니다.") } },
+                    onError = { msg -> scope.launch { snackbarHostState.showSnackbar(msg) } }
+                )
+            },
+            snackbarHostState = snackbarHostState
         )
     }
 }
-private fun SharedMedia.isSameDay(target: LocalDate): Boolean {
-    val day = Instant.ofEpochMilli(this.dateTaken)
-        .atZone(ZoneId.systemDefault())
-        .toLocalDate()
-    return day == target
-}
 
-// 🚀 [NEW] Year History Layout Component
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun YearHistoryLayout(
@@ -229,7 +253,6 @@ fun YearHistoryLayout(
     onBackClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit
 ) {
-    // 1. Group by Date
     val groupedFn = remember(medias, sortOrder) {
         val grouped = medias.groupBy {
             Instant.ofEpochMilli(it.dateTaken)
@@ -247,12 +270,11 @@ fun YearHistoryLayout(
         topBar = {
             LMTopAppBar(
                 title = title,
-                onNavigationClick = onBackClick, // This handles the "Back" arrow
+                onNavigationClick = onBackClick,
             )
         }
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
-            // Background
             Image(
                 painter = painterResource(id = R.drawable.gallery_background),
                 contentDescription = null,
@@ -260,34 +282,31 @@ fun YearHistoryLayout(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Content Container (Dark Glass card - Matched with GridGalleryContent)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = innerPadding.calculateTopPadding())
-                    .padding(top = 24.dp) // ✨ Extra spacing from TopBar
-                    .navigationBarsPadding() // ✨ Prevent overlap with bottom bar
+                    .padding(top = 24.dp)
+                    .navigationBarsPadding()
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = 30.dp) // ✨ Match Planet Photo style (was 16.dp)
-                    .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
-                    .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
-                    .padding(12.dp) // Padding inside the card
+                    .padding(bottom = 30.dp)
+                    .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
+                    .padding(12.dp)
             ) {
                  if (medias.isEmpty()) {
-                     Box(Modifier.fillMaxSize().background(background.copy(alpha = 0.1f), shape = RoundedCornerShape(24.dp)), contentAlignment = Alignment.Center) {
-                         Text("아직 추억이 없어요.", color = androidx.compose.ui.graphics.Color.White)
+                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                         Text("아직 추억이 없어요.", color = Color.White)
                      }
                  } else {
                      androidx.compose.foundation.lazy.LazyColumn(
                          modifier = Modifier.fillMaxSize()
-                             .background(background.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
                              .clip(RoundedCornerShape(24.dp)),
                          verticalArrangement = Arrangement.spacedBy(24.dp),
-                         contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                         contentPadding = PaddingValues(
                              start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp
                          )
                      ) {
-                         // Sort Button In Year History
                          item {
                              Row(
                                  modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
@@ -296,7 +315,7 @@ fun YearHistoryLayout(
                                  Text(
                                      text = if (sortOrder == SortOrder.LATEST) "최신순 ↓" else "오래된순 ↑",
                                      style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                     color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f),
+                                     color = Color.White.copy(alpha = 0.7f),
                                      modifier = Modifier
                                          .clickable(onClick = onToggleSort)
                                          .padding(8.dp)
@@ -305,16 +324,11 @@ fun YearHistoryLayout(
                          }
 
                          groupedFn.forEach { (date, dailyMedias) ->
-                             // Header (Sticky-like behavior within list)
-                             // [Design Match] Removed light gray, added transparent/dark style
-                             // Header
-                             // [Design Match] Changed from stickyHeader to item (scrolls with content)
-                             // Removed background to show just text, matching main Gallery Grid style.
                              item {
                                  Box(
                                      modifier = Modifier
                                          .fillMaxWidth()
-                                         .padding(start = 12.dp, top = 16.dp, bottom = 8.dp) // 날짜를 오른쪽으로 조금 더 이동
+                                         .padding(start = 12.dp, top = 16.dp, bottom = 8.dp)
                                  ) {
                                      Text(
                                          text = "${date.year}.${String.format("%02d", date.monthValue)}.${String.format("%02d", date.dayOfMonth)}",
@@ -322,15 +336,12 @@ fun YearHistoryLayout(
                                              fontWeight = FontWeight.Bold,
                                              fontSize = 16.sp
                                          ),
-                                         color = androidx.compose.ui.graphics.Color.White
+                                         color = Color.White
                                      )
                                  }
                              }
 
-                             // Grid Items for this date
-                             // using flow row or simple chunking since LazyColumn can't nest LazyVerticalGrid easily without fixed height
                              item {
-                                 // Simple Flow Layout
                                  Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                      dailyMedias.chunked(3).forEach { rowMedias ->
                                          Row(
@@ -338,16 +349,13 @@ fun YearHistoryLayout(
                                              modifier = Modifier.fillMaxWidth()
                                          ) {
                                              rowMedias.forEach { media ->
-                                                 // [Fix] Changed aspect ratio from 1f (Square) to 3f/4f (Polaroid/Portrait)
-                                                 // to match the main Gallery Grid style as requested.
                                                  Box(modifier = Modifier.weight(1f).aspectRatio(3f/4f)) {
-                                                     com.a602.coommonproject.ui.FramelessPhotoItem(
-                                                         media = media,
-                                                         onClick = { onMediaClick(media) }
-                                                     )
+                                                      FramelessPhotoItem(
+                                                          media = media,
+                                                          onClick = { onMediaClick(media) }
+                                                      )
                                                  }
                                              }
-                                             // Fill empty slots if last row has < 3 items
                                              repeat(3 - rowMedias.size) {
                                                  Spacer(modifier = Modifier.weight(1f))
                                              }
@@ -363,20 +371,19 @@ fun YearHistoryLayout(
     }
 }
 
-
-// 격자 보기
 @Composable
-// Shell Component (Scaffold + Background)
 fun GridGalleryShell(
     title: String,
     onBackClick: () -> Unit,
-    content: @Composable (androidx.compose.foundation.layout.PaddingValues) -> Unit
+    actions: @Composable RowScope.() -> Unit = {},
+    content: @Composable (PaddingValues) -> Unit
 ) {
     Scaffold(
         topBar = {
             LMTopAppBar(
                 title = title,
                 onNavigationClick = onBackClick,
+                actions = actions
             )
         }
     ) { innerPadding ->
@@ -387,7 +394,6 @@ fun GridGalleryShell(
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier.fillMaxSize()
             )
-            // Rocket background element
             Image(
                 painter = painterResource(id = R.drawable.rocket4),
                 contentDescription = null,
@@ -397,13 +403,11 @@ fun GridGalleryShell(
                     .graphicsLayer(rotationZ = -35f),
                 alpha = 0.8f
             )
-
             content(innerPadding)
         }
     }
 }
 
-// Inner Content Component (Glass Box + Header + Grid)
 @Composable
 fun GridGalleryContent(
     medias: List<SharedMedia>,
@@ -414,109 +418,224 @@ fun GridGalleryContent(
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
     topPadding: androidx.compose.ui.unit.Dp,
+    isSelectMode: Boolean = false,
+    selectedIds: Set<String> = emptySet(),
+    onToggleSelectMode: () -> Unit = {},
+    onToggleSelect: (SharedMedia) -> Unit = {},
+    onLongClick: (SharedMedia) -> Unit = {},
+    onSelectAll: () -> Unit = {},
+    onDeleteSelected: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onHeaderPrevClick: (() -> Unit)? = null,
     onHeaderNextClick: (() -> Unit)? = null
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = topPadding)
-            .padding(horizontal = 8.dp)
-            .padding(top = 24.dp), // Increased top spacing
-    ) {
-        // Main Container (Glass-like with Dark Theme)
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .navigationBarsPadding() // Move up to act as margin
-                .padding(bottom = 30.dp) // Almost touching the bottom bar
-                .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
-                .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
-                .padding(12.dp) // Adjust inner padding to match calendar
+                .padding(top = topPadding)
+                .padding(horizontal = 8.dp)
+                .padding(top = 24.dp),
         ) {
-            // 1. 상단 헤더 영역
-            if (showCalendarButton) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+                    .padding(bottom = 30.dp)
+                    .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
+                    .padding(12.dp)
+            ) {
+                // 1. 상단 옵션 버튼 영역을 제거 (상단 바로 이동됨)
+
+                if (showCalendarButton) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        if (onHeaderPrevClick != null && onHeaderNextClick != null) {
+                             IconButton(onClick = onHeaderPrevClick) {
+                                 Icon(
+                                     imageVector = Icons.Default.KeyboardArrowLeft,
+                                     contentDescription = "Previous Date",
+                                     tint = Color.White
+                                 )
+                             }
+
+                             Text(
+                                text = headerText,
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 22.sp,
+                                ),
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            IconButton(onClick = onHeaderNextClick) {
+                                 Icon(
+                                     imageVector = Icons.Default.KeyboardArrowRight,
+                                     contentDescription = "Next Date",
+                                     tint = Color.White
+                                 )
+                             }
+
+                        } else {
+                            Text(
+                                text = headerText,
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 22.sp,
+                                ),
+                                 color = Color.White,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+
+                        if (onHeaderPrevClick == null) {
+                            Text(
+                                text = if (sortOrder == SortOrder.LATEST) "최신순 ↓" else "오래된순 ↑",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = Color.White.copy(alpha = 0.7f),
+                                modifier = Modifier
+                                    .clickable(onClick = onToggleSort)
+                                    .padding(8.dp)
+                            )
+                        }
+                    }
+                }
+
+                Box(modifier = Modifier.weight(1f)
+                    .background(background.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(24.dp)))
+                {
+                    GalleryGridFrameless(
+                        medias = medias,
+                        isSelectMode = isSelectMode,
+                        selectedIds = selectedIds,
+                        contentPadding = PaddingValues(
+                            start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp
+                        ),
+                        onClick = {
+                            if (isSelectMode) onToggleSelect(it)
+                            else onMediaClick(it)
+                        },
+                        onLongClick = onLongClick
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = isSelectMode && selectedIds.isNotEmpty(),
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            Surface(
+                tonalElevation = 8.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+                    .navigationBarsPadding() // 네비게이션 바 고려
+                    , // 기존 30dp -> 80dp로 상향 조정
+                color = Color.White,
+                shape = RoundedCornerShape(24.dp),
+                border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.2f)),
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                        .padding(vertical = 12.dp, horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    if (onHeaderPrevClick != null && onHeaderNextClick != null) {
-                         // Date Mode: Center Align with Arrows
-                         androidx.compose.material3.IconButton(onClick = onHeaderPrevClick) {
-                             androidx.compose.material3.Icon(
-                                 imageVector = androidx.compose.material.icons.Icons.Default.KeyboardArrowLeft,
-                                 contentDescription = "Previous Date",
-                                 tint = androidx.compose.ui.graphics.Color.White
-                             )
-                         }
-
-                         Text(
-                            text = headerText,
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp,
-                            ),
-                            color = androidx.compose.ui.graphics.Color.White,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            modifier = Modifier.weight(1f)
+                    FillWrapButton(
+                        text = "삭제",
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1B2430)
                         )
-
-                        androidx.compose.material3.IconButton(onClick = onHeaderNextClick) {
-                             androidx.compose.material3.Icon(
-                                 imageVector = androidx.compose.material.icons.Icons.Default.KeyboardArrowRight,
-                                 contentDescription = "Next Date",
-                                 tint = androidx.compose.ui.graphics.Color.White
-                             )
-                         }
-
-                    } else {
-                        // Regular Mode: Start Align
-                        Text(
-                            text = headerText,
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp,
-                            ),
-                             color = androidx.compose.ui.graphics.Color.White,
-                            modifier = Modifier.padding(start = 8.dp) // 헤더를 오른쪽으로 조금 더 이동
-                        )
-                    }
-
-                    // Sort Toggle Area (Only if not in Date Pager mode which is usually sorted by date context)
-                    if (onHeaderPrevClick == null) {
-                        Text(
-                            text = if (sortOrder == SortOrder.LATEST) "최신순 ↓" else "오래된순 ↑",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                            color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier
-                                .clickable(onClick = onToggleSort)
-                                .padding(8.dp)
-                        )
-                    }
+                    )
                 }
             }
+        }
 
-            // Grid Area
-            Box(modifier = Modifier.fillMaxSize()
-                .background(background.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
-                .clip(RoundedCornerShape(24.dp)))
-            {
-                GalleryGridFrameless(
-                    medias = medias,
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp
-                    ),
-                    onClick = onMediaClick,
-                )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(horizontal = 24.dp),
+        ) { data ->
+            Snackbar(
+                snackbarData = data,
+                containerColor = Color(0xFF001229).copy(alpha = 0.9f),
+                contentColor = Color.White,
+                shape = RoundedCornerShape(12.dp)
+            )
+        }
+
+        if (showDeleteDialog) {
+            Dialog(onDismissRequest = { showDeleteDialog = false }) {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = lightbackground,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    shadowElevation = 8.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "사진 삭제",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = color3
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "선택한 ${selectedIds.size}장의 사진을 삭제할까요?",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = color4,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(onClick = { showDeleteDialog = false }) {
+                                Text("취소", color = color4)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    showDeleteDialog = false
+                                    onDeleteSelected()
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = main
+                                )
+                            ) {
+                                Text("삭제", color = Color.White)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-// Legacy wrapper for Preview and simple usage
 @Composable
 fun GridGalleryScreen(
     medias: List<SharedMedia>,
@@ -528,9 +647,36 @@ fun GridGalleryScreen(
     headerText: String = "Recent",
     modifier: Modifier = Modifier,
     title: String = "갤러리",
-    showCalendarButton: Boolean = true
+    showCalendarButton: Boolean = true,
+    isSelectMode: Boolean = false,
+    selectedIds: Set<String> = emptySet(),
+    onToggleSelectMode: () -> Unit = {},
+    onToggleSelect: (SharedMedia) -> Unit = {},
+    onLongClick: (SharedMedia) -> Unit = {},
+    onSelectAll: () -> Unit = {},
+    onDeleteSelected: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
-    GridGalleryShell(title = title, onBackClick = onBackClick) { innerPadding ->
+    GridGalleryShell(
+        title = if (isSelectMode) "" else title,
+        onBackClick = onBackClick,
+        actions = {
+            if (medias.isNotEmpty()) {
+                if (isSelectMode) {
+                    FillWrapButton(
+                        onClick = onSelectAll,
+                        text = if (selectedIds.size == medias.size) "선택해제" else "전체선택",
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                }
+                FillWrapButton(
+                    onClick = onToggleSelectMode,
+                    text = if (isSelectMode) "취소" else "선택",
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+            }
+        }
+    ) { innerPadding ->
         GridGalleryContent(
             medias = medias,
             headerText = headerText,
@@ -540,30 +686,16 @@ fun GridGalleryScreen(
             onCalendarClick = onCalendarClick,
             onMediaClick = onMediaClick,
             topPadding = innerPadding.calculateTopPadding(),
+            isSelectMode = isSelectMode,
+            selectedIds = selectedIds,
+            onToggleSelectMode = onToggleSelectMode,
+            onToggleSelect = onToggleSelect,
+            onLongClick = onLongClick,
+            onSelectAll = onSelectAll,
+            onDeleteSelected = onDeleteSelected,
+            snackbarHostState = snackbarHostState,
             onHeaderPrevClick = null,
             onHeaderNextClick = null
-        )
-    }
-}
-
-@Composable
-private fun fakeMediaList(): List<SharedMedia> {
-    return List(6) { i ->
-        SharedMedia(
-            id = i.toString(),
-            type = SharedMedia.MediaType.PHOTO,
-            localUri = null,
-            remoteUrl = "https://picsum.photos/600/80${i}",
-            thumbnailUrl = null,
-            subLocalUri = null,
-            subRemoteUrl = "https://picsum.photos/300/40${i}",
-            subThumbnailUrl = null,
-            cameraFacing = "DUAL",
-            caption = "프리뷰입니다프리뷰프리뷰프리뷰프리뷰",
-            dateTaken = System.currentTimeMillis(),
-            orientation = 0,
-            uploaderName = "엄마",
-            syncStatus = SharedMedia.SyncStatus.SYNCED,
         )
     }
 }
@@ -573,7 +705,7 @@ private fun fakeMediaList(): List<SharedMedia> {
 fun GridGalleryScreenPreview() {
     LMTheme {
         GridGalleryScreen(
-            medias = fakeMediaList(),
+            medias = emptyList(),
             onCalendarClick = {},
             onMediaClick = {},
             onBackClick = {}

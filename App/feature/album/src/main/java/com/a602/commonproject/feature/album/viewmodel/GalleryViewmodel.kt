@@ -6,7 +6,7 @@ import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.data.repository.UserRepository
 import com.a602.commonproject.model.data.SharedMedia
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged

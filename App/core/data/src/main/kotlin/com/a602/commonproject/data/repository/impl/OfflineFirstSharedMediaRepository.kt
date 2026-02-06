@@ -176,11 +176,24 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
     // =================================================================
     override suspend fun deleteMedia(mediaId: String): Result<Unit> {
         return try {
-            // DAO의 markAsDeleted 호출 (syncStatus = 'TO_BE_DELETE'로 변경)
-            // 화면 목록에서는 즉시 사라지지만, 데이터는 남아서 나중에 Worker가 서버 삭제 요청을 보냄
+            // 1. DAO의 markAsDeleted 호출 (UI 즉시 반영 - Optimistic Update)
             mediaDao.markAsDeleted(mediaId)
+
+            try {
+                // 2. 서버 즉시 삭제 시도
+                val groupId = getGroupIdOrThrow()
+                networkDataSource.deleteMedia(groupId, mediaId)
+
+                // 3. 서버 삭제 성공 시 로컬 완전 삭제
+                mediaDao.hardDelete(mediaId)
+            } catch (e: Exception) {
+                // 네트워크 오류 등으로 실패 시, '삭제 예정' 상태로 유지 -> Worker가 처리
+                e.printStackTrace()
+            }
+
             Result.success(Unit)
         } catch (e: Exception) {
+            // DB 오류 등 심각한 문제
             Result.failure(e)
         }
     }
