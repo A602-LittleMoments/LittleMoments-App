@@ -176,7 +176,7 @@ class MediaDetailViewModel @Inject constructor(
                         media = null,
                         allMedias = filteredMedias,
                         isLoading = false,
-                        errorMessage = "사진을 불러오지 못했어요"
+                        errorMessage = null // ✨ [Fix] 명확한 에러가 아닐 경우 에러 메시지를 세팅하지 않음 (삭제 등 과도기 방지)
                     )
                 }
             }
@@ -220,7 +220,7 @@ class MediaDetailViewModel @Inject constructor(
                 // 키워드 변경 시에는 로딩 보여주기, 단순 스와이프(ID 변경) 시에는 로딩 안 함
                 isLoading = keywordId != previousKeywordId,
                 errorMessage = null,
-                deleteSuccess = false,
+                // deleteSuccess = false, // ✨ [Fix] 삭제 성공 상태는 onDeleteSuccessConsumed에서만 리셋
                 downloadSuccess = false,
                 saveBitmapSuccess = false
             )

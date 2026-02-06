@@ -86,8 +86,8 @@ fun EntryProviderScope<NavKey>.memoryEntries(
         }
 
         LoadingContent(
-            title = "영상 생성을 요청했습니다!",
-            subTitle = "요청이 성공적으로 전송되었습니다."
+            title = "추억 조각들을 연결하는 중",
+            subTitle = "곧 우리 가족만의\n특별한 하이라이트가\n우주에서 도착합니다!"
         )
     }
 }

@@ -35,7 +35,6 @@ private fun stableIndex(id: String, mod: Int): Int {
 }
 
 // keywordId 기반: 항상 같은 아이콘 선택
-// internal means it is visible within this module, providing wider access than private but not fully public API
 internal fun pickStablePlanetRes(categoryValue: String, keywordId: String): Int {
     val pool = categoryToPlanetPool[categoryValue].orEmpty()
     if (pool.isEmpty()) return defaultPlanetRes
