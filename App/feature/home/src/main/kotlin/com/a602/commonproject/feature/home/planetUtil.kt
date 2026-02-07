@@ -17,11 +17,11 @@ private const val MAX_PLANETS = 7
 // 카테고리별 아이콘 (너희 drawable로 교체)
 // 카테고리끼리 겹치지 않게 고유하게 배정
 private val categoryToPlanetPool: Map<String, List<Int>> = mapOf(
-    "물건" to listOf(DsR.drawable.ic_thing1, DsR.drawable.ic_thing2, DsR.drawable.ic_thing3,DsR.drawable.ic_thing4,DsR.drawable.ic_thing5,DsR.drawable.ic_thing6),
-    "음식" to listOf(DsR.drawable.ic_food1, DsR.drawable.ic_food2,DsR.drawable.ic_food3,DsR.drawable.ic_food4,DsR.drawable.ic_food5,DsR.drawable.ic_food6,DsR.drawable.ic_food7),
-    "인물" to listOf(DsR.drawable.ic_person1, DsR.drawable.ic_person2,DsR.drawable.ic_person3,DsR.drawable.ic_person4,DsR.drawable.ic_person5,DsR.drawable.ic_person6,DsR.drawable.ic_person7),
-    "기념" to listOf(DsR.drawable.ic_event1, DsR.drawable.ic_event2, DsR.drawable.ic_event3,DsR.drawable.ic_event4,DsR.drawable.ic_event5),
-    "여행" to listOf(DsR.drawable.ic_travle1, DsR.drawable.ic_travle2, DsR.drawable.ic_travle3,DsR.drawable.ic_travle4,DsR.drawable.ic_travle5),
+    "물건" to listOf(DsR.drawable.ic_thing1, DsR.drawable.ic_thing2, DsR.drawable.ic_thing3,DsR.drawable.ic_thing4,DsR.drawable.ic_thing5,DsR.drawable.ic_thing6,DsR.drawable.ic_thing7,DsR.drawable.ic_thing8,DsR.drawable.ic_thing9,DsR.drawable.ic_thing10,DsR.drawable.ic_thing11,DsR.drawable.ic_thing12,DsR.drawable.ic_thing13),
+    "행동" to listOf(DsR.drawable.ic_action1, DsR.drawable.ic_action2,DsR.drawable.ic_action3,DsR.drawable.ic_action4,DsR.drawable.ic_action5,DsR.drawable.ic_action6,DsR.drawable.ic_action7,DsR.drawable.ic_action8,DsR.drawable.ic_action9),
+    "의상" to listOf(DsR.drawable.ic_clothes1, DsR.drawable.ic_clothes2,DsR.drawable.ic_clothes3,DsR.drawable.ic_clothes4,DsR.drawable.ic_clothes5,DsR.drawable.ic_clothes6,DsR.drawable.ic_clothes7,DsR.drawable.ic_clothes8),
+    "장소" to listOf(DsR.drawable.ic_place1, DsR.drawable.ic_place2, DsR.drawable.ic_place3,DsR.drawable.ic_place4,DsR.drawable.ic_place5,DsR.drawable.ic_place6,DsR.drawable.ic_place7,DsR.drawable.ic_place8,DsR.drawable.ic_place9),
+    "분위기" to listOf(DsR.drawable.ic_emotion1, DsR.drawable.ic_emotion2, DsR.drawable.ic_emotion3,DsR.drawable.ic_emotion4,DsR.drawable.ic_emotion5,DsR.drawable.ic_emotion6,DsR.drawable.ic_emotion7,DsR.drawable.ic_emotion8,DsR.drawable.ic_emotion9),
 )
 
 // 매칭 실패 시 기본
@@ -47,19 +47,19 @@ internal fun pickStablePlanetRes(categoryValue: String, keywordId: String): Int 
  */
 fun assignDiversePlanets(items: List<Collection>): Map<String, Int> {
     val assignment = mutableMapOf<String, Int>()
-    
+
     // 1. 카테고리별로 아이템 그룹화
     val grouped = items.groupBy { it.categoryValue }
 
     grouped.forEach { (category, categoryItems) ->
         val pool = categoryToPlanetPool[category].orEmpty()
-        
+
         if (pool.isNotEmpty()) {
             // 2. 풀을 섞어서 매번 다른 느낌을 주되 (diversity)
             //    목록 내에서는 최대한 겹치지 않게 순서대로 배정
             val shuffledPool = pool.shuffled()
             val poolSize = shuffledPool.size
-            
+
             // keywordId 기준으로 중복 제거된 목록만 순회해야 함 (동일 키워드는 같은 아이콘)
             // (입력 items에 동일 키워드가 중복되어 있을 수 있으므로)
             val uniqueItems = categoryItems.distinctBy { it.keywordId }
@@ -114,32 +114,32 @@ fun buildPlanetsUiLaneLayout(
     // 0. 아이콘 중복 최소화 로직 제거 (Dialog와 일치를 위해 pickStablePlanetRes 사용)
     // val assignedIcons = mutableMapOf<String, Int>()
     // val grouped = limited.groupBy { it.categoryValue } ... (removed)
-    
+
     val count = limited.size
-    
+
     // 배치 가능한 영역
     val minX = sideSafeArea.value
     // 너비를 100% 다 쓰면 텍스트가 잘릴 수 있으므로, 우측 여백을 좀 더 줌
-    val maxX = (viewportWidth - sideSafeArea).value 
-    
+    val maxX = (viewportWidth - sideSafeArea).value
+
     val minY = topSafeArea.value
     val maxY = (viewportHeight - bottomSafeArea).value
-    
+
     // Box Collision Logic (Rectangle)
-    // 원형 충돌은 '타이틀(글자)'가 겹치는 것을 완벽히 막기 어려움. 
+    // 원형 충돌은 '타이틀(글자)'가 겹치는 것을 완벽히 막기 어려움.
     // 사용자 요청: "제목 부분도 겹치면 안될 거 같은데"
     // -> 따라서 (Planet Size + Label Height)를 포함하는 직사각형(Box) 충돌 검사로 변경.
-    
+
     data class PlacedBox(val x: Float, val y: Float, val r: Float, val b: Float)
     val placedBoxes = mutableListOf<PlacedBox>()
     val planets = mutableListOf<KeywordPlanetUi>()
-    
+
     val labelHeight = 80.dp.value // [Fix] Increased even more (60 -> 80)
     val margin = 8.dp.value // Increased margin
 
     val calculatedSeed = seed ?: limited.sumOf { it.keywordId.hashCode() }.toLong()
     val rng = Random(calculatedSeed)
-    
+
     // 1. 큰 것부터 배치 (내림차순 정렬) - 사용자 요청
     val sortedItems = limited.sortedByDescending { it.collectionSize }
 
@@ -150,27 +150,27 @@ fun buildPlanetsUiLaneLayout(
     sortedItems.forEach { item ->
         val baseSize = sizeFromCollectionSize(item.collectionSize)
         val densityScale = if (count > 15) 0.8f else if (count > 10) 0.9f else 1.0f
-        
+
         var currentScale = 1.0f
         var bestX: Float = minX
         var bestY: Float = minY
         var finalSizeVal = 0f
         var found = false
-        
+
         // Adaptive Resizing
-        val scaleAttempts = 5 
-        
+        val scaleAttempts = 5
+
         outer@ for (s in 0 until scaleAttempts) {
-            val scaleFactor = 1.0f - (s * 0.1f) 
+            val scaleFactor = 1.0f - (s * 0.1f)
             val sizeVal = (baseSize * densityScale * scaleFactor).value
-            
+
             // 직사각형 크기 (Planet + Label)
             val collisionPadding = 10.dp.value // [Fix] Add explicit padding for visual separation
-            val itemW = sizeVal + collisionPadding 
+            val itemW = sizeVal + collisionPadding
             val itemH = sizeVal + labelHeight
-            
+
             val maxTries = 500 // [Fix] Try harder to find space (200 -> 500)
-            
+
             // 랜덤 마진 (기존 4.dp 고정 -> 2~12.dp 랜덤)
             // 아이템마다 여백이 달라지면 "열이 맞춰진 느낌"이 깨지고 더 불규칙해 보임.
             val randomMargin = (2 + rng.nextFloat() * 10).dp.value
@@ -179,16 +179,16 @@ fun buildPlanetsUiLaneLayout(
                 // 랜덤 위치 (좌상단 기준)
                 val availableW = (maxX - minX - itemW).coerceAtLeast(0f)
                 val availableH = (maxY - minY - itemH).coerceAtLeast(0f)
-                
+
                 val candX = minX + rng.nextFloat() * availableW
                 val candY = minY + rng.nextFloat() * availableH
-                
+
                 // 마진 포함된 후보 영역 (충돌 검사용)
                 val cLeft = candX - randomMargin
                 val cTop = candY - randomMargin
                 val cRight = candX + itemW + randomMargin
                 val cBottom = candY + itemH + randomMargin
-                
+
                 // Box Collision Check
                 var overlap = false
                 for (p in placedBoxes) {
@@ -198,12 +198,12 @@ fun buildPlanetsUiLaneLayout(
                         break
                     }
                 }
-                
+
                 if (!overlap) {
                     bestX = candX
                     bestY = candY
                     finalSizeVal = sizeVal
-                    
+
                     // 배치 확정 (실제 영역 + 마진 기록)
                     placedBoxes.add(PlacedBox(cLeft, cTop, cRight, cBottom))
                     found = true
@@ -211,10 +211,10 @@ fun buildPlanetsUiLaneLayout(
                 }
             }
         }
-        
+
         // Fallback: 겹치더라도 "최소한으로" 겹치는 곳 찾기 (Best Fit)
         if (!found) {
-            val minScale = 0.75f 
+            val minScale = 0.75f
             finalSizeVal = (baseSize * densityScale * minScale).value
             val collisionPadding = 8.dp.value // Fallback padding
             val itemW = finalSizeVal + collisionPadding
@@ -224,18 +224,18 @@ fun buildPlanetsUiLaneLayout(
             var minOverlapArea = Float.MAX_VALUE
             var bestFallbackX = minX
             var bestFallbackY = minY
-            
+
             val fallbackTries = 100 // [Fix] Try harder in fallback too (50 -> 100)
-            
+
             for (k in 0 until fallbackTries) {
                 val candX = minX + rng.nextFloat() * (maxX - minX - itemW)
                 val candY = minY + rng.nextFloat() * (maxY - minY - itemH)
-                
+
                 val cLeft = candX - randomMargin
                 val cTop = candY - randomMargin
                 val cRight = candX + itemW + randomMargin
                 val cBottom = candY + itemH + randomMargin
-                
+
                 // 겹침 면적 계산
                 var currentOverlap = 0f
                 for (p in placedBoxes) {
@@ -244,24 +244,24 @@ fun buildPlanetsUiLaneLayout(
                     val interR = kotlin.math.min(cRight, p.r)
                     val interT = max(cTop, p.y)
                     val interB = kotlin.math.min(cBottom, p.b)
-                    
+
                     if (interL < interR && interT < interB) {
                          currentOverlap += (interR - interL) * (interB - interT)
                     }
                 }
-                
+
                 if (currentOverlap < minOverlapArea) {
                     minOverlapArea = currentOverlap
                     bestFallbackX = candX
                     bestFallbackY = candY
-                    
+
                     if (currentOverlap == 0f) break // 운좋게 빈공간 찾음
                 }
             }
-            
+
             bestX = bestFallbackX
             bestY = bestFallbackY
-            
+
             // 기록
             val cLeft = bestX - randomMargin
             val cTop = bestY - randomMargin
