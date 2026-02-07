@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,12 +49,16 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import com.a602.commonproject.designsystem.component.LMTopAppBar
 import com.a602.commonproject.designsystem.icon.LMicons
-import com.a602.commonproject.designsystem.theme.LMTheme
-import com.a602.commonproject.designsystem.theme.background
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.width
+import com.a602.commonproject.designsystem.theme.*
 import com.a602.commonproject.feature.album.viewmodel.HighlightResultViewModel
 import com.a602.commonproject.model.data.Slideshow
 import kotlinx.coroutines.launch
@@ -84,6 +90,7 @@ fun HighlightResultRoute(
 
     LaunchedEffect(slideshowId) {
         viewModel.observeSlideshow(slideshowId)
+        viewModel.refreshSlideshow(slideshowId)
     }
 
 
@@ -170,8 +177,8 @@ fun HighlightResultScreen(
                 title = "하이라이트", // [Fix] Changed from "추억 하이라이트"
                 navigationIcon = LMicons.Back,
                 onNavigationClick = onBack,
-                actionIcon = null, // Download moved to bottom
-                onActionClick = {}
+                actionIcon = LMicons.Delete, // Trash icon
+                onActionClick = { showDeleteDialog = true }
             )
         },
         snackbarHost = {
@@ -206,11 +213,12 @@ fun HighlightResultScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 16.dp)
+                        .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // [Fix] Increased top spacing
-                    Spacer(Modifier.height(80.dp))
+                    // [Fix] Adjusted top spacing to be closer to TopBar
+                    Spacer(Modifier.height(24.dp))
 
                     // [Fix] Title style updated: Smaller (headlineSmall) but Bold
                     // [Fix] The user said "Video upper part title".
@@ -229,14 +237,14 @@ fun HighlightResultScreen(
                         ),
                     )
 
-                    // [Fix] Increased spacing
-                    Spacer(Modifier.height(40.dp))
+                    // [Fix] Adjusted spacing
+                    Spacer(Modifier.height(24.dp))
 
                     // 영상 플레이어 / 썸네일
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(16f / 9f)
+                            .aspectRatio(3f / 4f) // [Fix] Changed to 3:4 (Portrait Photo) ratio
                             .clip(RoundedCornerShape(20.dp)),
                         tonalElevation = 2.dp,
                         shadowElevation = 4.dp
@@ -296,8 +304,8 @@ fun HighlightResultScreen(
                         }
                     }
 
-                    // [Fix] Increased spacing
-                    Spacer(Modifier.height(40.dp))
+                    // [Fix] Increased spacing -> Reduced
+                    Spacer(Modifier.height(24.dp))
 
                     // [Fix] Source Info (Keyword or Date) only. Removed MetaRow.
                     // Assuming slideshow.title contains the source info (e.g., "Smile" or "2023.10.01~").
@@ -305,8 +313,8 @@ fun HighlightResultScreen(
                         SourceInfoChip(slideshow.title)
                     }
 
-                    // [Fix] Increased spacing
-                    Spacer(Modifier.height(40.dp))
+                    // [Fix] Increased spacing -> Reduced
+                    Spacer(Modifier.height(24.dp))
 
                     // [Fix] Download Button moved here (below Source Info)
                     if (slideshow != null && canDownload && !isDownloading) {
@@ -350,7 +358,59 @@ fun HighlightResultScreen(
                         }
                     }
 
-                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.height(32.dp))
+                }
+            }
+        }
+
+        if (showDeleteDialog) {
+            Dialog(onDismissRequest = { showDeleteDialog = false }) {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = lightbackground,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    shadowElevation = 8.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "하이라이트 삭제",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = color3
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "정말 삭제하시겠습니까?\n삭제된 영상은 복구할 수 없습니다.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = color4,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(onClick = { showDeleteDialog = false }) {
+                                Text("취소", color = color4)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    showDeleteDialog = false
+                                    onDelete()
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = main
+                                )
+                            ) {
+                                Text("삭제", color = Color.White)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -416,6 +476,7 @@ private fun VideoPlayer(uri: Uri, modifier: Modifier = Modifier) {
             PlayerView(ctx).apply {
                 this.player = player
                 useController = true
+                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
             }
         },
         update = { it.player = player }
@@ -432,7 +493,7 @@ private fun Preview_HighlightResult_Completed() {
         remoteVideoUrl = "https://example.com/video.mp4",
         status = Slideshow.MakeStatus.COMPLETED,
         mediaCount = 24,
-        durationSec = 18,
+        durationSec = 18L,
         localVideoPath = null,
         createdAt = System.currentTimeMillis()
     )
@@ -467,7 +528,7 @@ private fun Preview_HighlightResult_Downloading() {
         remoteVideoUrl = "https://example.com/video.mp4",
         status = Slideshow.MakeStatus.COMPLETED,
         mediaCount = 24,
-        durationSec = 18,
+        durationSec = 18L,
         localVideoPath = null,
         createdAt = System.currentTimeMillis()
     )
