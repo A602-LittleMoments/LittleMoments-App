@@ -31,8 +31,8 @@ fun EntryProviderScope<NavKey>.memoryEntries(
 
         MemoryMainContainer(
             viewModel = viewModel,
-            onOpenGrid = { keywordId, label ->
-                navigator.navigate(GridNavKey(keywordId = keywordId, title = label))
+            onOpenGrid = { keywordId, label, planetResId ->
+                navigator.navigate(GridNavKey(keywordId = keywordId, title = label, planetResId = planetResId))
             },
             onNavigateToCamera = { isPhoto ->
                 // 실제 Camera 모듈 NavKey 사용

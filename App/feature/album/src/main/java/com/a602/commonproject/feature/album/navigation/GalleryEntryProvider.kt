@@ -47,8 +47,12 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             title = key.title,
             babyId = key.babyId,
             year = key.year,
+            planetResId = key.planetResId,
             onBackClick = navigator::goBack,
             onCalendarClick = { navigator.navigate(GalleryNavKey) },
+            onHighlightClick = { id ->
+                navigator.navigate(HighlightResultNavKey(slideshowId = id))
+            },
             onMediaClick = { media ->
                 navigator.navigate(
                     MediaDetailNavKey(

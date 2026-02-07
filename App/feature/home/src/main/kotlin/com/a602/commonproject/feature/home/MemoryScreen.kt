@@ -47,7 +47,7 @@ import kotlin.math.absoluteValue
 @Composable
 fun MemoryScreen(
     items: List<Collection>,
-    onPlanetClick: (String, String) -> Unit, // id, label
+    onPlanetClick: (String, String, Int) -> Unit, // id, label, planetResId
     onCameraClick: () -> Unit,
     onMakeSlideshowClick: () -> Unit,
     onNotificationClick: () -> Unit,
@@ -222,7 +222,7 @@ fun MemoryScreen(
 private fun PlanetsScrollContent(
     planets: List<KeywordPlanetUi>,
     canvasHeight: Dp,
-    onPlanetClick: (String, String) -> Unit,
+    onPlanetClick: (String, String, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -253,7 +253,7 @@ private fun PlanetsScrollContent(
 private fun MovingPlanetItem(
     p: KeywordPlanetUi,
     maxW: Dp,
-    onPlanetClick: (String, String) -> Unit
+    onPlanetClick: (String, String, Int) -> Unit
 ) {
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
@@ -344,7 +344,7 @@ private fun MovingPlanetItem(
                 indication = null, // Custom click animation handled via scale
                 onClick = {
                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                    onPlanetClick(p.keywordId, p.label)
+                    onPlanetClick(p.keywordId, p.label, p.planetResId)
                 }
             ),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -395,7 +395,7 @@ private fun Preview_Memory_Planets() {
     LMTheme {
         MemoryScreen(
             items = items,
-            onPlanetClick = { _,_ ->
+            onPlanetClick = { _,_,_ ->
 
             },
             onCameraClick = {},

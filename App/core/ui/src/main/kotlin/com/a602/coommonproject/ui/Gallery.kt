@@ -176,6 +176,7 @@ fun GalleryGridFrameless(
     selectedIds: Set<String> = emptySet(),
     state: androidx.compose.foundation.lazy.grid.LazyGridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState(),
     contentPadding: PaddingValues = PaddingValues(12.dp),
+    headerContent: (@Composable () -> Unit)? = null,
     onClick: (SharedMedia) -> Unit = {},
     onLongClick: (SharedMedia) -> Unit = {}
 ) {
@@ -187,6 +188,11 @@ fun GalleryGridFrameless(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        if (headerContent != null) {
+            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                headerContent()
+            }
+        }
         items(
             items = medias,
             key = { it.id }

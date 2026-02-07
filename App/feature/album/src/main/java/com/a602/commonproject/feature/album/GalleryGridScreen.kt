@@ -17,12 +17,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -57,9 +59,11 @@ fun GridRoute(
     title: String? = null,
     babyId: String? = null,
     year: Int? = null,
+    planetResId: Int? = null,
     onBackClick: () -> Unit,
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
+    onHighlightClick: (String) -> Unit = {},
     viewModel: GridGalleryViewmodel = hiltViewModel(),
 ) {
     LaunchedEffect(keywordId, title, babyId, year) {
@@ -191,6 +195,7 @@ fun GridRoute(
                         showCalendarButton = true,
                         onCalendarClick = onCalendarClick,
                         onMediaClick = onMediaClick,
+                        onHighlightClick = {}, // Date View doesn't show highlight
                         topPadding = innerPadding.calculateTopPadding(),
                         isSelectMode = uiState.isSelectMode,
                         selectedIds = uiState.selectedIds,
@@ -231,13 +236,24 @@ fun GridRoute(
     } else {
         GridGalleryScreen(
             medias = uiState.medias,
-            headerText = "Recent",
             sortOrder = uiState.sortOrder,
             onToggleSort = viewModel::toggleSortOrder,
             onCalendarClick = onCalendarClick,
             onMediaClick = onMediaClick,
+
+            onHighlightClick = {
+                val targetId = uiState.relatedSlideshow?.id ?: keywordId
+                if (targetId != null) {
+                    onHighlightClick(targetId) // Use GridRoute parameter
+                } else {
+                     scope.launch { snackbarHostState.showSnackbar("하이라이트 영상을 찾을 수 없습니다.") }
+                }
+            },
             onBackClick = onBackClick,
+            relatedSlideshow = uiState.relatedSlideshow,
+            planetResId = planetResId,
             title = topBarTitle,
+            headerText = topBarTitle,
             showCalendarButton = showCalendarButton,
             isSelectMode = uiState.isSelectMode,
             selectedIds = uiState.selectedIds,
@@ -575,6 +591,9 @@ fun GridGalleryContent(
     showCalendarButton: Boolean,
     onCalendarClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
+    onHighlightClick: () -> Unit = {},
+    relatedSlideshow: com.a602.commonproject.model.data.Slideshow? = null,
+    planetResId: Int? = null,
     topPadding: androidx.compose.ui.unit.Dp,
     isSelectMode: Boolean = false,
     selectedIds: Set<String> = emptySet(),
@@ -673,6 +692,69 @@ fun GridGalleryContent(
                     .background(background.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp)))
                 {
+                    // [NEW] Keyword Mode Header (Planet + Highlight)
+                    val headerContent: (@Composable () -> Unit)? = if (!showCalendarButton) {
+                        {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            // 1. Planet Icon (Left)
+                            Box(
+                                modifier = Modifier
+                                    .size(100.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = planetResId ?: R.drawable.planet),
+                                    contentDescription = "Planet",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+
+                            Spacer(Modifier.width(8.dp))
+
+                            // 2. Content (Right) - Highlight or Speech Bubble
+                            Box(modifier = Modifier.weight(1f)) {
+                                if (relatedSlideshow != null) {
+                                    HighlightFilmStrip(
+                                        thumbnailUrl = relatedSlideshow.thumbnailUrl,
+                                        onClick = onHighlightClick
+                                    )
+                                } else {
+                                    // Speech Bubble Redesign
+                                    Surface(
+                                        color = background.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 24.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+                                        shadowElevation = 8.dp
+                                    ) {
+                                        Text(
+                                            text = buildString {
+                                                append(headerText)
+                                                append(getJosa(headerText, "과", "와"))
+                                                append(" 관련된\n우리 아이의 추억이\n행성에 도착했어요")
+                                            },
+                                            style = MaterialTheme.typography.bodyLarge.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                lineHeight = 24.sp,
+                                                letterSpacing = (-0.5).sp
+                                            ),
+                                            color = main,
+                                            textAlign = TextAlign.Center, // Centered alignment
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 24.dp, vertical = 16.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        }
+                    } else null
+
                     GalleryGridFrameless(
                         medias = medias,
                         isSelectMode = isSelectMode,
@@ -680,6 +762,7 @@ fun GridGalleryContent(
                         contentPadding = PaddingValues(
                             start = 12.dp, end = 12.dp, top = 16.dp, bottom = 24.dp
                         ),
+                        headerContent = headerContent,
                         onClick = {
                             if (isSelectMode) onToggleSelect(it)
                             else onMediaClick(it)
@@ -701,7 +784,7 @@ fun GridGalleryContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp)
-                    .navigationBarsPadding(), 
+                    .navigationBarsPadding(),
                 color = Color.White,
                 shape = RoundedCornerShape(24.dp),
                 border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.2f)),
@@ -799,6 +882,9 @@ fun GridGalleryScreen(
     onCalendarClick: () -> Unit,
     onBackClick: () -> Unit,
     onMediaClick: (SharedMedia) -> Unit,
+    onHighlightClick: () -> Unit = {},
+    relatedSlideshow: com.a602.commonproject.model.data.Slideshow? = null,
+    planetResId: Int? = null,
     sortOrder: SortOrder = SortOrder.LATEST,
     onToggleSort: () -> Unit = {},
     headerText: String = "Recent",
@@ -842,6 +928,9 @@ fun GridGalleryScreen(
             showCalendarButton = showCalendarButton,
             onCalendarClick = onCalendarClick,
             onMediaClick = onMediaClick,
+            onHighlightClick = onHighlightClick,
+            relatedSlideshow = relatedSlideshow,
+            planetResId = planetResId,
             topPadding = innerPadding.calculateTopPadding(),
             isSelectMode = isSelectMode,
             selectedIds = selectedIds,
@@ -857,15 +946,131 @@ fun GridGalleryScreen(
     }
 }
 
-@Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(showBackground = true, device = "spec:width=411dp,height=891dp", name = "Keyword Mode - Speech Bubble")
 @Composable
-fun GridGalleryScreenPreview() {
+fun GridGalleryKeywordSpeechBubblePreview() {
     LMTheme {
         GridGalleryScreen(
             medias = emptyList(),
             onCalendarClick = {},
             onMediaClick = {},
-            onBackClick = {}
+            onBackClick = {},
+            title = "꽃다발",
+            headerText = "꽃다발",
+            showCalendarButton = false,
+            planetResId = R.drawable.planet,
+            relatedSlideshow = null // No highlight -> Show bubble
         )
     }
+}
+
+@Preview(showBackground = true, device = "spec:width=411dp,height=891dp", name = "Keyword Mode - Highlight Available")
+@Composable
+fun GridGalleryKeywordHighlightPreview() {
+    LMTheme {
+        GridGalleryScreen(
+            medias = emptyList(),
+            onCalendarClick = {},
+            onMediaClick = {},
+            onBackClick = {},
+            title = "미소",
+            headerText = "미소",
+            showCalendarButton = false,
+            planetResId = R.drawable.planet,
+            relatedSlideshow = com.a602.commonproject.model.data.Slideshow(
+                id = "1",
+                title = "미소",
+                thumbnailUrl = "https://picsum.photos/200/300",
+                remoteVideoUrl = null,
+                localVideoPath = null,
+                status = com.a602.commonproject.model.data.Slideshow.MakeStatus.COMPLETED,
+                createdAt = System.currentTimeMillis(),
+                mediaCount = 10,
+                durationSec = 15L
+            )
+        )
+    }
+}
+
+@Composable
+fun HighlightFilmStrip(
+    thumbnailUrl: String? = null,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(110.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.Black.copy(alpha = 0.6f))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        // [NEW] Thumbnail Background
+        if (!thumbnailUrl.isNullOrBlank()) {
+             coil.compose.AsyncImage(
+                model = thumbnailUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().alpha(0.6f) // Slightly transparent
+            )
+             // Dim overlay for better text contrast
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f))
+            )
+        }
+
+        // Perforations Top/Bottom (Overlay on top of image)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 8.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                repeat(10) {
+                     Box(Modifier.size(8.dp, 6.dp).background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(2.dp)))
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                repeat(10) {
+                     Box(Modifier.size(8.dp, 6.dp).background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(2.dp)))
+                }
+            }
+        }
+
+        // Center Content content
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // Film Icon
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.Default.Movie,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = "하이라이트 감상하기 >",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = Color.White
+                )
+            }
+        }
+    }
+}
+
+private fun getJosa(text: String, first: String, second: String): String {
+    if (text.isEmpty()) return first
+    val lastChar = text[text.lastIndex]
+    if (lastChar < '가' || lastChar > '힣') return first
+    return if ((lastChar - '가') % 28 > 0) first else second
 }

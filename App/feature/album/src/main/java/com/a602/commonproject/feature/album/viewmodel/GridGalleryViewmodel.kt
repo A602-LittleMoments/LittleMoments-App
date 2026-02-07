@@ -35,7 +35,8 @@ data class GridGalleryUiState(
     val showCalendarButton: Boolean = true,
     val sortOrder: SortOrder = SortOrder.LATEST,
     val isSelectMode: Boolean = false, // 🚀 [ADD] 선택 모드 여부
-    val selectedIds: Set<String> = emptySet() // 🚀 [ADD] 선택된 ID 세트
+    val selectedIds: Set<String> = emptySet(), // 🚀 [ADD] 선택된 ID 세트
+    val relatedSlideshow: com.a602.commonproject.model.data.Slideshow? = null // 🚀 [ADD] 연관된 Slideshow 객체 (키워드 모드에서 사용)
 )
 
 
@@ -44,6 +45,7 @@ class GridGalleryViewmodel @Inject constructor(
     private val sharedMediaRepository: SharedMediaRepository,
     private val collectionRepository: CollectionRepository,
     private val babyRepository: BabyRepository,
+    private val slideshowRepository: com.a602.commonproject.data.repository.SlideshowRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -52,11 +54,12 @@ class GridGalleryViewmodel @Inject constructor(
     private val selectedIds = MutableStateFlow<Set<String>>(emptySet())
     private val isDeleting = MutableStateFlow(false)
 
-
     private val filterState = MutableStateFlow(
         GridNavKey(
             keywordId = savedStateHandle.get<String>("keywordId"),
-            title = savedStateHandle.get<String>("title")
+            title = savedStateHandle.get<String>("title"),
+            babyId = savedStateHandle.get<String>("babyId"),
+            year = savedStateHandle.get<Int>("year")
         )
     )
 
@@ -92,13 +95,26 @@ class GridGalleryViewmodel @Inject constructor(
                 flow { emit(null) }
             }
 
-            combine(mediaFlow, babyNameFlow) { medias, babyName ->
+            // [NEW] Slideshow matching logic
+            val relatedSlideshowFlow = if (filter.keywordId != null && filter.title != null) {
+                slideshowRepository.getSlideshowsStream().map { slideshows ->
+                    slideshows.filter { 
+                        it.title == filter.title && 
+                        (it.status == com.a602.commonproject.model.data.Slideshow.MakeStatus.COMPLETED || 
+                         it.status == com.a602.commonproject.model.data.Slideshow.MakeStatus.DOWNLOADED)
+                    }.maxByOrNull { it.createdAt }
+                }
+            } else {
+                flow { emit(null) }
+            }
+
+            combine(mediaFlow, babyNameFlow, relatedSlideshowFlow) { medias, babyName, slideshow ->
                 val sorted = if (sort == SortOrder.LATEST) {
                     medias.sortedByDescending { it.dateTaken }
                 } else {
                     medias.sortedBy { it.dateTaken }
                 }
-                sorted to babyName
+                Triple(sorted, babyName, slideshow)
             }
         }
 
@@ -108,7 +124,7 @@ class GridGalleryViewmodel @Inject constructor(
         selectedIds,
         isDeleting,
         combine(filterState, sortOrder) { f, s -> f to s }
-    ) { (medias, babyName), selectMode, selected, deleting, (filter, sort) ->
+    ) { (medias, babyName, slideshow), selectMode, selected, deleting, (filter, sort) ->
         val displayTitle = when {
             filter.title != null -> filter.title
             babyName != null && filter.year != null -> {
@@ -126,7 +142,8 @@ class GridGalleryViewmodel @Inject constructor(
             showCalendarButton = filter.keywordId == null,
             sortOrder = sort,
             isSelectMode = selectMode,
-            selectedIds = selected
+            selectedIds = selected,
+            relatedSlideshow = slideshow
         )
     }.stateIn(
         scope = viewModelScope,
@@ -140,6 +157,10 @@ class GridGalleryViewmodel @Inject constructor(
 
     fun refreshData() {
         refreshSignal.value++
+        // [NEW] Refresh slideshows too
+        viewModelScope.launch {
+            slideshowRepository.refreshSlideshows()
+        }
     }
 
     fun toggleSelectMode() {
