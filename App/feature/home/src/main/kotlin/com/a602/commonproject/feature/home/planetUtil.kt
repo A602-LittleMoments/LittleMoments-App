@@ -19,7 +19,7 @@ private const val MAX_PLANETS = 7
 private val categoryToPlanetPool: Map<String, List<Int>> = mapOf(
     "물건" to listOf(DsR.drawable.ic_thing1, DsR.drawable.ic_thing2, DsR.drawable.ic_thing3,DsR.drawable.ic_thing4,DsR.drawable.ic_thing5,DsR.drawable.ic_thing6,DsR.drawable.ic_thing7,DsR.drawable.ic_thing8,DsR.drawable.ic_thing9,DsR.drawable.ic_thing10,DsR.drawable.ic_thing11,DsR.drawable.ic_thing12,DsR.drawable.ic_thing13),
     "행동" to listOf(DsR.drawable.ic_action1, DsR.drawable.ic_action2,DsR.drawable.ic_action3,DsR.drawable.ic_action4,DsR.drawable.ic_action5,DsR.drawable.ic_action6,DsR.drawable.ic_action7,DsR.drawable.ic_action8,DsR.drawable.ic_action9),
-    "의상" to listOf(DsR.drawable.ic_clothes1, DsR.drawable.ic_clothes2,DsR.drawable.ic_clothes3,DsR.drawable.ic_clothes4,DsR.drawable.ic_clothes5,DsR.drawable.ic_clothes6,DsR.drawable.ic_clothes7,DsR.drawable.ic_clothes8),
+    "의상" to listOf(DsR.drawable.ic_clothes7, DsR.drawable.ic_clothes1, DsR.drawable.ic_clothes2,DsR.drawable.ic_clothes3,DsR.drawable.ic_clothes4,DsR.drawable.ic_clothes5,DsR.drawable.ic_clothes6,DsR.drawable.ic_clothes8),
     "장소" to listOf(DsR.drawable.ic_place1, DsR.drawable.ic_place2, DsR.drawable.ic_place3,DsR.drawable.ic_place4,DsR.drawable.ic_place5,DsR.drawable.ic_place6,DsR.drawable.ic_place7,DsR.drawable.ic_place8,DsR.drawable.ic_place9),
     "분위기" to listOf(DsR.drawable.ic_emotion1, DsR.drawable.ic_emotion2, DsR.drawable.ic_emotion3,DsR.drawable.ic_emotion4,DsR.drawable.ic_emotion5,DsR.drawable.ic_emotion6,DsR.drawable.ic_emotion7,DsR.drawable.ic_emotion8,DsR.drawable.ic_emotion9),
 )
