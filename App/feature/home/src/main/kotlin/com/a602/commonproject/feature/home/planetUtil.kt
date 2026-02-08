@@ -27,54 +27,91 @@ private val categoryToPlanetPool: Map<String, List<Int>> = mapOf(
 // 매칭 실패 시 기본
 private val defaultPlanetRes = DsR.drawable.planet
 
-private fun stableIndex(id: String, mod: Int): Int {
-    if (mod <= 0) return 0
-    val h = id.hashCode()
-    val p = if (h == Int.MIN_VALUE) 0 else abs(h)
-    return p % mod
-}
-
-// keywordId 기반: 항상 같은 아이콘 선택
-internal fun pickStablePlanetRes(categoryValue: String, keywordId: String): Int {
-    val pool = categoryToPlanetPool[categoryValue].orEmpty()
-    if (pool.isEmpty()) return defaultPlanetRes
-    return pool[stableIndex(keywordId, pool.size)]
+// 전역 캐시: 앱 실행 중 키워드별 아이콘 매핑 유지
+private object PlanetIconCache {
+    val mapping = mutableMapOf<String, Int>()
 }
 
 /**
- * 카테고리별로 사용 가능한 행성 아이콘을 최대한 골고루(Round-robin) 배정합니다.
- * 동일한 keywordsId에는 동일한 아이콘이 배정되도록 map에 기록합니다.
+ * 카테고리별 아이콘을 순차적으로(1 -> 2 -> 3 ...) 우선 배정하고,
+ * 한 번 배정된 아이콘은 앱 실행 동안 유지합니다.
  */
 fun assignDiversePlanets(items: List<Collection>): Map<String, Int> {
-    val assignment = mutableMapOf<String, Int>()
-
     // 1. 카테고리별로 아이템 그룹화
     val grouped = items.groupBy { it.categoryValue }
 
     grouped.forEach { (category, categoryItems) ->
         val pool = categoryToPlanetPool[category].orEmpty()
+        if (pool.isEmpty()) {
+            categoryItems.forEach { PlanetIconCache.mapping[it.keywordId] = defaultPlanetRes }
+            return@forEach
+        }
 
-        if (pool.isNotEmpty()) {
-            // 2. 풀을 섞어서 매번 다른 느낌을 주되 (diversity)
-            //    목록 내에서는 최대한 겹치지 않게 순서대로 배정
-            val shuffledPool = pool.shuffled()
-            val poolSize = shuffledPool.size
+        // 해당 카테고리에서 이미 사용 중인 아이콘들 파악 (중복 최소화를 위해)
+        // [Fix] MutableSet으로 변경하여 이번 배치(loop) 안에서 할당된 것도 즉시 반영
+        val usedIconsInCategory = PlanetIconCache.mapping.entries
+            .filter { entry -> pool.contains(entry.value) }
+            .map { it.value }
+            .toMutableSet()
 
-            // keywordId 기준으로 중복 제거된 목록만 순회해야 함 (동일 키워드는 같은 아이콘)
-            // (입력 items에 동일 키워드가 중복되어 있을 수 있으므로)
-            val uniqueItems = categoryItems.distinctBy { it.keywordId }
+        // 할당이 필요한 키워드들 (이미 캐시에 있는 건 패스)
+        val itemsNeedingAssignment = categoryItems
+            .map { it.keywordId }
+            .distinct()
+            .filter { !PlanetIconCache.mapping.containsKey(it) }
 
-            uniqueItems.forEachIndexed { index, item ->
-                // Round-robin selection
-                val resId = shuffledPool[index % poolSize]
-                assignment[item.keywordId] = resId
+        // 순차 할당 시작
+        for (keywordId in itemsNeedingAssignment) {
+            // 풀(pool) 순서대로 탐색: 아직 안 쓰인 아이콘 찾기 (1번, 2번, 3번...)
+            var assignedResId: Int? = null
+            
+            // 1순위: 사용되지 않은 아이콘 중 가장 앞 번호
+            for (resId in pool) {
+                if (!usedIconsInCategory.contains(resId)) {
+                    assignedResId = resId
+                    break
+                }
             }
-        } else {
-            // 풀이 없으면 기본 아이콘
-            categoryItems.forEach { assignment[it.keywordId] = defaultPlanetRes }
+
+            // 2순위: 모든 아이콘이 다 쓰였다면, 그냥 앞에서부터 순서대로 (Round-robin 느낌)
+            if (assignedResId == null) {
+                // 현재 할당된 총 개수를 구해서 모듈러 연산으로 순환
+                // (기존 매핑 수 + 현재 루프 인덱스는 복잡하므로,
+                //  그냥 랜덤보다는 "일관된 해시"나 "순차"가 나음. 여기선 순차)
+                val currentIndex = PlanetIconCache.mapping.size 
+                assignedResId = pool[currentIndex % pool.size]
+            }
+            
+            // 캐시에 저장
+            PlanetIconCache.mapping[keywordId] = assignedResId!!
+            
+            // [Critical Fix] 방금 할당한 아이콘도 사용 중 목록에 추가해야
+            // 다음 루프에서 같은 아이콘을 또 할당하지 않음!
+            usedIconsInCategory.add(assignedResId)
         }
     }
-    return assignment
+
+    // 현재 요청된 items에 대한 매핑만 반환 (또는 전체 캐시 반환해도 되지만 인터페이스 유지)
+    return items.associate { it.keywordId to (PlanetIconCache.mapping[it.keywordId] ?: defaultPlanetRes) }
+}
+
+
+/**
+ * 특정 키워드(Collection)에 대한 아이콘 리소스 ID를 반환합니다.
+ * - 이미 캐시(PlanetIconCache)에 할당된 값이 있다면 그 값을 반환합니다. (메인 화면과 일치 보장)
+ * - 없다면 새로운 아이콘을 순차적으로(1->2->3...) 할당하고 캐시에 저장한 뒤 반환합니다.
+ */
+fun getPlanetIcon(item: Collection): Int {
+    // 1. 캐시 확인
+    if (PlanetIconCache.mapping.containsKey(item.keywordId)) {
+        return PlanetIconCache.mapping[item.keywordId]!!
+    }
+
+    // 2. 캐시에 없으면 새로 할당 (assignDiversePlanets 로직 재사용)
+    //    단일 아이템이라도 전체 로직을 태우면 캐시에 안전하게 등록됨
+    assignDiversePlanets(listOf(item))
+    
+    return PlanetIconCache.mapping[item.keywordId] ?: defaultPlanetRes
 }
 
 
