@@ -154,6 +154,9 @@ fun MypageScreen(
     val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     var isEditingGroupName by remember { androidx.compose.runtime.mutableStateOf(false) }
     var isEditingNickname by remember { androidx.compose.runtime.mutableStateOf(false) }
+    var isCurrentPasswordVisible by remember { mutableStateOf(false) }
+    var isNewPasswordVisible by remember { mutableStateOf(false) }
+    var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // 1. 배경 이미지
@@ -711,7 +714,16 @@ fun MypageScreen(
                             value = uiState.currentPassword,
                             onValueChange = onCurrentPasswordChange,
                             modifier = Modifier.fillMaxWidth(),
-                            isPassword = true,
+                            isPassword = !isCurrentPasswordVisible,
+                            trailingIcon = {
+                                IconButton(onClick = { isCurrentPasswordVisible = !isCurrentPasswordVisible }) {
+                                    Icon(
+                                        imageVector = if (isCurrentPasswordVisible) LMicons.VisibilityOff else LMicons.Visibility,
+                                        contentDescription = "비밀번호 표시 전환",
+                                        tint = NavyBlue.copy(alpha = 0.6f)
+                                    )
+                                }
+                            },
                             isError = isCurrentPwdError,
                             supportingText = if (isCurrentPwdError) errorMessage else null,
                             placeholder = "현재 비밀번호를 입력해주세요"
@@ -724,7 +736,16 @@ fun MypageScreen(
                             value = uiState.newPassword,
                             onValueChange = onNewPasswordChange,
                             modifier = Modifier.fillMaxWidth(),
-                            isPassword = true,
+                            isPassword = !isNewPasswordVisible,
+                            trailingIcon = {
+                                IconButton(onClick = { isNewPasswordVisible = !isNewPasswordVisible }) {
+                                    Icon(
+                                        imageVector = if (isNewPasswordVisible) LMicons.VisibilityOff else LMicons.Visibility,
+                                        contentDescription = "비밀번호 표시 전환",
+                                        tint = NavyBlue.copy(alpha = 0.6f)
+                                    )
+                                }
+                            },
                             placeholder = "새 비밀번호를 입력해주세요"
                         )
                         Spacer(modifier = Modifier.height(12.dp))
@@ -735,7 +756,16 @@ fun MypageScreen(
                             value = uiState.confirmPassword,
                             onValueChange = onConfirmPasswordChange,
                             modifier = Modifier.fillMaxWidth(),
-                            isPassword = true,
+                            isPassword = !isConfirmPasswordVisible,
+                            trailingIcon = {
+                                IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
+                                    Icon(
+                                        imageVector = if (isConfirmPasswordVisible) LMicons.VisibilityOff else LMicons.Visibility,
+                                        contentDescription = "비밀번호 표시 전환",
+                                        tint = NavyBlue.copy(alpha = 0.6f)
+                                    )
+                                }
+                            },
                             isError = isMismatchError,
                             supportingText = if (isMismatchError) errorMessage else null,
                             placeholder = "새 비밀번호를 다시 입력해주세요"

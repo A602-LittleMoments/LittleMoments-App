@@ -42,7 +42,7 @@ class CameraViewModel @Inject constructor(
                 orientation = orientation,
                 cameraFacing = cameraFacing
             ).onSuccess {
-                _saveResultEvent.emit("임시 앨범에 저장되었어요")
+                _saveResultEvent.emit("한달 앨범에 저장되었어요")
             }.onFailure {
                 _saveResultEvent.emit("저장에 실패했어요")
             }

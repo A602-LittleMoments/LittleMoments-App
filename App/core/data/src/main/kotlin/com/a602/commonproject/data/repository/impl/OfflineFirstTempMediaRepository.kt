@@ -47,13 +47,20 @@ class OfflineFirstTempMediaRepository @Inject constructor(
             // 만료일 계산 (현재 + 3일)
             val expirationDate = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(EXPIRATION_DAYS)
 
+            // orientation이 0으로 들어온 경우, 실제 파일에서 방향 정보를 읽어오기 시도
+            val actualOrientation = if (orientation == 0) {
+                getOrientationDegrees(file.absolutePath)
+            } else {
+                orientation
+            }
+
             val entity = TempMediaEntity(
                 tempId = tempId,
                 localUri = file.absolutePath, // 파일 절대 경로 저장
                 subLocalUri = subFile?.absolutePath, // 썸네일/전면카메라 경로 저장
                 takenAt = takenAt,
                 cameraFacing = cameraFacing,
-                orientation = orientation,
+                orientation = actualOrientation,
                 expirationDate = expirationDate, //
             )
 
@@ -194,7 +201,8 @@ class OfflineFirstTempMediaRepository @Inject constructor(
 
                 val resolver = context.contentResolver
                 val contentValues = android.content.ContentValues().apply {
-                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "CommonProject_${System.currentTimeMillis()}.jpg")
+                    // [Fix] Add UUID to filename to prevent collisions when saving multiple images rapidly
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "CommonProject_${System.currentTimeMillis()}_${java.util.UUID.randomUUID().toString().take(4)}.jpg")
                     put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
                     put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/아이랑나랑")
                 }
@@ -302,11 +310,15 @@ class OfflineFirstTempMediaRepository @Inject constructor(
         val subWidth = (subBitmap.width * subScale).toInt()
         val subHeight = (subBitmap.height * subScale).toInt()
 
-        // Position: Top-Left with padding
+        // Position: Bottom-Right with padding
         val padding = 50f
+        // [Fix] 우측 하단 좌표 계산: (전체 너비 - 서브 너비 - 패딩, 전체 높이 - 서브 높이 - 패딩)
+        val left = width - subWidth - padding
+        val top = height - subHeight - padding
+        
         val scaledSub = android.graphics.Bitmap.createScaledBitmap(subBitmap, subWidth, subHeight, true)
 
-        canvas.drawBitmap(scaledSub, padding, padding, null)
+        canvas.drawBitmap(scaledSub, left, top, null) // [Fix] Changed from (padding, padding) to (left, top)
 
         return result
     }
@@ -322,6 +334,24 @@ class OfflineFirstTempMediaRepository @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             false // 에러 나면 false
+        }
+    }
+
+    private fun getOrientationDegrees(path: String): Int {
+        return try {
+            val exifInterface = android.media.ExifInterface(path)
+            val orientation = exifInterface.getAttributeInt(
+                android.media.ExifInterface.TAG_ORIENTATION,
+                android.media.ExifInterface.ORIENTATION_NORMAL
+            )
+            when (orientation) {
+                android.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                android.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                android.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                else -> 0
+            }
+        } catch (e: Exception) {
+            0
         }
     }
 }

@@ -238,7 +238,7 @@ class MediaDetailViewModel @Inject constructor(
             actionState.update { it.copy(isDeleting = true, errorMessage = null) }
 
             if (isTempFlow.value) {
-                // 임시 앨범 삭제
+                // 한달 앨범 삭제
                 tempRepository.deleteTempMedia(listOf(id))
                     .onSuccess {
                         actionState.update { it.copy(isDeleting = false, deleteSuccess = true) }

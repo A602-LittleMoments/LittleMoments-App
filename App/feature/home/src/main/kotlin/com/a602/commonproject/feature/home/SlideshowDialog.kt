@@ -179,16 +179,11 @@ private fun SlideshowCreationDialogContent(
                     contentAlignment = Alignment.Center
                 ) {
                     if (mode == SlideshowMode.KEYWORD) {
-                        // Keyword Selection
-                        if (uniqueKeywords.isEmpty()) {
-                            Text("생성된 추억 행성이 없습니다.", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
-                        } else {
-                            // Diverse Planet Assignment
-                            val diversePlanetMap = remember(uniqueKeywords) {
-                                assignDiversePlanets(uniqueKeywords)
-                            }
-                            
-                            LazyRow(
+                            // Keyword Selection
+                            if (uniqueKeywords.isEmpty()) {
+                                Text("생성된 추억 행성이 없습니다.", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
+                            } else {
+                                LazyRow(
                                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -214,8 +209,8 @@ private fun SlideshowCreationDialogContent(
                                                     )
                                                     .padding(8.dp) // 6 -> 8
                                             ) {
-                                                // [Fix] Use diverse map
-                                                val planetRes = diversePlanetMap[item.keywordId] ?: DsR.drawable.planet
+                                                // [Fix] Use global helper to ensure consistency with Main Screen
+                                                val planetRes = getPlanetIcon(item)
                                                 Image(
                                                     painter = painterResource(id = planetRes),
                                                     contentDescription = null,

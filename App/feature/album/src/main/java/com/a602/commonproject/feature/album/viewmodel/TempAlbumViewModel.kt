@@ -62,7 +62,7 @@ class TempAlbumViewModel @Inject constructor(
             repository.deleteTempMedia(allIds)
                 .onSuccess { onComplete() }
                 .onFailure {  e ->
-                    errorFlow.value = e.message ?: "임시 앨범을 비우지 못했어요" }
+                    errorFlow.value = e.message ?: "한달 앨범을 비우지 못했어요" }
         }
     }
 }

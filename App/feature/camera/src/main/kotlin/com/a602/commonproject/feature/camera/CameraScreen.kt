@@ -258,11 +258,11 @@ fun CameraContent(
                       // TODO: Show latest image thumbnail if possible
                  Icon(
                          imageVector = Default.PhotoLibrary, // Use default or LMicon
-                         contentDescription = "임시 앨범",
+                         contentDescription = "한달 앨범",
                          tint = Color.White
                      )
                  }
-                 Text("임시 앨범", color = Color.White, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top=4.dp))
+                 Text("한달 앨범", color = Color.White, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top=4.dp))
              }
 
             // Center: Shutter Button

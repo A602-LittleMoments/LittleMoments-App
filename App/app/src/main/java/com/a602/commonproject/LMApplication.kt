@@ -13,8 +13,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
+import coil.request.CachePolicy
+
 @HiltAndroidApp
-class LMApplication : Application(), Configuration.Provider {
+class LMApplication : Application(), Configuration.Provider, ImageLoaderFactory {
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
     // ✅ 추천: 필요한 매니저를 여기서 바로 주입받습니다.
@@ -28,6 +34,32 @@ class LMApplication : Application(), Configuration.Provider {
             .setWorkerFactory(workerFactory)
             .setMinimumLoggingLevel(android.util.Log.DEBUG)
             .build()
+
+    /**
+     * 🚀 [Coil 최적화] 전역 이미지 로더 캐시 설정
+     * - 메모리 캐시: 가용 메모리의 25% 할당
+     * - 디스크 캐시: 앱 전용 캐시 디렉토리에 최대 250MB 할당
+     */
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .memoryCache {
+                MemoryCache.Builder(this)
+                    .maxSizePercent(0.25)
+                    .build()
+            }
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(cacheDir.resolve("image_cache"))
+                    .maxSizeBytes(250L * 1024 * 1024) // 250MB
+                    .build()
+            }
+            .allowHardware(true)
+            .crossfade(true)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
+            .build()
+    }
 
     override fun onCreate() {
         super.onCreate() // 👈 여기서 Hilt 주입이 완료됩니다. (폭탄 제거 완료)

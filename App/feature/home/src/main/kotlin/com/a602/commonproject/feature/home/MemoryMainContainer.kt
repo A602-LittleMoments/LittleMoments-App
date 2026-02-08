@@ -40,7 +40,7 @@ import com.a602.commonproject.feature.home.viewmodel.SlideshowRequest
 @Composable
 fun MemoryMainContainer(
     viewModel: MemoryMainViewModel,
-    onOpenGrid: (String, String) -> Unit, // id, label
+    onOpenGrid: (String, String, Int) -> Unit, // id, label, planetResId
     onNavigateToCamera: (Boolean) -> Unit,
     onNavigateToSlideshow: (SlideshowRequest) -> Unit,
     onNavigateToNotification: () -> Unit,
