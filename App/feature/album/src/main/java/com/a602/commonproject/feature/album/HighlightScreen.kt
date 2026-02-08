@@ -441,6 +441,7 @@ private fun SourceInfoChip(sourceText: String) {
 // [Fix] Removed SlideshowMetaRow and InfoChip as requested
 // [Fix] Removed koreanDateFormatter unused
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 private fun VideoPlayer(uri: Uri, modifier: Modifier = Modifier) {
     // [Fix] 프리뷰 모드인지 확인

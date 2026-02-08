@@ -111,7 +111,9 @@ fun FillWrapButton(
     enabled: Boolean = true,
     leadingIcon: ImageVector? = null,
     trailingIcon: ImageVector? = null,
-
+    height: Dp = 44.dp,
+    minWidth: Dp = 80.dp,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
     colors: ButtonColors = ButtonDefaults.buttonColors(
         containerColor = main,
         contentColor = lightbackground,
@@ -122,9 +124,9 @@ fun FillWrapButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(44.dp).defaultMinSize(minWidth = 80.dp),
-        shape = RoundedCornerShape(22.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+        modifier = modifier.height(height).defaultMinSize(minWidth = minWidth),
+        shape = RoundedCornerShape(height / 2),
+        contentPadding = contentPadding,
         colors = colors,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

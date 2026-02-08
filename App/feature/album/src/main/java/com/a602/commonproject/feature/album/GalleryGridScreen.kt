@@ -167,13 +167,19 @@ fun GridRoute(
                                 }
                             },
                             text = if (uiState.selectedIds.size == currentTargetMedias.size && currentTargetMedias.isNotEmpty()) "선택해제" else "전체선택",
-                            modifier = Modifier.padding(end = 8.dp)
+                            modifier = Modifier.padding(end = 8.dp),
+                            height = 30.dp,
+                            minWidth = 60.dp,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                         )
                     }
                     FillWrapButton(
                         onClick = viewModel::toggleSelectMode,
                         text = if (uiState.isSelectMode) "취소" else "선택",
-                        modifier = Modifier.padding(end = 12.dp)
+                        modifier = Modifier.padding(end = 12.dp),
+                        height = 30.dp,
+                        minWidth = 60.dp,
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                     )
                 }
             }
@@ -328,13 +334,19 @@ fun YearHistoryLayout(
                             FillWrapButton(
                                 onClick = onSelectAll,
                                 text = if (selectedIds.size == medias.size) "선택해제" else "전체선택",
-                                modifier = Modifier.padding(end = 8.dp)
+                                modifier = Modifier.padding(end = 8.dp),
+                                height = 30.dp,
+                                minWidth = 60.dp,
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                             )
                         }
                         FillWrapButton(
                             onClick = onToggleSelectMode,
                             text = if (isSelectMode) "취소" else "선택",
-                            modifier = Modifier.padding(end = 12.dp)
+                            modifier = Modifier.padding(end = 12.dp),
+                            height = 30.dp,
+                            minWidth = 60.dp,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                         )
                     }
                 }
@@ -909,13 +921,19 @@ fun GridGalleryScreen(
                     FillWrapButton(
                         onClick = onSelectAll,
                         text = if (selectedIds.size == medias.size) "선택해제" else "전체선택",
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.padding(end = 8.dp),
+                        height = 30.dp,
+                        minWidth = 60.dp,
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                     )
                 }
                 FillWrapButton(
                     onClick = onToggleSelectMode,
                     text = if (isSelectMode) "취소" else "선택",
-                    modifier = Modifier.padding(end = 12.dp)
+                    modifier = Modifier.padding(end = 12.dp),
+                    height = 30.dp,
+                    minWidth = 60.dp,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                 )
             }
         }
