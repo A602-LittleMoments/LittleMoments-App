@@ -105,7 +105,7 @@ fun EntryProviderScope<NavKey>.galleryEntries(
             onDone = navigator::goBack
         )
     }
-// 5. 임시 앨범 (상세보기 추가)
+// 5. 한달 앨범 (상세보기 추가)
     entry<TempAlbumNavKey> {
         TempGridGalleryRoute(
             onMediaClick = { media ->

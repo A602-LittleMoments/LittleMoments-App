@@ -105,7 +105,7 @@ fun TempGridGalleryRoute(
         onClearAll = {
             viewModel.clearAll {
                 scope.launch {
-                    snackbarHostState.showSnackbar("임시 앨범을 모두 비웠어요")
+                    snackbarHostState.showSnackbar("한달 앨범을 모두 비웠어요")
                 }
             }
         },

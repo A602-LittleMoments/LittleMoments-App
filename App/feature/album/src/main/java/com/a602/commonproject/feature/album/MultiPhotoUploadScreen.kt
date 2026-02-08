@@ -76,8 +76,13 @@ fun MultiPhotoUploadScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
+            val titleText = when {
+                uploadState is UploadState.Uploading -> "공유 앨범에 저장 중..."
+                selectedMedias.isEmpty() -> "공유 앨범 저장"
+                else -> "${pagerState.currentPage + 1} / ${selectedMedias.size}"
+            }
             LMTopAppBar(
-                title = "${pagerState.currentPage + 1} / ${selectedMedias.size}",
+                title = titleText,
                 navigationIcon = LMicons.Back,
                 onNavigationClick = {
                      if (showInput) showInput = false else onBackClick()
