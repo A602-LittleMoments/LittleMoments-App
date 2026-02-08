@@ -74,4 +74,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(libs.androidx.navigation3.ui)
+    implementation(libs.coil.kt)
 }
