@@ -209,6 +209,8 @@ fun HighlightResultScreen(
                 // Placeholder for TopBar height to avoid overlap
                 Spacer(Modifier.height(56.dp))
 
+                val itemSpacing = if (canDownload || isDownloading) 12.dp else 24.dp
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -218,7 +220,7 @@ fun HighlightResultScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // [Fix] Adjusted top spacing to be closer to TopBar
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(itemSpacing))
 
                     // [Fix] Title style updated: Smaller (headlineSmall) but Bold
                     // [Fix] The user said "Video upper part title".
@@ -238,7 +240,7 @@ fun HighlightResultScreen(
                     )
 
                     // [Fix] Adjusted spacing
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(itemSpacing))
 
                     // 영상 플레이어 / 썸네일
                     Surface(
@@ -305,7 +307,7 @@ fun HighlightResultScreen(
                     }
 
                     // [Fix] Increased spacing -> Reduced
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(itemSpacing))
 
                     // [Fix] Source Info (Keyword or Date) only. Removed MetaRow.
                     // Assuming slideshow.title contains the source info (e.g., "Smile" or "2023.10.01~").
@@ -314,7 +316,7 @@ fun HighlightResultScreen(
                     }
 
                     // [Fix] Increased spacing -> Reduced
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(itemSpacing))
 
                     // [Fix] Download Button moved here (below Source Info)
                     if (slideshow != null && canDownload && !isDownloading) {
@@ -331,7 +333,7 @@ fun HighlightResultScreen(
                         ) {
                             Text("영상 저장하기", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(itemSpacing))
                     }
 
                     // 다운로드 진행률 표시
@@ -356,9 +358,10 @@ fun HighlightResultScreen(
                                 trackColor = Color.Gray.copy(alpha = 0.3f)
                             )
                         }
+                        Spacer(Modifier.height(itemSpacing))
                     }
 
-                    Spacer(Modifier.height(32.dp))
+                    Spacer(Modifier.height(if (canDownload || isDownloading) 16.dp else 32.dp))
                 }
             }
         }
@@ -384,7 +387,7 @@ fun HighlightResultScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "정말 삭제하시겠습니까?\n삭제된 영상은 복구할 수 없습니다.",
+                            text = "정말 삭제하시겠습니까?\n삭제된 영상은\n복구할 수 없습니다.",
                             style = MaterialTheme.typography.bodyLarge,
                             color = color4,
                             textAlign = TextAlign.Center

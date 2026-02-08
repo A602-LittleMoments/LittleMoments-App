@@ -47,13 +47,20 @@ class OfflineFirstTempMediaRepository @Inject constructor(
             // 만료일 계산 (현재 + 3일)
             val expirationDate = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(EXPIRATION_DAYS)
 
+            // orientation이 0으로 들어온 경우, 실제 파일에서 방향 정보를 읽어오기 시도
+            val actualOrientation = if (orientation == 0) {
+                getOrientationDegrees(file.absolutePath)
+            } else {
+                orientation
+            }
+
             val entity = TempMediaEntity(
                 tempId = tempId,
                 localUri = file.absolutePath, // 파일 절대 경로 저장
                 subLocalUri = subFile?.absolutePath, // 썸네일/전면카메라 경로 저장
                 takenAt = takenAt,
                 cameraFacing = cameraFacing,
-                orientation = orientation,
+                orientation = actualOrientation,
                 expirationDate = expirationDate, //
             )
 
@@ -322,6 +329,24 @@ class OfflineFirstTempMediaRepository @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             false // 에러 나면 false
+        }
+    }
+
+    private fun getOrientationDegrees(path: String): Int {
+        return try {
+            val exifInterface = android.media.ExifInterface(path)
+            val orientation = exifInterface.getAttributeInt(
+                android.media.ExifInterface.TAG_ORIENTATION,
+                android.media.ExifInterface.ORIENTATION_NORMAL
+            )
+            when (orientation) {
+                android.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                android.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                android.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                else -> 0
+            }
+        } catch (e: Exception) {
+            0
         }
     }
 }

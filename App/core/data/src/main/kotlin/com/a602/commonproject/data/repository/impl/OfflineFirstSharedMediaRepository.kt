@@ -148,7 +148,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                 subThumbnailUrl = null,
 
                 cameraFacing = cameraFacing,
-                orientation = 0, // 기본값 (필요 시 Exif에서 읽어오거나 파라미터 추가)
+                orientation = getOrientationDegrees(newMainFile.absolutePath), // ✨ 파일에서 실제 방향 읽기
                 caption = caption,
                 type = "PHOTO",
 
@@ -473,4 +473,22 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
     private suspend fun getGroupIdOrThrow(): String =
         userPreferences.userGroupId.first()
             ?: throw IllegalStateException("그룹 정보가 없습니다.")
+
+    private fun getOrientationDegrees(path: String): Int {
+        return try {
+            val exifInterface = android.media.ExifInterface(path)
+            val orientation = exifInterface.getAttributeInt(
+                android.media.ExifInterface.TAG_ORIENTATION,
+                android.media.ExifInterface.ORIENTATION_NORMAL
+            )
+            when (orientation) {
+                android.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                android.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                android.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                else -> 0
+            }
+        } catch (e: Exception) {
+            0
+        }
+    }
 }

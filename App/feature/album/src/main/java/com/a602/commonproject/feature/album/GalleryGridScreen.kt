@@ -253,7 +253,7 @@ fun GridRoute(
             relatedSlideshow = uiState.relatedSlideshow,
             planetResId = planetResId,
             title = topBarTitle,
-            headerText = topBarTitle,
+            headerText = title ?: uiState.title,
             showCalendarButton = showCalendarButton,
             isSelectMode = uiState.isSelectMode,
             selectedIds = uiState.selectedIds,
