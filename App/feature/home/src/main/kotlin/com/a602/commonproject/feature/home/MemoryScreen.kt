@@ -36,7 +36,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.sp
 import com.a602.commonproject.designsystem.theme.LMTheme
 import com.a602.commonproject.model.data.Collection
@@ -349,7 +352,23 @@ private fun MovingPlanetItem(
             ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(modifier = Modifier.size(p.size)) {
+        Box(
+            modifier = Modifier.size(p.size)
+        ) {
+            // [Fix] Custom Drop Shadow for Image Shape:
+            // Render a black-tinted copy behind the original image with a small offset (2.dp)
+            // ensuring the shadow follows the exact outline of the planet image.
+            Image(
+                painter = painterResource(id = p.planetResId),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(x = 2.dp, y = 2.dp), 
+                contentScale = ContentScale.Fit,
+                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.Black.copy(alpha = 0.3f))
+            )
+
+            // Original Image (Front)
             Image(
                 painter = painterResource(id = p.planetResId),
                 contentDescription = null,
