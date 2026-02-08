@@ -201,7 +201,8 @@ class OfflineFirstTempMediaRepository @Inject constructor(
 
                 val resolver = context.contentResolver
                 val contentValues = android.content.ContentValues().apply {
-                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "CommonProject_${System.currentTimeMillis()}.jpg")
+                    // [Fix] Add UUID to filename to prevent collisions when saving multiple images rapidly
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "CommonProject_${System.currentTimeMillis()}_${java.util.UUID.randomUUID().toString().take(4)}.jpg")
                     put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
                     put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/아이랑나랑")
                 }
@@ -309,11 +310,15 @@ class OfflineFirstTempMediaRepository @Inject constructor(
         val subWidth = (subBitmap.width * subScale).toInt()
         val subHeight = (subBitmap.height * subScale).toInt()
 
-        // Position: Top-Left with padding
+        // Position: Bottom-Right with padding
         val padding = 50f
+        // [Fix] 우측 하단 좌표 계산: (전체 너비 - 서브 너비 - 패딩, 전체 높이 - 서브 높이 - 패딩)
+        val left = width - subWidth - padding
+        val top = height - subHeight - padding
+        
         val scaledSub = android.graphics.Bitmap.createScaledBitmap(subBitmap, subWidth, subHeight, true)
 
-        canvas.drawBitmap(scaledSub, padding, padding, null)
+        canvas.drawBitmap(scaledSub, left, top, null) // [Fix] Changed from (padding, padding) to (left, top)
 
         return result
     }
