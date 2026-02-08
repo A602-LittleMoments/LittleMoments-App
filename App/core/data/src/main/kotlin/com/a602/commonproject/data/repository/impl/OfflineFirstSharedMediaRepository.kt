@@ -358,42 +358,53 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
     // =================================================================
     override suspend fun syncWithServer(groupId: String, filterByUserId: String?): Boolean {
         return try {
-            // 1. 아기 목록 조회
-            val babies = babyDao.getAllBabies().first() // Flow -> List
+            val babies = babyDao.getAllBabies().first()
+            
+            // 1. 전체 사진 동기화 (Pagination 지원)
+            fetchAndSyncInternal(groupId, null, filterByUserId)
 
-            // 2. 전체 조회 (기존 로직 - 안전망) + 아기 별 조회
-            // 우선, "전체"를 한 번 긁을지 말지 고민.
-            // 일단 아기 별로 API가 있으니, 각 아기 순회하며 매핑 테이블 채워넣어야 함.
-            // 아기 없으면? 전체라도 긁어야 하나? -> 아기가 없으면 사진도 없을 확률 높음(기획상).
-
-            // 전체 사진 (babyId = null) 조회 -> 전체 사진 리스트 update (기본)
-             val globalResponse = networkDataSource.getAlbums(groupId = groupId, limit = 1000, filterByUserId = filterByUserId)
-             processAndSave(globalResponse.medias)
-
-            // 3. 각 아기 별로 순회
+            // 2. 아기별 매핑 동기화 (Pagination 지원)
             babies.forEach { baby ->
-                val response = networkDataSource.getAlbums(groupId = groupId, limit = 1000, babyId = baby.babyId, filterByUserId = filterByUserId)
-
-                // 3-1. 미디어 저장 (중복처리는 Dao upsert가 함)
-                val entities = processAndSave(response.medias)
-
-                // 3-2. 매핑 테이블 저장
-                val crossRefs = entities.map {  media ->
-                    com.a602.commonproject.database.model.MediaBabyCrossRefEntity(
-                        mediaId = media.mediaId,
-                        babyId = baby.babyId
-                    )
-                }
-                if (crossRefs.isNotEmpty()) {
-                    mediaDao.upsertMediaBabyCrossRefs(crossRefs)
-                }
+                fetchAndSyncInternal(groupId, baby.babyId, filterByUserId)
             }
 
             true
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("SharedMediaRepo", "Sync failed", e)
             false
         }
+    }
+
+    private suspend fun fetchAndSyncInternal(groupId: String, babyId: String?, filterByUserId: String?) {
+        var currentCursor: String? = null
+        var totalFetched = 0
+        val maxItems = 5000 // 안전 장치
+
+        do {
+            val response = networkDataSource.getAlbums(
+                groupId = groupId,
+                limit = 100, // 페이지 당 100개씩
+                cursor = currentCursor,
+                babyId = babyId,
+                filterByUserId = filterByUserId
+            )
+
+            val entities = processAndSave(response.medias)
+
+            // 아기 ID가 있는 경우 매핑 테이블 저장
+            if (babyId != null && entities.isNotEmpty()) {
+                val crossRefs = entities.map { media ->
+                    com.a602.commonproject.database.model.MediaBabyCrossRefEntity(
+                        mediaId = media.mediaId,
+                        babyId = babyId
+                    )
+                }
+                mediaDao.upsertMediaBabyCrossRefs(crossRefs)
+            }
+
+            currentCursor = response.nextCursor
+            totalFetched += response.medias.size
+        } while (currentCursor != null && totalFetched < maxItems)
     }
 
     // 응답 -> 엔티티 변환 및 저장 헬퍼
@@ -436,9 +447,28 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
 
                 takenAt = try {
                     val numeric = remote.takenAt.trim().toDoubleOrNull()
-                    numeric?.toLong() ?: java.time.OffsetDateTime.parse(remote.takenAt).toInstant().toEpochMilli()
+                    if (numeric != null) {
+                        // 초 단위인 경우 밀리초로 변환 (10자리 이하면 초로 간주)
+                        if (numeric < 10_000_000_000L) (numeric * 1000).toLong() else numeric.toLong()
+                    } else {
+                        try {
+                            java.time.OffsetDateTime.parse(remote.takenAt).toInstant().toEpochMilli()
+                        } catch (e: Exception) {
+                            try {
+                                java.time.LocalDateTime.parse(remote.takenAt)
+                                    .atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                            } catch (e2: Exception) {
+                                try {
+                                    java.time.LocalDate.parse(remote.takenAt)
+                                        .atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                                } catch (e3: Exception) {
+                                    System.currentTimeMillis()
+                                }
+                            }
+                        }
+                    }
                 } catch (e: Exception) {
-                    android.util.Log.e("SharedMediaRepo", "Date parsing failed.", e)
+                    android.util.Log.e("SharedMediaRepo", "Date parsing failed: ${remote.takenAt}", e)
                     System.currentTimeMillis()
                 },
 
