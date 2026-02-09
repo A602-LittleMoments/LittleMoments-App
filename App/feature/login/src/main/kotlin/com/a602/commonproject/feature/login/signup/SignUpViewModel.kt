@@ -179,7 +179,7 @@ class SignUpViewModel @Inject constructor(
                 // 2. 아기 등록 요청
                 babyRepository.addBaby(
                     name = babyName,
-                    birthDate = babyBirthDate,
+                    birthDate = formatDate(babyBirthDate),
                     gender = babyGender,
                     imageFile = babyImageFile,
                 ).onFailure { throw Exception("아기 등록 실패: ${it.message}") }
@@ -231,6 +231,14 @@ class SignUpViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+
+    private fun formatDate(input: String): String {
+        if (input.length == 8) {
+            return "${input.substring(0, 4)}-${input.substring(4, 6)}-${input.substring(6, 8)}"
+        }
+        return input
     }
 }
 

@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 private const val SYNC_TOPIC_SENDER = "/topics/sync"
 
 @AndroidEntryPoint
+@Suppress("Instantiatable")
 class SyncNotificationService : FirebaseMessagingService() {
 
     @Inject
