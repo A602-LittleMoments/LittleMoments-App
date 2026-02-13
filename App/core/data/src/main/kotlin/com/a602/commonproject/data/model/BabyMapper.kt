@@ -18,7 +18,7 @@ fun Baby.toEntity(): BabyEntity {
         babyName = babyName,
         birthDate = parseDateToLong(birthDate),
         profileUrl = imageUrl ?: "",
-        gender = gender.toDbValue() // 아래 확장 함수 사용
+        gender = gender.toDbValue(), // 아래 확장 함수 사용
     )
 }
 
@@ -42,14 +42,15 @@ fun BabyEntity.asExternalModel(): Baby {
             "M" -> Baby.Gender.MALE
             "F" -> Baby.Gender.FEMALE
             else -> Baby.Gender.UNKNOWN
-        }
+        },
     )
 }
 
-// =================================================================
-// 3. ✨ [Network -> DB] 서버 동기화용 (추가됨!)
-// 서버에서 받아온 최신 정보를 내 폰 DB에 덮어쓸 때 사용합니다.
-// =================================================================
+
+/**
+ *  [Network -> DB] 서버 동기화용
+ *  서버에서 받아온 최신 정보를 내 폰 DB에 덮어쓸 때 사용합니다.
+ */
 fun BabyResponse.toEntity(): BabyEntity {
     return BabyEntity(
         babyId = babyId,
@@ -65,14 +66,15 @@ fun BabyResponse.toEntity(): BabyEntity {
             "MALE", "M" -> "M"
             "FEMALE", "F" -> "F"
             else -> "U"
-        }
+        },
     )
 }
 
-// =================================================================
-// 4. ✨ [UI -> Network] 정보 수정 요청용 (추가됨!)
-// 아기 정보를 수정해서 서버로 보낼 때 사용합니다.
-// =================================================================
+/**
+ *  [UI -> Network] 정보 수정 요청용
+ *  아기 정보를 수정해서 서버로 보낼 때 사용합니다.
+ *  예외적인 경우 사용한다고 함, 오프라인 퍼스트에서는 굳이 사용하지 않음
+ */
 fun Baby.toNetworkModel(): BabyRequest {
     return BabyRequest(
         babyId = babyId,
@@ -83,14 +85,14 @@ fun Baby.toNetworkModel(): BabyRequest {
             Baby.Gender.FEMALE -> "F"
             else -> "U"
         },
-        pictureUrl = imageUrl // (이미지 업로드는 별도 로직일 수 있음)
+        pictureUrl = imageUrl, // (이미지 업로드는 별도 로직일 수 있음)
     )
 }
 
-// =================================================================
-// 5. ✨ [DB -> Network] 동기화(Worker)용 (필수!)
-// DB에 저장된 내용을 꺼내서 서버로 보낼 때 사용합니다.
-// =================================================================
+/**
+ *  [DB -> Network] 동기화(Worker)용 무조건
+ *  DB에 저장된 내용을 꺼내서 서버로 보낼 때 사용합니다.
+ */
 fun BabyEntity.toNetworkModel(): BabyRequest {
     // DB의 Long 날짜 -> 서버의 "yyyy-MM-dd" 변환
     val dateString = try {
@@ -98,16 +100,15 @@ fun BabyEntity.toNetworkModel(): BabyRequest {
     } catch (e: Exception) {
         ""
     }
-
-
     return BabyRequest(
         babyId = babyId,
         babyName = babyName,
         birthDate = dateString,
         gender = gender,
-        pictureUrl = profileUrl
+        pictureUrl = profileUrl,
     )
 }
+
 private fun parseDateToLong(dateString: String): Long {
     return try {
         SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).parse(dateString)?.time ?: 0L

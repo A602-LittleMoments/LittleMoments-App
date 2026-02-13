@@ -7,9 +7,9 @@ import com.a602.commonproject.network.model.MediaResponse
 import com.a602.commonproject.network.model.MediaUploadMetadata
 import kotlin.time.Instant
 
-// =================================================================
-// 1. [DB -> UI] 화면 표시용 (DB에 없는 필드는 기본값 처리)
-// =================================================================
+/**
+ *  [DB -> UI] 화면 표시용 (DB에 없는 필드는 기본값 처리)
+ */
 fun ShareMediaEntity.asExternalModel(): SharedMedia {
     return SharedMedia(
         id = mediaId,
@@ -40,10 +40,9 @@ fun ShareMediaEntity.asExternalModel(): SharedMedia {
     )
 }
 
-
-// =================================================================
-// 2. [UI -> DB] 로컬 저장용
-// =================================================================
+/**
+ * [UI -> DB] 로컬 저장용
+ */
 fun SharedMedia.toEntity(): ShareMediaEntity {
     return ShareMediaEntity(
         mediaId = id,
