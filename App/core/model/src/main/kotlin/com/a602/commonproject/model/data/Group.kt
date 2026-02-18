@@ -1,10 +1,12 @@
 package com.a602.commonproject.model.data
 
-
+/**
+ * 그룹 관련(가족)
+ */
 data class Group(
     val id: String,          // groupId
     val name: String,        // groupName
-    val role : GroupRole,
+    val role : GroupRole,    // 권환 관련
     val relation: String?,   // 내 호칭 (Mother, Father...)
     val members: List<GroupMember> = emptyList()
 )

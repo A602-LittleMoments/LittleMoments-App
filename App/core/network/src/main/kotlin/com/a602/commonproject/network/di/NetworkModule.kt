@@ -41,7 +41,9 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
+        apiLoggerInterceptor: ApiLoggerInterceptor,
         authInterceptor: AuthInterceptor,
+        tokenAuthenticator: TokenAuthenticator
     ): OkHttpClient {
         // 로깅 인터셉터 (Debug 모드일 때만 Body 출력)
         val loggingInterceptor = HttpLoggingInterceptor().apply {
@@ -52,9 +54,10 @@ object NetworkModule {
             }
         }
         return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)   // 📜 로그 출력
-            .addInterceptor(loggingInterceptor) // 🔑 헤더 관리 (토큰 자동 추가/제거)
-            .addInterceptor(ApiLogger())
+            .addInterceptor(authInterceptor)   // 헤더 관리
+            .addInterceptor(loggingInterceptor) // 로그 찍기
+            .addInterceptor(apiLoggerInterceptor)
+            .authenticator(tokenAuthenticator)
             .connectTimeout(30, TimeUnit.SECONDS) // 연결 타임아웃
             .readTimeout(30, TimeUnit.SECONDS) // 읽기 타임 아웃
             .writeTimeout(30, TimeUnit.SECONDS) // 쓰기(업로드) 타임 아웃

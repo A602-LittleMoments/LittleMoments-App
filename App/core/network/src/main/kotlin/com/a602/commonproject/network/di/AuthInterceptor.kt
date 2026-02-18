@@ -1,11 +1,9 @@
 package com.a602.commonproject.network.di
 
-import android.provider.Settings
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
 import javax.inject.Inject
 import kotlin.jvm.Throws
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -13,7 +11,7 @@ import okio.IOException
 
 class AuthInterceptor @Inject constructor(
     // private val tokenManager: TokenManager
-    private val userPreferences: UserPreferencesDataSource
+    private val userPreferences: UserPreferencesDataStore
 
 ) : Interceptor{
     @Throws(IOException::class)

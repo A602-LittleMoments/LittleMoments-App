@@ -42,6 +42,7 @@ fun ShareMediaEntity.asExternalModel(): SharedMedia {
 
 /**
  * [UI -> DB] 로컬 저장용
+ * 지금 당장 사용하지 않음 saveNewMedia에서 사용 가능
  */
 fun SharedMedia.toEntity(): ShareMediaEntity {
     return ShareMediaEntity(

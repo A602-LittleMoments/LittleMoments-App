@@ -2,7 +2,7 @@ package com.a602.commonproject.data.repository.impl
 
 import com.a602.commonproject.data.model.asExternalModel
 import com.a602.commonproject.data.repository.GroupRepository
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
 import com.a602.commonproject.model.data.Group
 import com.a602.commonproject.model.data.GroupMember
 import com.a602.commonproject.model.data.InviteCode
@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.first
 
 class NetworkGroupRepository @Inject constructor(
     private val networkDataSource: GroupNetworkDataSource,
-    private val userPreferences: UserPreferencesDataSource, // ✨ DataStore 갱신용
+    private val userPreferences: UserPreferencesDataStore, // ✨ DataStore 갱신용
 ) : GroupRepository {
 
     private suspend fun getGroupIdOrThrow(): String {

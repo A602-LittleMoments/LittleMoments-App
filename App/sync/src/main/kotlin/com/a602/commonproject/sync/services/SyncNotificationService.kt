@@ -3,7 +3,6 @@ package com.a602.commonproject.sync.services
 import android.util.Log
 import com.a602.commonproject.data.repository.NotificationRepository
 import com.a602.commonproject.data.repository.UserRepository
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
 import com.a602.commonproject.notifications.Notifier
 import com.a602.commonproject.sync.status.SyncManager
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -13,7 +12,6 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 private const val SYNC_TOPIC_SENDER = "/topics/sync"

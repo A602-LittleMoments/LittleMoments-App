@@ -81,6 +81,7 @@ fun NavigationState.toEntries(
             // ViewModel 수명 관리 기능
             rememberViewModelStoreNavEntryDecorator<NavKey>(),
         )
+        // stack에 decorators를 입혀서 NavEntry 리스트로 만들기
         rememberDecoratedNavEntries(
             backStack = stack,
             entryDecorators = decorators,

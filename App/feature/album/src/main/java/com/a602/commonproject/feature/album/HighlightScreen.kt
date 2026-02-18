@@ -154,17 +154,12 @@ fun HighlightResultScreen(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    val playableUrl = slideshow?.playableUrl
     // 재생 가능한 URL 결정: 로컬 우선, 없으면 리모트
-    val playableUrl: String? = remember(slideshow?.localVideoPath, slideshow?.remoteVideoUrl) {
-        slideshow?.localVideoPath ?: slideshow?.remoteVideoUrl
-    }
     val videoUri: Uri? = remember(playableUrl) { playableUrl?.let(Uri::parse) }
 
     // 다운로드 가능 여부 (완료됐고 아직 로컬에 없을 때)
-    val canDownload = remember(slideshow?.status, slideshow?.localVideoPath) {
-        slideshow?.status == Slideshow.MakeStatus.COMPLETED &&
-            slideshow.localVideoPath.isNullOrBlank()
-    }
+    val canDownload = slideshow?.status == Slideshow.MakeStatus.COMPLETED && !(slideshow.isDownloaded)
 
     // [Fix] Refactor to Scaffold
     Scaffold(

@@ -5,7 +5,7 @@ import com.a602.commonproject.data.model.asExternalModel
 import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.database.dao.MediaDao
 import com.a602.commonproject.database.model.ShareMediaEntity
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.network.datasource.MediaNetworkDataSource
 import com.a602.commonproject.network.model.MediaFileKey
@@ -30,7 +30,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
     private val mediaDao: MediaDao,
     private val babyDao: BabyDao, // Direct Access (Repository might be better but circular dependency concerns)
     private val networkDataSource: MediaNetworkDataSource,
-    private val userPreferences: UserPreferencesDataSource,
+    private val userPreferences: UserPreferencesDataStore,
     @ApplicationContext private val context: Context,
 ) : SharedMediaRepository {
 
@@ -75,7 +75,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                         val zoneId = java.time.ZoneId.systemDefault()
                         val start = java.time.LocalDate.of(year, 1, 1).atStartOfDay(zoneId).toInstant().toEpochMilli()
                         val end = java.time.LocalDate.of(year, 12, 31).atTime(23, 59, 59).atZone(zoneId).toInstant().toEpochMilli()
-                        
+
                         mediaDao.getSharedMediaPagingSourceByBabyAndDateRange(babyId, start, end)
                     } else {
                         mediaDao.getSharedMediaPagingSourceByBaby(babyId)
@@ -278,7 +278,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                                 // ✨ [핵심 로직 개선] ID 교체 (Local UUID -> Server ID)
                                 // 서버가 발급해준 실제 ID(`result.mediaId`)로 로컬 DB를 업데이트합니다.
                                 // 이렇게 해야 나중에 `getAlbums`로 목록을 받아올 때 중복이 생기지 않습니다.
-                                
+
                                 val newServerId = result.mediaId // 배치 응답에서 Server ID 획득
 
                                 if (!newServerId.isNullOrBlank() && newServerId != media.mediaId) {
@@ -290,10 +290,10 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                                         subRemoteUrl = remoteFrontUrl ?: "",
                                         // localUri 등은 그대로 유지됨
                                     )
-                                    
+
                                     // 2. 새 엔티티 저장 (Insert)
                                     mediaDao.upsertSharedList(listOf(newEntity))
-                                    
+
                                     // 3. 구 엔티티(임시 ID) 삭제 (Delete)
                                     mediaDao.hardDelete(media.mediaId)
                                 } else {
@@ -359,7 +359,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
     override suspend fun syncWithServer(groupId: String, filterByUserId: String?): Boolean {
         return try {
             val babies = babyDao.getAllBabies().first()
-            
+
             // 1. 전체 사진 동기화 (Pagination 지원)
             fetchAndSyncInternal(groupId, null, filterByUserId)
 
@@ -430,7 +430,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                 mediaId = remote.mediaId,
                 // ✨ [핵심] 기존에 로컬 파일 경로가 있다면 유지합니다. (없으면 null)
                 // 이렇게 하면 다시 다운로드할 필요 없이 바로 고화질 원본을 볼 수 있습니다.
-                localUri = existing?.localUri, 
+                localUri = existing?.localUri,
 
                 remoteUrl = remote.storageUrl,
                 thumbnailUrl = remote.thumbUrl,
@@ -476,11 +476,11 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                 syncStatus = "SYNCED",
             )
         }
-        
+
         if (entities.isNotEmpty()) {
             mediaDao.syncSharedList(entities)
         }
-        
+
         return entities
     }
 

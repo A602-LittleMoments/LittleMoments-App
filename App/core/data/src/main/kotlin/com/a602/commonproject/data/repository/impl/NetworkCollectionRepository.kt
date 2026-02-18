@@ -2,7 +2,7 @@ package com.a602.commonproject.data.repository.impl
 
 import com.a602.commonproject.data.model.asExternalModel
 import com.a602.commonproject.data.repository.CollectionRepository
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
 import com.a602.commonproject.model.data.Collection
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.network.datasource.CollectionNetworkDataSource
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.first
 
 class NetworkCollectionRepository @Inject constructor(
     private val networkDataSource: CollectionNetworkDataSource,
-    private val userPreferences: UserPreferencesDataSource // ✨ groupId 조회용
+    private val userPreferences: UserPreferencesDataStore // ✨ groupId 조회용
 ) : CollectionRepository {
     override suspend fun getCollections(
         type: String,

@@ -6,7 +6,7 @@ import com.a602.commonproject.data.model.toEntity
 import com.a602.commonproject.data.repository.SlideshowRepository
 import com.a602.commonproject.database.dao.SlideshowDao
 import com.a602.commonproject.database.model.SlideshowEntity
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
 import com.a602.commonproject.model.data.Slideshow
 import com.a602.commonproject.network.datasource.SlideshowNetworkDataSource
 import com.a602.commonproject.network.model.CreateSlideshowRequest
@@ -25,7 +25,7 @@ import kotlinx.coroutines.withContext
 class OfflineFirstSlideshowRepository @Inject constructor(
     private val slideshowDao: SlideshowDao,
     private val networkDataSource: SlideshowNetworkDataSource,
-    private val userPreferences: UserPreferencesDataSource,
+    private val userPreferences: UserPreferencesDataStore,
     @ApplicationContext private val context: Context // 파일 저장을 위해 Context 필요
 ) : SlideshowRepository {
 
@@ -95,7 +95,7 @@ class OfflineFirstSlideshowRepository @Inject constructor(
             // [Fix] 전달받은 title (키워드/날짜) 사용
             val initialEntity = SlideshowEntity(
                 slideshowId = response.slideshowId,
-                title = title, 
+                title = title,
                 createAt = System.currentTimeMillis(),
                 status = response.status // "QUEUED" or "PROCESSING"
             )

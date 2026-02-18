@@ -1,7 +1,7 @@
 package com.a602.commonproject.data.repository.impl
 
 import com.a602.commonproject.data.repository.UserRepository
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
 import com.a602.commonproject.model.data.AuthState
 import com.a602.commonproject.model.data.User
 import com.a602.commonproject.network.datasource.AuthNetworkDataSource
@@ -20,7 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class OfflineFirstUserRepository @Inject constructor(
-    private val userPreferences: UserPreferencesDataSource,
+    private val userPreferences: UserPreferencesDataStore,
     private val authDataSource: AuthNetworkDataSource,
     private val groupDataSource: GroupNetworkDataSource,
     private val database: LMDatabase
@@ -131,7 +131,7 @@ class OfflineFirstUserRepository @Inject constructor(
         return try {
             // dataStore 초기화
             userPreferences.clear()
-            
+
             // Room 데이터베이스 전체 삭제 (다른 계정 로그인 시 기존 데이터 잔존 방지)
             // Main Thread 에서 실행하면 터지므로 IO 스레드로 변경
             withContext(Dispatchers.IO) {

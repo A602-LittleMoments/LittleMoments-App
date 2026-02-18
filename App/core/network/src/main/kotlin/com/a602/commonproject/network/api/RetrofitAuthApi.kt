@@ -22,7 +22,7 @@ import retrofit2.http.Part
 internal interface RetrofitAuthApi {
 
     // 1.1 회원가입 (Multipart)
-    @Headers("Auth: No")
+    @Headers("Auth: No") // 인증이 필요없는 API
     @Multipart
     @POST("auth/signup")
     suspend fun signUp(

@@ -6,21 +6,20 @@ package com.a602.commonproject.model.data
  */
 data class SharedMedia(
     val id: String,            // DB: mediaId, Net: mediaId
-    val type: MediaType,       // DB: "PHOTO"/"VIDEO" -> Enum 변환
+    val type: MediaType = MediaType.PHOTO,       // DB: "PHOTO"/"VIDEO" -> Enum 변환
 
     // 1. 경로 정보 (뒷 사진)
     val localUri: String?,     // 업로드 전 원본 경로
     val remoteUrl: String?,    // 서버 저장 경로 (storageUrl)
     val thumbnailUrl: String?, // 리스트용 썸네일 (thumbUrl)
 
-    // 2. ✨ 서브 경로 (앞 사진)
-    // Map 대신 이렇게 변수를 직접 만들면 Converter가 필요 없습니다!
+    // 2.  서브 경로 (앞 사진)
     val subLocalUri: String? = null,
     val subRemoteUrl: String? = null,
     val subThumbnailUrl: String? = null,
 
-    // 3. ✨ 카메라 방향 정보 ("REAR", "FRONT", "DUAL")
-    val cameraFacing: String = "REAR",
+    // 3.  카메라 방향 정보 ("REAR", "FRONT", "DUAL")
+    val cameraFacing: String = "DUAL", // 초반에는 무조건 듀얼로 설정
 
     // 2. 메타 데이터
     val caption: String?,      // 사진 설명
@@ -30,7 +29,7 @@ data class SharedMedia(
     val uploaderName: String?, // 업로더 닉네임 (DB: uploaderName)
 
     // 4. 상태 관리
-    val syncStatus: SyncStatus // 동기화 상태 (구름 아이콘)
+    val syncStatus: SyncStatus = SyncStatus.NOT_UPLOADED // 동기화 상태 (구름 아이콘)
 ) {
 
     enum class MediaType {
@@ -58,7 +57,5 @@ data class SharedMedia(
      * 2. 없으면 서버 URL (고화질)
      * 3. 정 없으면 썸네일이라도 보여줌
      */
-    val displayUrl: String?
-        get() = localUri ?: remoteUrl ?: thumbnailUrl
 
 }

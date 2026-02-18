@@ -5,7 +5,7 @@ import com.a602.commonproject.data.repository.TempMediaRepository
 import com.a602.commonproject.database.dao.MediaDao
 import com.a602.commonproject.database.model.ShareMediaEntity
 import com.a602.commonproject.database.model.TempMediaEntity
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
 import com.a602.commonproject.model.data.TempMedia
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -18,7 +18,7 @@ import androidx.core.graphics.createBitmap
 
 class OfflineFirstTempMediaRepository @Inject constructor(
     private val mediaDao: MediaDao,
-    private val userPreferences: UserPreferencesDataSource,
+    private val userPreferences: UserPreferencesDataStore,
     @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
 ) : TempMediaRepository {
 
@@ -229,11 +229,11 @@ class OfflineFirstTempMediaRepository @Inject constructor(
                         } else {
                             // 📄 Single Image: Direct Copy (Exif 보존을 위해 그냥 복사)
                             // 단, 사용자가 "모양이 이상하다"고 했으므로, 여기서도 Rotation을 적용해서 다시 저장하는게 안전할 수 있음.
-                            // 하지만 원본 복사가 품질 저하가 없음. 
+                            // 하지만 원본 복사가 품질 저하가 없음.
                             // 일단 Single은 원본 복사 + Exif가 갤러리에서 처리되길 기대하지만,
                             // 만약 갤러리 앱이 Exif를 무시하는 커스텀 뷰라면 회전된 비트맵을 저장해야 함.
                             // 안전하게 "비트맵 로드 -> 회전 -> 저장"으로 통일.
-                            
+
                             val original = android.graphics.BitmapFactory.decodeFile(mainFile.path)
                             val rotated = rotateBitmapIfNeeded(mainFile.path, original, orientation)
                             if (rotated != null) {
@@ -315,7 +315,7 @@ class OfflineFirstTempMediaRepository @Inject constructor(
         // [Fix] 우측 하단 좌표 계산: (전체 너비 - 서브 너비 - 패딩, 전체 높이 - 서브 높이 - 패딩)
         val left = width - subWidth - padding
         val top = height - subHeight - padding
-        
+
         val scaledSub = android.graphics.Bitmap.createScaledBitmap(subBitmap, subWidth, subHeight, true)
 
         canvas.drawBitmap(scaledSub, left, top, null) // [Fix] Changed from (padding, padding) to (left, top)

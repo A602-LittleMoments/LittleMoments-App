@@ -2,23 +2,14 @@ package com.a602.commonproject.sync.initializers
 
 import android.content.Context
 import androidx.startup.Initializer
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import com.a602.commonproject.common.network.Dispatcher
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
 import com.a602.commonproject.sync.status.SyncManager
 import com.a602.commonproject.sync.status.SyncSubscriber
-import com.a602.commonproject.sync.status.WorkManagerSyncManager.Companion.SYNC_WORK_NAME
-import com.a602.commonproject.sync.workers.FetchWorker
-import com.a602.commonproject.sync.workers.UploadWorker
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 

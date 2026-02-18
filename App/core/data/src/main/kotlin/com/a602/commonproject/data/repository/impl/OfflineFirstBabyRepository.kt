@@ -4,7 +4,7 @@ import com.a602.commonproject.data.model.asExternalModel
 import com.a602.commonproject.data.model.toEntity
 import com.a602.commonproject.data.repository.BabyRepository
 import com.a602.commonproject.database.dao.BabyDao
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
 import com.a602.commonproject.model.data.Baby
 import com.a602.commonproject.network.datasource.BabyNetworkDataSource
 import com.a602.commonproject.network.model.BabyRequest
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.map
 class OfflineFirstBabyRepository @Inject constructor(
     private val babyDao: BabyDao,
     private val networkDataSource: BabyNetworkDataSource,
-    private val userPreferences: UserPreferencesDataSource
+    private val userPreferences: UserPreferencesDataStore
 ) : BabyRepository {
 
     private suspend fun getGroupIdOrThrow(): String {

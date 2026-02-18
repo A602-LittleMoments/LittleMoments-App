@@ -28,7 +28,8 @@ data class Slideshow(
     }
 
     /**
-     * 💡 재생 가능한 URL (로컬 우선, 없으면 서버)
+     * 💡 재생 가능한 URL (로컬 우선, 없으면 서버),
+     *    지금 당장은 사용하지 않음
      */
     // 💡 UI 편의 기능
     val isDownloaded: Boolean

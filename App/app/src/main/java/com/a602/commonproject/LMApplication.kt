@@ -3,7 +3,7 @@ package com.a602.commonproject
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import com.a602.commonproject.datastore.datastore.UserPreferencesDataSource
+import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
 import com.a602.commonproject.sync.status.SyncManager
 import com.a602.commonproject.sync.status.SyncSubscriber
 import com.google.firebase.FirebaseApp
@@ -27,7 +27,7 @@ class LMApplication : Application(), Configuration.Provider, ImageLoaderFactory 
     @Inject lateinit var syncManager: SyncManager
     @Inject lateinit var syncSubscriber: SyncSubscriber
 
-    @Inject lateinit var userPreferencesDataSource: UserPreferencesDataSource
+    @Inject lateinit var userPreferencesDataSource: UserPreferencesDataStore
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()

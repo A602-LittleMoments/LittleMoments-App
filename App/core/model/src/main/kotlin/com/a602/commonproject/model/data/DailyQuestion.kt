@@ -1,7 +1,7 @@
 package com.a602.commonproject.model.data
 
 /**
- * 📝 매일 도착하는 육아 질문
+ * 📝 매일 도착하는 육아 질문 (사용 안함)
  */
 data class DailyQuestion(
     val questionId: String,      // Network: questionId

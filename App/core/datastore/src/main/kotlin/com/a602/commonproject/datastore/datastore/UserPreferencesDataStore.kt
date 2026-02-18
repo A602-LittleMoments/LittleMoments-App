@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 @Singleton
-class UserPreferencesDataSource @Inject constructor(
+class UserPreferencesDataStore @Inject constructor(
     private val dataStore: DataStore<Preferences>,
 ) {
     // =================================================================
@@ -163,7 +163,7 @@ class UserPreferencesDataSource @Inject constructor(
         dataStore.edit { prefs ->
             // [Fix] Device ID는 기기 식별자이므로 로그아웃/초기화 시에도 유지되어야 합니다.
             val currentDeviceId = prefs[KEY_DEVICE_ID]
-            
+
             prefs.clear()
 
             // Device ID 복구

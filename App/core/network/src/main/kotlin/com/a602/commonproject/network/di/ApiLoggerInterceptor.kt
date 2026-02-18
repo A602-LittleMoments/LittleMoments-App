@@ -5,7 +5,8 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import retrofit2.Invocation
 
-class ApiLogger : Interceptor {
+// 에러의 위치를 반환하기 위한 interceptor
+class ApiLoggerInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
 

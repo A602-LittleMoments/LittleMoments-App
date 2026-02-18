@@ -95,7 +95,7 @@ internal class RetrofitAuthNetwork @Inject constructor(
         return authApi.updateMyProfile(dataPart, imagePart)
     }
 
-    override suspend fun withdraw() = authApi.withdraw()
+    override suspend fun withdraw() = authApi.withdraw() // 탈퇴
     override suspend fun changePassword(request: ChangePasswordRequest) = authApi.changePassword(request)
     override suspend fun refreshToken(refreshToken: String) = authApi.refreshToken(refreshToken)
     override suspend fun updateFcmToken(fcmTokenRequest: String) = authApi.updateFcmToken(FcmTokenRequest(fcmTokenRequest))
