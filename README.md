@@ -1,6 +1,6 @@
 # 👨‍👩‍👧‍👦 아이랑 나랑
 ### 아이의 순간과, 부모의 시간을 함께 기록하다 
-![forReadMe](/uploads/235dc0eca0ccf4dd02c3d277238d67aa/forReadMe.png){width=900 height=507}
+![forReadMe](/readme_asset/forReadMe.png)
 
 **아이랑 나랑**은 아이의 성장뿐만 아니라 **부모로서 성장해가는 시간과 마음까지** 함께 기록하는 **AI 기반 가족 성장 앨범 서비스**입니다.    
 
@@ -155,7 +155,7 @@
       <hr>
       <div align="left">
         <sub>
-          • 기획
+          • 기획 <br>
           • 홈 화면 1차 구현 <br>
           • UI/UX 디자인 총괄
         </sub>
@@ -170,7 +170,7 @@
       <hr>
       <div align="left">
         <sub>
-          • 기획
+          • 기획 <br>
           • 앨범 페이지 1차 구현 <br>
           • UI/UX 디자인 참여
         </sub>
@@ -239,7 +239,7 @@
 ---
 
 ## 💿 시스템 아키텍처
-![systemArchitecture](/uploads/1ad6b932d2791aeb4718d44a0ddad36c/systemArchitecture.png){width=660 height=600}
+![systemArchitecture](/readme_asset/systemArchitecture.png)
 
 ---
 
@@ -434,13 +434,14 @@
 ---
 ## 📊 DB 구조
 ### App DB
-![appDB](/uploads/3bcfe6ed97defe6cb9ad2eccf27f746a/appDB.png){width=823 height=600}
+![appDB](/readme_asset/appDB.png)
 
 ### Main_DB
-![mainDB](/uploads/612a4d75ce3f5b7d070babd5a34ec64d/mainDB.png){width=693 height=492}
+![mainDB](/readme_asset/mainDB.png)
 
 ## 📽️ 영상 포트폴리오
-![14기_공통PJT_영상_포트폴리오_A602](/uploads/192253d748be9231203295f3705611c3/14기_공통PJT_영상_포트폴리오_A602.mp4){width=900 height=507}
+
+<video src="./readme_asset/14기_공통PJT_영상_포트폴리오_A602.mp4" width="600" controls></video>
 
 ## 📄 문서
 
