@@ -441,6 +441,7 @@
 
 ## 📽️ 영상 포트폴리오
 
+[video_portpolio](./readme_asset/video_portfolio.mp4)
 <video src="https://raw.githubusercontent.com/A602-LittleMoments/LittleMoments-App/app/readme_asset/video_portfolio.mp4" width="100%" controls></video>
 
 ## 📄 문서
