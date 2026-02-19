@@ -441,7 +441,7 @@
 
 ## 📽️ 영상 포트폴리오
 
-<video src="./readme_asset/14기_공통PJT_영상_포트폴리오_A602.mp4" width="600" controls></video>
+<video src="https://github.com/A602-LittleMoments/LittleMoments-App/raw/app/readme_asset/14기_공통PJT_영상_포트폴리오_A602.mp4" width="100% " controls></video> 
 
 ## 📄 문서
 
