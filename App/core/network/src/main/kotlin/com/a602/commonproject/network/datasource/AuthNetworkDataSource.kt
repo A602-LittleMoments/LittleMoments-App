@@ -9,13 +9,11 @@ import com.a602.commonproject.network.model.SignupRequest
 import com.a602.commonproject.network.model.TokenResponse
 import com.a602.commonproject.network.model.UpdateProfileRequest
 import com.a602.commonproject.network.model.UserResponse
+import com.a602.commonproject.network.util.toJsonRequestBody
+import com.a602.commonproject.network.util.toMultipartPart
 import java.io.File
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 
 
 /**
@@ -49,50 +47,21 @@ internal class RetrofitAuthNetwork @Inject constructor(
 ) : AuthNetworkDataSource {
 
     override suspend fun signUp(signupRequest: SignupRequest, imageFile: File?): AuthResponse {
-        // [Step 1] 회원가입 정보(DTO)를 JSON 문자열로 변환합니다.
-        // 예: SignupRequest("test", "1234") -> '{"id":"test", "pw":"1234"}'
-        val jsonString = networkJson.encodeToString(signupRequest)
-
-        // [Step 2] JSON 문자열을 RequestBody로 포장합니다.
-        // "이건 그냥 글자가 아니라 JSON 데이터야!"라고 명찰(ContentType)을 붙여줍니다.
-        val dataPart = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
-
-        // [Step 3] 프로필 이미지 파일이 있다면 MultipartBody.Part로 변환합니다.
-        // 파일이 없으면(null) 그냥 null을 보냅니다.
-        val imagePart = imageFile?.let { file ->
-            // 3-1. 파일을 읽을 수 있는 RequestBody로 변환 (타입: image/*)
-            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-
-            // 3-2. 서버가 요구한 파라미터 이름("profile_image")과 파일명, 데이터를 합쳐서 파트 생성
-            MultipartBody.Part.createFormData("profile_image", file.name, requestFile)
-        }
-
-        // [Step 4] 조립된 두 조각(데이터, 이미지)을 서버로 전송합니다.
-        return authApi.signUp(dataPart, imagePart)
+        // 객체를 JSON RequestBody로 반환
+        // val dataPart = signupRequest.toJsonRequestBody(networkJson) -> ConverterFactory를 이용해서 자동으로 JSON으로 바꿔주는 기능 추가
+        // 프로필 이미지 파일이 있다면 MultipartBody.Part로 변환합니다.
+        val imagePart= imageFile?.toMultipartPart("profile_image")
+        // 조립된 두 조각(데이터, 이미지)을 서버로 전송합니다.
+        return authApi.signUp(signupRequest, imagePart)
     }
 
     override suspend fun login(loginRequest: LoginRequest) = authApi.login(loginRequest)
     override suspend fun logout() = authApi.logout()
     override suspend fun getMyProfile() = authApi.getMyProfile()
     override suspend fun updateMyProfile(request: UpdateProfileRequest, imageFile: File?): UserResponse {
-        // [Step 1] 회원가입 정보(DTO)를 JSON 문자열로 변환합니다.
-        // 예: SignupRequest("test", "1234") -> '{"id":"test", "pw":"1234"}'
-        val jsonString = networkJson.encodeToString(request)
-
-        // [Step 2] JSON 문자열을 RequestBody로 포장합니다.
-        // "이건 그냥 글자가 아니라 JSON 데이터야!"라고 명찰(ContentType)을 붙여줍니다.
-        val dataPart = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
-
-        // [Step 3] 프로필 이미지 파일이 있다면 MultipartBody.Part로 변환합니다.
-        // 파일이 없으면(null) 그냥 null을 보냅니다.
-        val imagePart = imageFile?.let { file ->
-            // 3-1. 파일을 읽을 수 있는 RequestBody로 변환 (타입: image/*)
-            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-
-            // 3-2. 서버가 요구한 파라미터 이름("profile_image")과 파일명, 데이터를 합쳐서 파트 생성
-            MultipartBody.Part.createFormData("profile_image", file.name, requestFile)
-        }
-        return authApi.updateMyProfile(dataPart, imagePart)
+        // val dataPart = request.toJsonRequestBody(networkJson)
+        val imagePart = imageFile?.toMultipartPart("profile_image")
+        return authApi.updateMyProfile(request, imagePart)
     }
 
     override suspend fun withdraw() = authApi.withdraw() // 탈퇴

@@ -3,6 +3,7 @@ package com.a602.commonproject.network.api
 import com.a602.commonproject.network.model.BatchUploadResponse
 import com.a602.commonproject.network.model.MediaDetailResponse
 import com.a602.commonproject.network.model.MediaListResponse
+import com.a602.commonproject.network.model.MediaUploadMetadataWrapper
 import com.a602.commonproject.network.model.UpdateCaptionRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -23,7 +24,7 @@ internal interface RetrofitMediaApi {
     suspend fun uploadMediaBatch(
         @Path("groupId") groupId: String,
         @Part files: List<MultipartBody.Part>,
-        @Part("items") items: RequestBody
+        @Part("items") items: MediaUploadMetadataWrapper
     ): BatchUploadResponse
 
     // 4.3 미디어 리스트 조회

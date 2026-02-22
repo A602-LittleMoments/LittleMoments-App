@@ -19,6 +19,7 @@ dependencies {
     implementation(projects.core.notifications)
     implementation(libs.androidx.paging.common)
     implementation(libs.room.runtime)
+    implementation(libs.androidx.exifinterface)
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlinx.serialization.json)

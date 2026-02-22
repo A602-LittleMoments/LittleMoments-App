@@ -73,6 +73,7 @@ object NetworkModule {
         return Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
+            // 자동으로 객체를 JSON으로 변환해주는 함수
             .addConverterFactory(networkJson.asConverterFactory("application/json".toMediaType()))
             .build()
     }

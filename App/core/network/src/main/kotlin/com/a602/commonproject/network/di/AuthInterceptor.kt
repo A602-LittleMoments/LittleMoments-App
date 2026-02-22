@@ -12,8 +12,10 @@ import okio.IOException
 class AuthInterceptor @Inject constructor(
     // private val tokenManager: TokenManager
     private val userPreferences: UserPreferencesDataStore
-
 ) : Interceptor{
+    @Volatile
+    private var cachedDeviceId: String? = null
+
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
@@ -22,7 +24,11 @@ class AuthInterceptor @Inject constructor(
         // 1. 공통 헤더 설정
         requestBuilder.addHeader("X-OS-Type", "Android")
         // Device ID가 DataStore에 저장되어 있다면 꺼내서 넣습니다.
-        val deviceId = runBlocking { userPreferences.getOrCreateDeviceId() }
+        val deviceId = cachedDeviceId ?: synchronized(this) {
+            cachedDeviceId ?: runBlocking {
+                userPreferences.getOrCreateDeviceId()
+            }.also { cachedDeviceId = it }
+        }
         requestBuilder.addHeader("X-Device-Id", deviceId) // 서버와 약속한 헤더 키값
 
         // 2. "Auth: No" 마커 헤더가 있는지 확인

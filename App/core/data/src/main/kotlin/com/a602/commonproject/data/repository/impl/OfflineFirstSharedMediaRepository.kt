@@ -1,6 +1,7 @@
 package com.a602.commonproject.data.repository.impl
 
 import android.content.Context
+import androidx.exifinterface.media.ExifInterface
 import com.a602.commonproject.data.model.asExternalModel
 import com.a602.commonproject.data.repository.SharedMediaRepository
 import com.a602.commonproject.database.dao.MediaDao
@@ -153,7 +154,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                 type = "PHOTO",
 
                 takenAt = java.time.Instant.now().toEpochMilli(),
-                uploaderName = "Me", // 아직 서버에 안 갔으니 '나'라고 표시
+                uploaderName =  userPreferences.userNickname.first() ?: "ME", // 아직 서버에 안 갔으니 '나'의 닉네임 표시
 
                 syncStatus = "NOT_UPLOADED", // ✨ 업로드 대기 상태
             )
@@ -214,13 +215,13 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                 try {
                     val mainFile = media.localUri?.let { File(it) }
 
-                    // --- [Step 1] 메타데이터 조립 (새 모델 적용) ---
+
                     // 파일이 실제로 존재할 때만 업로드 진행
                     if (mainFile != null && mainFile.exists()) {
                         val subFile = media.subLocalUri?.let { File(it) }
 
 
-                        // --- [Step 2] 메타데이터 조립 (새 모델 적용) ---
+                        // --- [Step 1] 메타데이터 조립
                         val filesToUpload = mutableListOf<File>()
                         filesToUpload.add(mainFile)
                         if (subFile != null && subFile.exists()) {
@@ -250,16 +251,14 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                             files = fileMap,
                         )
 
-                        // --- [Step 3] 서버 요청 (Batch API) ---
-                        //
+                        // --- [Step 2] 서버 요청 (Batch API) ---
                         val response = networkDataSource.uploadMediaBatch(
                             groupId = groupId,
                             files = filesToUpload,
                             metadata = MediaUploadMetadataWrapper(listOf(metadataItem)),
                         )
 
-                        // --- [Step 4] 결과 처리 ---
-                        //
+                        // --- [Step 3] 결과 처리 ---
                         // 내 mediaId(clientMediaKey)에 해당하는 결과를 찾음
                         val result = response.results.find { it.clientMediaKey == media.mediaId }
 
@@ -267,12 +266,7 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                             // 서버가 준 URL 추출 ("main" 키 사용)
                             val remoteRearUrl = result.files?.get("rear")?.storageUrl
                             val remoteFrontUrl = result.files?.get("front")?.storageUrl
-                            // "sub" 키 사용 (없으면 null)
-                            // (주의: UploadFileResult 구조 확인 필요, storageUrl 사용)
-                            // val remoteSubUrl = result.files?.get("sub")?.storageUrl
-                            // 현재 DAO markAsSync에는 subRemoteUrl 파라미터가 없으므로
-                            // 필요하다면 DAO 수정 후 여기서 넣어줘야 함.
-                            // 일단 mainUrl만 업데이트.
+
 
                             if (remoteRearUrl != null) {
                                 // ✨ [핵심 로직 개선] ID 교체 (Local UUID -> Server ID)
@@ -291,11 +285,8 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
                                         // localUri 등은 그대로 유지됨
                                     )
 
-                                    // 2. 새 엔티티 저장 (Insert)
-                                    mediaDao.upsertSharedList(listOf(newEntity))
+                                   mediaDao.replaceMediaId(media.mediaId, newEntity)
 
-                                    // 3. 구 엔티티(임시 ID) 삭제 (Delete)
-                                    mediaDao.hardDelete(media.mediaId)
                                 } else {
                                     // ID가 같거나(그럴리 없지만) Server ID가 없으면 기존 방식대로 업데이트
                                     mediaDao.markAsSync(
@@ -506,15 +497,15 @@ class OfflineFirstSharedMediaRepository @Inject constructor(
 
     private fun getOrientationDegrees(path: String): Int {
         return try {
-            val exifInterface = android.media.ExifInterface(path)
+            val exifInterface = ExifInterface(path)
             val orientation = exifInterface.getAttributeInt(
-                android.media.ExifInterface.TAG_ORIENTATION,
-                android.media.ExifInterface.ORIENTATION_NORMAL
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
             )
             when (orientation) {
-                android.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90
-                android.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180
-                android.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                ExifInterface.ORIENTATION_ROTATE_270 -> 270
                 else -> 0
             }
         } catch (e: Exception) {

@@ -20,7 +20,7 @@ internal interface RetrofitBabyApi {
     @POST("groups/{groupId}/babies")
     suspend fun addBaby(
         @Path("groupId") groupId: String,
-        @Part("data") data: RequestBody,
+        @Part("data") data: BabyRequest,
         @Part babyPicture: MultipartBody.Part?
     ): BabyResponse // 👈 ✨ 반환 타입을 NetworkBaby로 변경!
 
@@ -31,13 +31,12 @@ internal interface RetrofitBabyApi {
     ): BabyListResponse
 
     // 3.2 아기 정보 수정
-    // ✨ [수정] 반환 타입 제거 (Response Body 없음)
     @Multipart
     @PUT("groups/{groupId}/babies/{babyId}")
     suspend fun updateBaby(
         @Path("groupId") groupId: String,
         @Path("babyId") babyId: String,
-        @Part("data") data: RequestBody,
+        @Part("data") data: BabyRequest,
         @Part babyPicture: MultipartBody.Part?
     ) :BabyResponse
 

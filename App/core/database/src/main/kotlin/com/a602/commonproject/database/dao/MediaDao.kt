@@ -61,7 +61,7 @@ interface MediaDao {
     suspend fun getDeletedMedia(): List<ShareMediaEntity>
 
     // Dirty Checking용 헬퍼 쿼리 (로컬 작업 중인 ID 목록 한 번에 가져오기) -> 서버에서 데이터를 가져 올때 사용 ㅎ
-    //@Query("SELECT mediaId FROM shared_media WHERE syncStatus IN ('TO_BE_DELETE', 'NOT_UPLOADED')")
+    // @Query("SELECT mediaId FROM shared_media WHERE syncStatus IN ('TO_BE_DELETE', 'NOT_UPLOADED')")
     @Query("""
         SELECT mediaId
         FROM shared_media
@@ -111,6 +111,31 @@ interface MediaDao {
     @Query("SELECT EXISTS(SELECT 1 FROM temp_media WHERE tempId = :tempId)")
     suspend fun checkIfTempExists(tempId: String): Boolean
 
+    // 아이와 연결된 사진을 가져올때
+    @Query("SELECT * FROM media_baby_cross_ref WHERE mediaId = :mediaId")
+    suspend fun getMediaBabyCrossRefsByMediaId(mediaId: String): List<MediaBabyCrossRefEntity>
+    // 아이와 연결된 사진을 지울때
+    @Query("DELETE FROM media_baby_cross_ref WHERE mediaId = :mediaId")
+    suspend fun deleteMediaBabyCrossRefsByMediaId(mediaId: String)
+
+    // 사진과 연결된 아이 부분도 수정해주는 로직이 들어가야함
+    @Transaction
+    suspend fun replaceMediaId(oldId: String, newEntity: ShareMediaEntity){
+        // 1. 기존 ID에 연결된 아기 매핑 정보 백업
+        val oldCrossRefs = getMediaBabyCrossRefsByMediaId(oldId)
+
+        // 2. 기존 데이터 삭제
+        hardDelete(oldId)
+        deleteMediaBabyCrossRefsByMediaId(oldId)
+        // 3. 새 ID로 미디어 정보 삽입
+        upsertSharedList(listOf(newEntity))
+
+        // 4. 백업해둔 정보를 새 ID로 변경하여 다시 삽입
+        if (oldCrossRefs.isNotEmpty()) {
+            val newCrossRefs = oldCrossRefs.map { it.copy(mediaId = newEntity.mediaId) }
+            upsertMediaBabyCrossRefs(newCrossRefs)
+        }
+    }
 
 
     // 임시에서 공유로 이동하는 트랜잭션
@@ -145,14 +170,15 @@ interface MediaDao {
             // B. Dirty Checking (이 900개 안에서만 검사)
             val dirtyIds = getDirtyMediaIds(targetIds).toSet()
 
-            // C. 필터링 (로컬 작업 중인 데이터 제외)
-            val validData = chunkedList.filterNot { serverItem ->
-                dirtyIds.contains(serverItem.mediaId)
-            }
-
-            // D. 저장 (900개 이하이므로 안전하게 저장됨)
-            if (validData.isNotEmpty()) {
-                upsertSharedList(validData)
+            // 🚀 [최적화 지름길] 보호해야 할 데이터가 하나도 없다면 바로 전체 저장
+            if (dirtyIds.isEmpty()) {
+                upsertSharedList(chunkedList)
+            } else {
+                // 3. 보호해야 할 데이터가 섞여 있다면, 그 데이터들만 제외하고 저장
+                val safeData = chunkedList.filterNot { it.mediaId in dirtyIds }
+                if (safeData.isNotEmpty()) {
+                    upsertSharedList(safeData)
+                }
             }
         }
     }

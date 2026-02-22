@@ -4,6 +4,7 @@ import com.a602.commonproject.network.model.AuthResponse
 import com.a602.commonproject.network.model.ChangePasswordRequest
 import com.a602.commonproject.network.model.FcmTokenRequest
 import com.a602.commonproject.network.model.LoginRequest
+import com.a602.commonproject.network.model.SignupRequest
 import com.a602.commonproject.network.model.TokenResponse
 import com.a602.commonproject.network.model.UpdateProfileRequest
 import com.a602.commonproject.network.model.UserResponse
@@ -27,7 +28,7 @@ internal interface RetrofitAuthApi {
     @POST("auth/signup")
     suspend fun signUp(
         // 'data': JSON 문자열
-        @Part("data") data: RequestBody,
+        @Part("data") data: SignupRequest,
         // 'profile_image': 이미지 파일 (선택 사항일 수 있으니 Nullable)
         @Part profileImage: MultipartBody.Part?,
     ): AuthResponse
@@ -51,7 +52,7 @@ internal interface RetrofitAuthApi {
     @Multipart
     @PUT("users/me")
     suspend fun updateMyProfile(
-        @Part("data") request: RequestBody,
+        @Part("data") request: UpdateProfileRequest,
         // 'profile_image': 이미지 파일 (선택 사항일 수 있으니 Nullable)
         @Part profileImage: MultipartBody.Part?,
     ): UserResponse

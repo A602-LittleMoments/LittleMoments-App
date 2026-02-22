@@ -6,6 +6,8 @@ import com.a602.commonproject.network.model.MediaDetailResponse
 import com.a602.commonproject.network.model.MediaListResponse
 import com.a602.commonproject.network.model.MediaUploadMetadataWrapper
 import com.a602.commonproject.network.model.UpdateCaptionRequest
+import com.a602.commonproject.network.util.toJsonRequestBody
+import com.a602.commonproject.network.util.toMultipartPart
 import java.io.File
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
@@ -76,26 +78,12 @@ internal class RetrofitMediaNetwork @Inject constructor(
         files: List<File>,
         metadata: MediaUploadMetadataWrapper,
     ): BatchUploadResponse {
-
         // [Step 1] 파일 리스트 변환 (List<File> -> List<MultipartBody.Part>)
-        val fileParts = files.map { file ->
-            // 1-1. 파일을 읽을 RequestBody 생성 (일단 image/* 로 통일)
-            // 비디오가 섞여 있다면 확장자를 확인해서 video/* 로 분기 처리할 수도 있습니다.
-            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-
-            // 1-2. 서버 약속: "files[]" 라는 이름의 배열로 보냅니다.
-            MultipartBody.Part.createFormData("files", file.name, requestFile)
-        }
-
+        val fileParts = files.map { file ->  file.toMultipartPart("files") }
         // [Step 2] 메타데이터 변환 (Object -> JSON RequestBody)
-        // items: [ { "clientMediaKey": "...", "takenAt": "..." }, ... ] 형태의 JSON
-        val jsonString = networkJson.encodeToString(metadata)
-
-        // "items" 파트에 들어갈 내용이므로 application/json 타입 지정
-        val itemsPart = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
-
+        // val itemsPart = metadata.toJsonRequestBody(networkJson) -> NetworkModule에서 한번에 처리
         // [Step 3] 파일 뭉치와 설명서를 서버로 발송
-        return mediaApi.uploadMediaBatch(groupId, fileParts, itemsPart)
+        return mediaApi.uploadMediaBatch(groupId, fileParts, metadata)
     }
 
     /**

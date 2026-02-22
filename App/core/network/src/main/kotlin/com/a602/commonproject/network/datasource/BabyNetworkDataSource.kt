@@ -4,6 +4,8 @@ import com.a602.commonproject.network.api.RetrofitBabyApi
 import com.a602.commonproject.network.model.BabyResponse
 import com.a602.commonproject.network.model.BabyListResponse
 import com.a602.commonproject.network.model.BabyRequest
+import com.a602.commonproject.network.util.toJsonRequestBody
+import com.a602.commonproject.network.util.toMultipartPart
 import java.io.File
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
@@ -57,28 +59,12 @@ internal class RetrofitBabyNetwork @Inject constructor(
         babyRequest: BabyRequest,
         imageFile: File?,
     ): BabyResponse {
-
-        // [Step 1] 아기 정보(DTO)를 JSON 문자열로 변환합니다.
-        // 예: BabyRequest(name="하린") -> '{"name":"하린", ...}'
-        val jsonString = networkJson.encodeToString(babyRequest)
-
-        // [Step 2] JSON 문자열을 RequestBody로 포장합니다.
-        // "이건 단순 텍스트가 아니라 JSON 데이터야"라고 알려줍니다 (application/json).
-        // API 명세서의 @Part("data")에 해당합니다.
-        val dataPart = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
-
-        // [Step 3] 이미지 파일이 있다면 MultipartBody.Part로 변환합니다.
-        val imagePart = imageFile?.let { file ->
-            // 3-1. 파일을 읽기 위한 RequestBody 생성 (이미지 타입)
-            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-
-            // 3-2. 서버가 약속한 키 값("baby_picture")으로 파트 생성
-            MultipartBody.Part.createFormData("baby_picture", file.name, requestFile)
-        }
-
-        // [Step 4] 조립된 부품(데이터 + 이미지)을 서버로 전송합니다.
+        //  아기 정보(DTO)를 JSON RequestBody로 변환합니다.
+        // val dataPart = babyRequest.toJsonRequestBody(networkJson) -> Module에서 한번에 처리
+        // 이미지 파일이 있다면 MultipartBody.Part로 변환합니다.
+        val imagePart = imageFile?.toMultipartPart("baby_picture")
         // 서버는 등록을 완료하고, 생성된 아기 객체(ID 포함)를 돌려줍니다.
-        return babyApi.addBaby(groupId, dataPart, imagePart)
+        return babyApi.addBaby(groupId, babyRequest, imagePart)
     }
 
     override suspend fun getBabies(groupId: String): BabyListResponse {
@@ -91,21 +77,15 @@ internal class RetrofitBabyNetwork @Inject constructor(
         babyRequest: BabyRequest,
         imageFile: File?,
     ):BabyResponse {
-        // [Step 1] 아기 정보(DTO)를 JSON 문자열로 변환합니다.
-        val jsonString = networkJson.encodeToString(babyRequest)
-        // [Step 2] JSON 문자열을 RequestBody로 포장합니다.
-        val dataPart = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
-
-        // [Step 3] 이미지 파일이 있다면 MultipartBody.Part로 변환합니다.
-        val imagePart = imageFile?.let { file ->
-            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-            MultipartBody.Part.createFormData("baby_picture", file.name, requestFile)
-        }
-
+        //  아기 정보(DTO)를 JSON RequestBody로 변환합니다.
+        // val dataPart = babyRequest.toJsonRequestBody(networkJson) -> Module에서 한번에 처리
+        // 이미지 파일이 있다면 MultipartBody.Part로 변환합니다.
+        val imagePart = imageFile?.toMultipartPart("baby_picture")
+        // 서버는 등록을 완료하고, 생성된 아기 객체(ID 포함)를 돌려줍니다.
         return babyApi.updateBaby(
             groupId = groupId,
             babyId = babyId,
-            data = dataPart,
+            data = babyRequest,
             babyPicture = imagePart,
         )
     }
