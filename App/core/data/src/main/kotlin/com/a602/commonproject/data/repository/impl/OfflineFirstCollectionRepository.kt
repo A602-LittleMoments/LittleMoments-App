@@ -7,24 +7,25 @@ import com.a602.commonproject.model.data.Collection
 import com.a602.commonproject.model.data.SharedMedia
 import com.a602.commonproject.network.datasource.CollectionNetworkDataSource
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 
 
-class NetworkCollectionRepository @Inject constructor(
+class OfflineFirstCollectionRepository @Inject constructor(
     private val networkDataSource: CollectionNetworkDataSource,
-    private val userPreferences: UserPreferencesDataStore // ✨ groupId 조회용
+    private val userPreferences: UserPreferencesDataStore, // ✨ groupId 조회용
 ) : CollectionRepository {
     override suspend fun getCollections(
         type: String,
         limit: Int,
-    ): Result<List<Collection>> {
+    ): Flow<List<Collection>> =
 
+    // =================================================================
+    // 🏷️ 1. 모음(태그) 목록 조회
         // =================================================================
-        // 🏷️ 1. 모음(태그) 목록 조회
-        // =================================================================
-        return try {
+        flow {
             val groupId = getGroupIdOrThrow()
-
             // 1. 서버 요청
             val response = networkDataSource.getCollections(groupId, type, limit)
 
@@ -32,11 +33,9 @@ class NetworkCollectionRepository @Inject constructor(
             // keywords 리스트를 순회하며 변환
             // asExternalModel() 사용
             val collections = response.keywords.map { it.asExternalModel() }
-            Result.success(collections)
-        } catch (e: Exception) {
-            Result.failure(e)
+            emit(collections)
         }
-    }
+
 
     // =================================================================
     // 🖼️ 2. 모음 상세(사진 그리드) 조회

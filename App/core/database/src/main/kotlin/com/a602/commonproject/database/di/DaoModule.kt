@@ -3,6 +3,7 @@ package com.a602.commonproject.database.di
 import androidx.room.Database
 import com.a602.commonproject.database.LMDatabase
 import com.a602.commonproject.database.dao.BabyDao
+import com.a602.commonproject.database.dao.CollectionDao
 import com.a602.commonproject.database.dao.MediaDao
 import com.a602.commonproject.database.dao.NotificationDao
 import com.a602.commonproject.database.dao.SlideshowDao
@@ -35,5 +36,10 @@ internal object DaoModule {
     fun provideNotificationDao(
         database: LMDatabase,
     ) : NotificationDao = database.notificationDao()
+
+    @Provides
+    fun provideCollectionDao(
+        database: LMDatabase,
+    ) : CollectionDao = database.collectionDao()
 
 }

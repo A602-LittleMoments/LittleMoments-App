@@ -14,7 +14,7 @@ import com.a602.commonproject.data.repository.impl.OfflineFirstTempMediaReposito
 import com.a602.commonproject.data.repository.impl.OfflineFirstUserRepository
 import com.a602.commonproject.data.repository.TempMediaRepository
 import com.a602.commonproject.data.repository.UserRepository
-import com.a602.commonproject.data.repository.impl.NetworkCollectionRepository
+import com.a602.commonproject.data.repository.impl.OfflineFirstCollectionRepository
 import com.a602.commonproject.data.repository.impl.NetworkGroupRepository
 import com.a602.commonproject.data.repository.impl.OfflineFirstNotificationRepository
 import com.a602.commonproject.data.repository.impl.OfflineFirstSlideshowRepository
@@ -62,7 +62,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindCollectionRepository(
-        impl: NetworkCollectionRepository,
+        impl: OfflineFirstCollectionRepository,
     ): CollectionRepository
 
     @Binds
