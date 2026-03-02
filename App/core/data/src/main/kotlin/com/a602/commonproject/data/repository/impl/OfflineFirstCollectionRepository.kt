@@ -2,6 +2,8 @@ package com.a602.commonproject.data.repository.impl
 
 import com.a602.commonproject.data.model.asExternalModel
 import com.a602.commonproject.data.repository.CollectionRepository
+import com.a602.commonproject.database.dao.CollectionDao
+import com.a602.commonproject.database.dao.MediaDao
 import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
 import com.a602.commonproject.model.data.Collection
 import com.a602.commonproject.model.data.SharedMedia
@@ -14,9 +16,11 @@ import kotlinx.coroutines.flow.flow
 
 class OfflineFirstCollectionRepository @Inject constructor(
     private val networkDataSource: CollectionNetworkDataSource,
+    private val collectionDao: CollectionDao,
+    private val mediaDao: MediaDao,
     private val userPreferences: UserPreferencesDataStore, // ✨ groupId 조회용
 ) : CollectionRepository {
-    override suspend fun getCollections(
+    override fun getCollections(
         type: String,
         limit: Int,
     ): Flow<List<Collection>> =
@@ -35,6 +39,10 @@ class OfflineFirstCollectionRepository @Inject constructor(
             val collections = response.keywords.map { it.asExternalModel() }
             emit(collections)
         }
+
+    override suspend fun syncCollections(type: String, limit: Int): Boolean {
+        TODO("Not yet implemented")
+    }
 
 
     // =================================================================
@@ -59,6 +67,10 @@ class OfflineFirstCollectionRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override suspend fun syncCollectionDetail(keywordId: String, cursor: String?): Boolean {
+        TODO("Not yet implemented")
     }
 
     // =================================================================

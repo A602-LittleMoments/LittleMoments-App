@@ -13,6 +13,7 @@ import com.a602.commonproject.database.model.TempMediaEntity
 import com.a602.commonproject.database.dao.NotificationDao
 import com.a602.commonproject.database.model.CollectionEntity
 import com.a602.commonproject.database.model.MediaBabyCrossRefEntity
+import com.a602.commonproject.database.model.MediaCollectionCrossRefEntity
 import com.a602.commonproject.database.model.NotificationEntity
 
 @Database(
@@ -23,9 +24,10 @@ import com.a602.commonproject.database.model.NotificationEntity
         BabyEntity::class,
         NotificationEntity::class,
         MediaBabyCrossRefEntity::class,
-        CollectionEntity::class
+        CollectionEntity::class,
+        MediaCollectionCrossRefEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class LMDatabase : RoomDatabase(){
