@@ -1,5 +1,7 @@
 package com.a602.commonproject.database.dao
 
+import androidx.paging.PagingData
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
@@ -11,11 +13,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CollectionDao {
-    /**
-     * 특정 카테고리(예: TAG, DATE)의 컬렉션 목록을 가져옵니다.
-     */
-    @Query("SELECT * FROM collections WHERE categoryValue = :categoryValue")
-    fun getCollectionsByCategory(categoryValue: String): Flow<List<CollectionEntity>>
 
     /**
      * 모든 컬렉션 목록을 가져옵니다.
@@ -56,7 +53,7 @@ interface CollectionDao {
         ORDER BY takenAt DESC
     """,
     )
-    fun getMediaByCollectionStream(collectionId: String): Flow<List<ShareMediaEntity>>
+    fun getMediaByCollection(collectionId: String): PagingSource<Int, ShareMediaEntity>
 
 
     /**

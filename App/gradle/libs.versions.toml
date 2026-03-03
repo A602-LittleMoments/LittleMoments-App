@@ -1,7 +1,7 @@
 [versions]
 androidDesugarJdkLibs = "2.1.5"
 # AGP와 도구들은 같이 업그래이드 되어야 함
-androidGradlePlugin = "9.0.0"
+androidGradlePlugin = "9.0.1"
 androidTools = "32.0.0"
 kotlin = "2.3.0"
 ksp = "2.3.4"

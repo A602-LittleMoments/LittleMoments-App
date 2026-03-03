@@ -3,6 +3,7 @@ package com.a602.commonproject.data.repository
 import com.a602.commonproject.model.data.DailyQuestion
 
 /**
+ * 사용 X
  * 📅 DailyQuestionRepository
  * 매일 바뀌는 '오늘의 질문' 데이터를 관리합니다.
  */

@@ -6,6 +6,9 @@ import com.a602.commonproject.model.data.DailyQuestion
 import com.a602.commonproject.network.datasource.QuestionNetworkDataSource
 import javax.inject.Inject
 
+/**
+ * 사용 X
+ */
 class NetworkDailyQuestionRepository @Inject constructor(
     private val networkDataSource: QuestionNetworkDataSource
 ) : DailyQuestionRepository {

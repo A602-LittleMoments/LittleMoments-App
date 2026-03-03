@@ -1,5 +1,6 @@
 package com.a602.commonproject.data.repository
 
+import androidx.paging.PagingData
 import com.a602.commonproject.model.data.Collection
 import com.a602.commonproject.model.data.SharedMedia
 import kotlinx.coroutines.flow.Flow
@@ -11,12 +12,8 @@ import kotlinx.coroutines.flow.Flow
 interface CollectionRepository {
     /**
      * 모음(태그) 목록 조회
-     * - 예: "웃는 얼굴", "해변", "강아지" 등 키워드 리스트 반환
      */
-    fun getCollections(
-        type: String = "TAG",
-        limit: Int = 20
-    ): Flow<List<Collection>>
+    fun getCollections(): Flow<List<Collection>>
 
     /**
      * 2컬렉션 목록 동기화
@@ -36,8 +33,7 @@ interface CollectionRepository {
      */
     fun getCollectionDetail(
         keywordId: String,
-        cursor: String? = null
-    ): Flow<List<SharedMedia>> // (Media 도메인 모델 사용)
+    ): Flow<PagingData<SharedMedia>> // (Media 도메인 모델 사용)
 
     /**
      * 특정 컬렉션 상세 데이터 동기화
