@@ -8,20 +8,16 @@ import kotlinx.coroutines.flow.Flow
 
 interface GroupRepository {
 
-    // =================================================================
-    // 📱 [핵심 기능]
-    // =================================================================
-
     /**
      * 내 그룹 정보 조회
      * - 서버에서 최신 정보를 가져옵니다.
      * - 성공 시, 안전장치로 DataStore의 GroupId도 함께 갱신합니다.
      */
-    suspend fun getMyGroup(): Result<Group>
+    fun getMyGroup(): Flow<Group>
     /**
      * 그룹 멤버 목록 조회
      */
-    suspend fun getGroupMembers(): Result<List<GroupMember>>
+    fun getGroupMembers(): Flow<List<GroupMember>>
 
     // ➕ 그룹 생성 (성공 시 DataStore groupId 갱신)
     suspend fun createGroup(groupName: String, relation : String): Result<Unit>
@@ -38,7 +34,7 @@ interface GroupRepository {
     /**
      * 현재 그룹의 초대 코드 조회
      */
-    suspend fun getInvites(): Result<InviteCode>
+    fun getInvites(): Flow<InviteCode>
     /**
      * 초대 코드 새로고침 (기존 코드 만료 및 재발급)
      */
@@ -46,6 +42,6 @@ interface GroupRepository {
     /**
      * 초대 코드로 그룹 정보 미리보기 (가입 전 확인용)
      */
-    suspend fun getGroupInfoByInvite(inviteCode: String): Result<GroupInviteInfoResponse>
+    fun getGroupInfoByInvite(inviteCode: String): Flow<GroupInviteInfoResponse>
 
 }

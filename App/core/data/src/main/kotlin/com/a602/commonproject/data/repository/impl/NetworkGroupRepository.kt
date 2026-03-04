@@ -1,5 +1,7 @@
 package com.a602.commonproject.data.repository.impl
 
+import com.a602.commonproject.common.network.Dispatcher
+import com.a602.commonproject.common.network.LMDispatchers
 import com.a602.commonproject.data.model.asExternalModel
 import com.a602.commonproject.data.repository.GroupRepository
 import com.a602.commonproject.datastore.datastore.UserPreferencesDataStore
@@ -12,21 +14,27 @@ import com.a602.commonproject.network.model.GroupInviteInfoResponse
 import com.a602.commonproject.network.model.JoinGroupRequest
 import com.a602.commonproject.network.model.UpdateGroupRequest
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 class NetworkGroupRepository @Inject constructor(
     private val networkDataSource: GroupNetworkDataSource,
     private val userPreferences: UserPreferencesDataStore, // ✨ DataStore 갱신용
+    @param:Dispatcher(LMDispatchers.IO) private val ioDispatcher: CoroutineDispatcher
 ) : GroupRepository {
 
-    private suspend fun getGroupIdOrThrow(): String {
-        // userPreferences.userGroupId는 Flow이므로 first()로 현재 값을 스냅샷처럼 가져옵니다.
-        return userPreferences.userGroupId.first()
-            ?: throw IllegalStateException("로그인된 그룹 정보가 없습니다.")
-    }
 
-    override suspend fun getMyGroup(): Result<Group> {
-        return try {
+
+    override  fun getMyGroup(): Flow<Group> = flow {
+        val response = networkDataSource.getMyGroup()
+        val group = response.asExternalModel()
+        userPreferences.setGroupId(group.id)
+        emit(group)
+    }.flowOn(ioDispatcher)
+     /*   return try {
             // 1. 서버 요청
             val response = networkDataSource.getMyGroup()
 
@@ -41,7 +49,7 @@ class NetworkGroupRepository @Inject constructor(
             Result.failure(e)
         }
     }
-
+*/
     // =================================================================
     // 👥 2. 그룹 멤버 조회
     // =================================================================
@@ -155,4 +163,17 @@ class NetworkGroupRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+
+
+    /**
+     * DataStore에서 현재 내 그룹 ID를 가져옵니다. (없으면 에러)
+     * 내부 확장 함수
+     */
+    private suspend fun getGroupIdOrThrow(): String {
+        // userPreferences.userGroupId는 Flow이므로 first()로 현재 값을 스냅샷처럼 가져옵니다.
+        return userPreferences.userGroupId.first()
+            ?: throw IllegalStateException("로그인된 그룹 정보가 없습니다.")
+    }
+
 }
