@@ -113,7 +113,7 @@ class MyPageViewModel @Inject constructor(
     // 데이터 스트림: 유저, 아기, 그룹 정보 (네트워크 호출 포함)
     private val _dataState: Flow<MyPageDataState> = combine(
         userRepository.authState,
-        babyRepository.getBabyStream(),
+        babyRepository.getBabies(),
         _refreshTrigger
     ) { authState, babyList, _ ->
         Pair(authState, babyList)
@@ -218,11 +218,11 @@ class MyPageViewModel @Inject constructor(
     }
 
     fun onRoleSelected(isMember: Boolean) {
-        _localState.update { 
+        _localState.update {
             it.copy(
-                showRoleSelectDialog = false, 
+                showRoleSelectDialog = false,
                 selectedRoleIsMember = isMember
-            ) 
+            )
         }
         fetchInviteCode(isMember)
     }
@@ -244,7 +244,7 @@ class MyPageViewModel @Inject constructor(
             }
         }
     }
-    
+
     fun refreshInviteCode() { // 이름 변경: onRefreshInviteCode -> refreshInviteCode 로 통일
         val isMember = _localState.value.selectedRoleIsMember
         viewModelScope.launch {
@@ -280,7 +280,7 @@ class MyPageViewModel @Inject constructor(
     fun closeProfileEditDialog() {
         _localState.update { it.copy(showProfileEditDialog = false) }
     }
-    
+
     // --- 비밀번호 변경 관련 로직 ---
 
     fun openPasswordChangeDialog() {
@@ -341,7 +341,7 @@ class MyPageViewModel @Inject constructor(
             _localState.update { it.copy(passwordChangeError = "새 비밀번호가 일치하지 않습니다.") }
             return
         }
-        
+
         // 현재 비밀번호 입력 확인
         if (currentPwd.isBlank()) {
              _localState.update { it.copy(passwordChangeError = "현재 비밀번호를 입력해주세요.") }
@@ -350,15 +350,15 @@ class MyPageViewModel @Inject constructor(
 
         viewModelScope.launch {
              val pwdResult = userRepository.changePassword(currentPwd, newPwd, confirmPwd)
-             
+
              pwdResult.onSuccess {
                  closePasswordChangeDialog()
                  // 상태 초기화
-                 _localState.update { 
+                 _localState.update {
                      it.copy(
-                         currentPassword = "", newPassword = "", confirmPassword = "", 
+                         currentPassword = "", newPassword = "", confirmPassword = "",
                          passwordChangeError = null
-                     ) 
+                     )
                  }
                  // 필요하다면 토스트 메시지 등을 위한 이펙트 처리
              }.onFailure { e ->

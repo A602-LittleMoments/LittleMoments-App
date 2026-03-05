@@ -29,7 +29,7 @@ class OfflineFirstBabyRepository @Inject constructor(
     // =================================================================
     // 📱 1. 목록 조회
     // =================================================================
-    override fun getBabyStream(): Flow<List<Baby>> {
+    override fun getBabies(): Flow<List<Baby>> {
         return babyDao.getAllBabies().map { entities -> entities.map { it.asExternalModel() } }
     }
     // =================================================================

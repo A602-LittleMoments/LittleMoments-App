@@ -88,7 +88,7 @@ class GridGalleryViewmodel @Inject constructor(
             }
 
             val babyNameFlow = if (filter.babyId != null) {
-                babyRepository.getBabyStream().map { babies ->
+                babyRepository.getBabies().map { babies ->
                     babies.find { it.babyId == filter.babyId }?.babyName
                 }
             } else {
@@ -98,9 +98,9 @@ class GridGalleryViewmodel @Inject constructor(
             // [NEW] Slideshow matching logic
             val relatedSlideshowFlow = if (filter.keywordId != null && filter.title != null) {
                 slideshowRepository.getSlideshowsStream().map { slideshows ->
-                    slideshows.filter { 
-                        it.title == filter.title && 
-                        (it.status == com.a602.commonproject.model.data.Slideshow.MakeStatus.COMPLETED || 
+                    slideshows.filter {
+                        it.title == filter.title &&
+                        (it.status == com.a602.commonproject.model.data.Slideshow.MakeStatus.COMPLETED ||
                          it.status == com.a602.commonproject.model.data.Slideshow.MakeStatus.DOWNLOADED)
                     }.maxByOrNull { it.createdAt }
                 }
@@ -150,7 +150,7 @@ class GridGalleryViewmodel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = GridGalleryUiState(isLoading = true)
     )
-    
+
     fun toggleSortOrder() {
         sortOrder.value = if (sortOrder.value == SortOrder.LATEST) SortOrder.OLDEST else SortOrder.LATEST
     }
@@ -203,7 +203,7 @@ class GridGalleryViewmodel @Inject constructor(
                         allSuccess = false
                     }
                 }
-                
+
                 if (allSuccess) {
                     isSelectMode.value = false
                     selectedIds.value = emptySet()
@@ -226,11 +226,11 @@ class GridGalleryViewmodel @Inject constructor(
         if (name.isEmpty()) return name
         // 1. 성 떼기 (첫 글자 제외) - 외자/세글자 이상 대응을 위해
         val givenName = if (name.length >= 2) name.substring(1) else name
-        
+
         // 2. 받침 유무 확인하여 '이' 붙이기
         val lastChar = givenName.last()
         val hasBatchim = (lastChar - '\uAC00') % 28 > 0
-        
+
         return if (hasBatchim) "${givenName}이" else givenName
     }
 }

@@ -23,147 +23,98 @@ import kotlinx.coroutines.flow.flowOn
 class NetworkGroupRepository @Inject constructor(
     private val networkDataSource: GroupNetworkDataSource,
     private val userPreferences: UserPreferencesDataStore, // ✨ DataStore 갱신용
-    @param:Dispatcher(LMDispatchers.IO) private val ioDispatcher: CoroutineDispatcher
+    @param:Dispatcher(LMDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
 ) : GroupRepository {
 
-
-
-    override  fun getMyGroup(): Flow<Group> = flow {
+    /**
+     * 그룹 정보 조회
+     */
+    override fun getMyGroup(): Flow<Group> = flow {
         val response = networkDataSource.getMyGroup()
         val group = response.asExternalModel()
         userPreferences.setGroupId(group.id)
         emit(group)
     }.flowOn(ioDispatcher)
-     /*   return try {
-            // 1. 서버 요청
-            val response = networkDataSource.getMyGroup()
 
-            // 2. 도메인 변환
-            val group = response.asExternalModel()
+    /**
+     * 그룹 멥버 조회
+     */
+    override fun getGroupMembers(): Flow<List<GroupMember>> = flow {
+        val groupId = getGroupIdOrThrow()
+        val response = networkDataSource.getGroupMembers(groupId)
+        emit(response.asExternalModel())
+    }.flowOn(ioDispatcher)
 
-            // 3. (안전장치) 서버에서 성공적으로 가져왔다면 내 로컬 ID도 싱크를 맞춤
-            userPreferences.setGroupId(group.id)
-
-            Result.success(group)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-*/
-    // =================================================================
-    // 👥 2. 그룹 멤버 조회
-    // =================================================================
-    override suspend fun getGroupMembers(): Result<List<GroupMember>> {
-        return try {
-            val groupId = getGroupIdOrThrow()
-
-            // 1. 서버 요청
-            val response = networkDataSource.getGroupMembers(groupId)
-
-            // 2. 도메인 변환 (List<Response> -> List<Domain>)
-            Result.success(response.asExternalModel())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    /**
+     * 그룹 생성
+     */
+    override suspend fun createGroup(groupName: String, relation: String): Result<Unit> = runCatching {
+        val request = CreateGroupRequest(groupName = groupName, relation = relation)
+        val response = networkDataSource.createGroup(request)
+        userPreferences.setGroupId(response.groupId)
     }
 
-    // =================================================================
-    // ➕ 3. 그룹 생성
-    // =================================================================
-    override suspend fun createGroup(groupName: String, relation: String): Result<Unit> {
-        return try {
-            val request = CreateGroupRequest(groupName = groupName, relation = relation)
-            val response = networkDataSource.createGroup(request)
-
-            // ID 저장
-            userPreferences.setGroupId(response.groupId)
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    /**
+     * 그룹 가입
+     */
+    override suspend fun joinGroup(invitationCode: String, relation: String): Result<Unit> = runCatching {
+        val request = JoinGroupRequest(relation = relation)
+        val response = networkDataSource.joinGroup(invitationCode, request)
+        // ID 저장
+        userPreferences.setGroupId(response.groupId)
     }
 
-    // =================================================================
-    // 🔗 4. 그룹 가입
-    // =================================================================
-    override suspend fun joinGroup(invitationCode: String, relation: String): Result<Unit> {
-        return try {
-            val request = JoinGroupRequest(relation = relation)
-            val response = networkDataSource.joinGroup(invitationCode, request)
-
-            // ID 저장
-            userPreferences.setGroupId(response.groupId)
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    /**
+     * 그룹 이름 수정
+     */
+    override suspend fun updateGroupName(newName: String): Result<Unit> = runCatching {
+        val groupId = getGroupIdOrThrow()
+        val request = UpdateGroupRequest(groupName = newName)
+        networkDataSource.updateGroup(groupId, request)
     }
 
-    // =================================================================
-    // ✏️ 6. 그룹 이름 수정
-    // =================================================================
-    override suspend fun updateGroupName(newName: String): Result<Unit> {
-        return try {
-            val groupId = getGroupIdOrThrow()
-            val request = UpdateGroupRequest(groupName = newName)
-
-            networkDataSource.updateGroup(groupId, request)
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-    // =================================================================
-    // 👋 5. 그룹 나가기
-    // =================================================================
-    override suspend fun leaveGroup(): Result<Unit> {
-        return try {
-            // 여기서는 DataStore에 저장된 ID를 가져와서 서버에 보냄
-            // (만약 이미 null이면 나갈 그룹이 없으니 성공 처리)
-            val groupId = userPreferences.userGroupId.first() ?: return Result.success(Unit)
-
-            networkDataSource.leaveGroup(groupId)
-
-            // ID 삭제
-            userPreferences.deleteGroupId()
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    /**
+     * 그룹 탈퇴
+     */
+    override suspend fun leaveGroup(): Result<Unit> = runCatching {
+        // 여기서는 DataStore에 저장된 ID를 가져와서 서버에 보냄
+        // (만약 이미 null이면 나갈 그룹이 없으니 성공 처리)
+        val groupId = userPreferences.userGroupId.first() ?: return@runCatching
+        networkDataSource.leaveGroup(groupId)
+        // ID 삭제
+        userPreferences.deleteGroupId()
     }
 
-    override suspend fun getInvites(): Result<InviteCode> {
-        return try {
-            val groupId = getGroupIdOrThrow()
-            val response = networkDataSource.getInvites(groupId)
-            Result.success(response.asExternalModel())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-    override suspend fun refreshInvites(): Result<InviteCode> {
-        return try {
-            val groupId = getGroupIdOrThrow()
-            val response = networkDataSource.refreshInvites(groupId)
-            Result.success(response.asExternalModel())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+
+    // ---------------------------------------------------------------------
+    // 초대 관련
+
+    /**
+     * 초대 코드 가져오기
+     */
+    override fun getInvites(): Flow<InviteCode> = flow {
+        val groupId = getGroupIdOrThrow()
+        val response = networkDataSource.getInvites(groupId)
+        emit(response.asExternalModel())
+    }.flowOn(ioDispatcher)
+
+
+    /**
+     * 초대 코드 재발급
+     */
+    override suspend fun refreshInvites(): Result<InviteCode> = runCatching {
+        val groupId = getGroupIdOrThrow()
+        val response = networkDataSource.refreshInvites(groupId)
+        response.asExternalModel()
     }
 
-    override suspend fun getGroupInfoByInvite(inviteCode: String): Result<GroupInviteInfoResponse> {
-        return try {
-            val response = networkDataSource.getGroupInfoByInvite(inviteCode)
-            Result.success(response)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
+    /**
+     * 초대 코드로 그룹 정보 미리보기 (안 씀)
+     */
+    override fun getGroupInfoByInvite(inviteCode: String): Flow<GroupInviteInfoResponse> = flow {
+        val response = networkDataSource.getGroupInfoByInvite(inviteCode)
+        emit(response)
+    }.flowOn(ioDispatcher)
 
 
     /**

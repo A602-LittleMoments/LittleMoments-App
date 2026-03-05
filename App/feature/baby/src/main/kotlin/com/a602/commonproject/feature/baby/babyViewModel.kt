@@ -39,7 +39,7 @@ class HomeViewModel @Inject constructor(
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val mediaPagingFlow: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<SharedMedia>> =
         combine(
-            babyRepository.getBabyStream(),
+            babyRepository.getBabies(),
             _selectedBabyIndex,
             _selectedYear
         ) { babies, index, year ->
@@ -59,7 +59,7 @@ class HomeViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<HomeUiState> = combine(
-        babyRepository.getBabyStream(),
+        babyRepository.getBabies(),
         _collections,
         _isError,
         _selectedBabyIndex
@@ -87,7 +87,7 @@ class HomeViewModel @Inject constructor(
     init {
         fetchCollections()
     }
-    
+
     fun logout(){
         viewModelScope.launch {
             userRepository.logout()
@@ -113,10 +113,10 @@ class HomeViewModel @Inject constructor(
             val imageFile = imageUri?.let { uriToFile(it) }
             val formattedBirthDate = formatDate(birthDate)
             val genderEnum = if (gender == "MALE") Baby.Gender.MALE else Baby.Gender.FEMALE
-            
+
             babyRepository.addBaby(name, formattedBirthDate, genderEnum, imageFile)
                 .onSuccess { onComplete() }
-                .onFailure { 
+                .onFailure {
                     // TODO: Handle error
                     onComplete() // Proceed for now or show error
                 }

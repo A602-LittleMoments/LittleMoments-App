@@ -8,18 +8,17 @@ interface BabyRepository {
     /**
      * 아기 목록 조회 (DB 관찰)
      */
-    fun getBabyStream(): Flow<List<Baby>>
+    fun getBabies(): Flow<List<Baby>>
 
     /**
     * 아기 등록 (API 호출 -> DB 저장)
-    * - 반환값: Result<Unit>
     */
     suspend fun addBaby(
         name: String,
         birthDate: String, // "yyyy-MM-dd"
         gender: Baby.Gender,
         imageFile: File?
-    ): Result<Unit>
+    ): Boolean
 
     /**
      * 아기 정보 수정 (API 호출 -> DB 저장)
@@ -31,12 +30,12 @@ interface BabyRepository {
         birthDate: String,
         gender: Baby.Gender,
         imageFile: File?
-    ): Result<Unit>
+    ): Boolean
 
     /**
      * 아기 삭제
      */
-    suspend fun deleteBaby(groupId: String, babyId: String): Result<Unit>
+    suspend fun deleteBaby(groupId: String, babyId: String): Boolean
 
     /**
      * 서버 동기화 (Worker용)
